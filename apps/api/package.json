@@ -1,0 +1,16 @@
+{
+  "name": "@vinyl/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --watch dist/main.js",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@vinyl/shared": "0.1.0"
+  }
+}

@@ -1,0 +1,28 @@
+.page-shell {
+  box-sizing: border-box;
+  padding: 48rpx 32rpx;
+}
+
+.eyebrow {
+  color: #66794f;
+  font-size: 24rpx;
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 16rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 2rpx solid #171815;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 700;
+}
+
+.count {
+  color: #686b65;
+  font-size: 28rpx;
+}

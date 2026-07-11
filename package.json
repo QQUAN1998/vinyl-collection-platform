@@ -1,0 +1,22 @@
+{
+  "name": "vinyl-collection-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @vinyl/shared && npm run build --workspace @vinyl/api",
+    "test": "npm run test --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run test --workspace @vinyl/api",
+    "typecheck": "npm run typecheck --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run typecheck --workspace @vinyl/api"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,17 +1,17 @@
-import { createServer } from "node:http";
+import "reflect-metadata";
 
-import { routeRequest } from "./router.js";
+import { NestFactory } from "@nestjs/core";
 
-const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+import { AppModule } from "./app.module.js";
 
-const server = createServer((request, response) => {
-  const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
-  const result = routeRequest(request.method ?? "GET", url.pathname);
+async function bootstrap(): Promise<void> {
+  const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+  const app = await NestFactory.create(AppModule);
 
-  response.writeHead(result.status, { "content-type": "application/json; charset=utf-8" });
-  response.end(JSON.stringify(result.body));
-});
+  await app.listen(port, "127.0.0.1");
+}
 
-server.listen(port, () => {
-  console.log(`Vinyl API listening on http://127.0.0.1:${port}`);
+bootstrap().catch((error: unknown) => {
+  console.error("Failed to start Vinyl API", error);
+  process.exitCode = 1;
 });

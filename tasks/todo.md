@@ -19,12 +19,12 @@
 
 ## Phase 2: Backend Foundation
 
-- [ ] Task 4: 初始化 NestJS API 和 Prisma
+- [x] Task 4: 初始化 NestJS API 和 Prisma
   - Acceptance: API 项目可启动，Prisma 可连接 PostgreSQL。
   - Verify: `npm run api:dev` 和 `npm run prisma:migrate` 可执行。
   - Files: `apps/api`, `prisma/schema.prisma`
 
-- [ ] Task 5: 建立核心数据库表
+- [x] Task 5: 建立核心数据库表
   - Acceptance: users、memberships、membership_orders、albums、collections、tv_devices、sync_events 表存在。
   - Verify: 迁移后数据库结构与规格一致。
   - Files: `prisma/schema.prisma`, `apps/api/tests`

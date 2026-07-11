@@ -7,7 +7,11 @@
     "packages/*"
   ],
   "scripts": {
+    "api:dev": "npm run build --workspace @vinyl/shared && npm run dev --workspace @vinyl/api",
     "build": "npm run build --workspace @vinyl/shared && npm run build --workspace @vinyl/api",
+    "prisma:deploy": "npm run prisma:deploy --workspace @vinyl/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @vinyl/api",
+    "prisma:validate": "npm run prisma:validate --workspace @vinyl/api",
     "test": "npm run test --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run test --workspace @vinyl/api",
     "typecheck": "npm run typecheck --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run typecheck --workspace @vinyl/api"
   },

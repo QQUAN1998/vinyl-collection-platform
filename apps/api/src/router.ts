@@ -1,3 +1,5 @@
+import { createApiError } from "@vinyl/shared";
+
 import { getSystemInfo } from "./system-info.js";
 
 export interface ApiResponse {
@@ -16,6 +18,6 @@ export function routeRequest(method: string, path: string): ApiResponse {
 
   return {
     status: 404,
-    body: { code: "NOT_FOUND", message: "Route not found" },
+    body: createApiError("NOT_FOUND", "Route not found"),
   };
 }

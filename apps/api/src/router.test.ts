@@ -23,7 +23,12 @@ describe("routeRequest", () => {
   it("returns 404 for an unknown route", () => {
     expect(routeRequest("GET", "/missing")).toEqual({
       status: 404,
-      body: { code: "NOT_FOUND", message: "Route not found" },
+      body: {
+        error: {
+          code: "NOT_FOUND",
+          message: "Route not found",
+        },
+      },
     });
   });
 });

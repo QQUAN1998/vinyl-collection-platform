@@ -7,7 +7,7 @@
   - Verify: `npm install`、`npm run typecheck` 可以执行到预期阶段。
   - Files: `package.json`, `apps/*`, `packages/shared`
 
-- [ ] Task 2: 定义共享类型和 API 错误合同
+- [x] Task 2: 定义共享类型和 API 错误合同
   - Acceptance: 用户、会员、唱片、收藏、电视设备、分页、错误结构都有 TypeScript 类型。
   - Verify: shared package typecheck 通过。
   - Files: `packages/shared/src/*`

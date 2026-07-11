@@ -12,7 +12,7 @@
   - Verify: shared package typecheck 通过。
   - Files: `packages/shared/src/*`
 
-- [ ] Task 3: 迁移 UI token
+- [x] Task 3: 迁移 UI token
   - Acceptance: 当前原型的颜色、间距、圆角、字体层级整理成小程序可复用 token。
   - Verify: token 文件可被小程序页面引用。
   - Files: `apps/miniprogram/styles/tokens.wxss`, `packages/shared`

@@ -1,0 +1,48 @@
+page {
+  --color-screen: #e7e4dc;
+  --color-paper: #fbfaf6;
+  --color-ink: #171814;
+  --color-muted: #686a63;
+  --color-faint: #9a9b94;
+  --color-line: #d8d5cc;
+  --color-soft: #efede6;
+  --color-primary: #65764d;
+  --color-primary-soft: #dfe7d4;
+  --color-primary-faint: #f3f5ed;
+  --color-vip: #e7d37c;
+  --color-warning: #b96d5b;
+
+  --rarity-n: #65764d;
+  --rarity-r: #5f8f93;
+  --rarity-sr: #806a91;
+  --rarity-ssr: #7c858d;
+  --rarity-ur: #b98b24;
+
+  --space-1: 8rpx;
+  --space-2: 16rpx;
+  --space-3: 24rpx;
+  --space-4: 32rpx;
+  --space-5: 40rpx;
+  --space-6: 48rpx;
+  --space-7: 64rpx;
+  --space-8: 80rpx;
+  --page-x: 48rpx;
+  --page-top: 144rpx;
+  --page-bottom: 188rpx;
+  --section-gap: 68rpx;
+  --block-gap: 36rpx;
+
+  --radius-ui: 24rpx;
+  --radius-card: 32rpx;
+  --radius-cover: 28rpx;
+  --radius-pill: 999rpx;
+
+  --control-height: 116rpx;
+  --tap-target: 88rpx;
+  --font-caption: 24rpx;
+  --font-body: 28rpx;
+  --font-subtitle: 32rpx;
+  --font-title: 48rpx;
+  --font-display: 56rpx;
+  --shadow-card: 0 32rpx 80rpx rgba(30, 31, 26, 0.14);
+}

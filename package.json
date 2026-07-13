@@ -1,0 +1,27 @@
+{
+  "name": "vinyl-collection-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "api:dev": "npm run build --workspace @vinyl/shared && npm run dev --workspace @vinyl/api",
+    "build": "npm run build --workspace @vinyl/shared && npm run build --workspace @vinyl/api",
+    "miniprogram:test": "node --test apps/miniprogram/tests/miniprogram-static.test.js apps/miniprogram/tests/miniprogram-data.test.js",
+    "prisma:deploy": "npm run prisma:deploy --workspace @vinyl/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @vinyl/api",
+    "prisma:validate": "npm run prisma:validate --workspace @vinyl/api",
+    "test": "npm run miniprogram:test && npm run test --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run test --workspace @vinyl/api",
+    "typecheck": "npm run typecheck --workspace @vinyl/shared && npm run build --workspace @vinyl/shared && npm run typecheck --workspace @vinyl/api"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

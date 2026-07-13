@@ -14,4 +14,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run prisma:deploy --workspace @vinyl/api && npm run start --workspace @vinyl/api"]
+CMD ["node", "apps/api/scripts/start-cloudrun.mjs"]

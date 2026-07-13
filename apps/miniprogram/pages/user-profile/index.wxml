@@ -1,0 +1,25 @@
+<view class="screen user-profile-screen">
+  <view class="screen-header">
+    <view class="screen-title">编辑个人资料</view>
+    <view class="screen-kicker">PROFILE</view>
+  </view>
+
+  <view class="avatar-editor" bindtap="chooseAvatar" hover-class="button-hover">
+    <image wx:if="{{profileForm.avatar}}" class="profile-avatar-large" src="{{profileForm.avatar}}" mode="aspectFill" />
+    <view wx:else class="profile-avatar-large">{{avatarInitial}}</view>
+    <view class="avatar-action">替换头像</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">个人信息</view>
+    <view class="profile-form">
+      <form-field label="用户名" value="{{profileForm.name}}" data-key="name" bind:change="handleFieldChange" />
+      <form-field label="简介" mode="textarea" value="{{profileForm.bio}}" placeholder="写下你的收藏偏好" data-key="bio" bind:change="handleFieldChange" />
+    </view>
+  </view>
+
+  <view class="profile-actions">
+    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">取消</view>
+    <view class="primary-button" bindtap="saveProfile" hover-class="button-hover">保存资料</view>
+  </view>
+</view>

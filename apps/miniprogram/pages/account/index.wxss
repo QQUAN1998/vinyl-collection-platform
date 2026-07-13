@@ -1,0 +1,219 @@
+.account-screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile {
+  display: grid;
+  gap: 54rpx;
+}
+
+.profile-card {
+  display: grid;
+  gap: 24rpx;
+  padding: 34rpx;
+  border-radius: var(--radius-card);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.profile-edit-card {
+  grid-template-columns: 108rpx minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.profile-card-hover {
+  opacity: 0.92;
+}
+
+.profile-identity {
+  position: relative;
+  width: 96rpx;
+}
+
+.profile-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-mustard);
+  color: var(--color-ink);
+  font-size: 36rpx;
+  font-weight: 950;
+}
+
+.profile-tier-badge {
+  min-width: 66rpx;
+  height: 34rpx;
+  position: absolute;
+  left: 50%;
+  bottom: -12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 18rpx;
+  font-weight: 950;
+  transform: translateX(-50%);
+}
+
+.profile-card-copy {
+  min-width: 0;
+  display: grid;
+  gap: 10rpx;
+}
+
+.profile-user-title {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 38rpx;
+  font-weight: 950;
+  line-height: 1.14;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-collection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18rpx;
+  color: #e5ece5;
+  font-size: 27rpx;
+  font-weight: 850;
+}
+
+.profile-normal-limit {
+  color: #d7dee6;
+  font-size: 23rpx;
+  font-weight: 800;
+}
+
+.profile-arrow,
+.tool-arrow {
+  color: var(--color-action);
+  font-size: 36rpx;
+  font-weight: 950;
+}
+
+.account-section {
+  display: grid;
+  gap: 32rpx;
+}
+
+.head-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.account-section-head .section-title {
+  margin-bottom: 0;
+  font-size: 38rpx;
+}
+
+.device-row {
+  min-height: 150rpx;
+  display: grid;
+  grid-template-columns: 96rpx minmax(0, 1fr) auto;
+  gap: 24rpx;
+  align-items: center;
+  padding: 24rpx;
+  border: 1rpx solid rgba(101, 118, 77, 0.1);
+  border-radius: var(--radius-card);
+  background: rgba(101, 118, 77, 0.07);
+}
+
+.device-icon {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  background: #f1f6f4;
+}
+
+.device-symbol {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.device-copy,
+.tool-copy {
+  min-width: 0;
+}
+
+.device-name,
+.tool-title {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 30rpx;
+  font-weight: 950;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-meta {
+  margin-top: 8rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.state-pill {
+  min-height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: rgba(101, 118, 77, 0.14);
+  color: var(--color-action);
+  font-size: 23rpx;
+  font-weight: 950;
+}
+
+.sync-button {
+  min-height: 92rpx;
+  margin-bottom: 8rpx;
+}
+
+.tool-row {
+  min-height: 158rpx;
+  display: grid;
+  grid-template-columns: 72rpx minmax(0, 1fr) auto;
+  gap: 22rpx;
+  align-items: center;
+  border-bottom: 1rpx solid var(--color-line);
+  background: transparent;
+}
+
+.tool-row-hover {
+  background: var(--palette-green-soft);
+}
+
+.tool-icon {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  background: rgba(101, 118, 77, 0.12);
+  color: var(--color-action);
+}
+
+.tool-symbol {
+  width: 38rpx;
+  height: 38rpx;
+}

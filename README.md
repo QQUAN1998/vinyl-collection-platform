@@ -22,7 +22,8 @@ npm.cmd run api:dev
 npm.cmd run start --workspace @vinyl/api
 ```
 
-API 默认监听 `http://127.0.0.1:3000`，当前提供 `/health` 和
-`/v1/system/info` 两个基础端点。开发前将 `.env.example` 复制为
-`apps/api/.env` 并配置 PostgreSQL 连接；开发库使用 `npm.cmd run prisma:migrate`，
-部署环境使用 `npm.cmd run prisma:deploy`。
+API 默认监听 `0.0.0.0:3000`，当前提供 `/health`、`/v1/system/info`
+和微信云托管 `/api/*` 收藏端点。开发前将 `.env.example` 复制为
+`apps/api/.env` 并配置 MySQL 连接；开发库使用 `npm.cmd run prisma:migrate`，
+部署环境使用 `npm.cmd run prisma:deploy`。微信云托管部署说明见
+`docs/wechat-cloud-hosting.md`。

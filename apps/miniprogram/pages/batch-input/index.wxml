@@ -1,0 +1,32 @@
+<view class="screen batch-input-screen">
+  <view class="screen-header">
+    <view class="screen-title">批量输入</view>
+    <view class="screen-kicker">BATCH</view>
+  </view>
+
+  <form-field
+    label="待搜索唱片"
+    mode="textarea"
+    value="{{batchText}}"
+    placeholder="伍佰 & China Blue - 浪人情歌"
+    bind:change="handleBatchText"
+  />
+
+  <view class="caption batch-helper">一行一张唱片，支持「艺人 - 专辑名」。</view>
+
+  <state-view
+    wx:if="{{duplicateLines.length}}"
+    tone="warning"
+    title="发现重复输入"
+    description="{{duplicateLines.join('、')}}"
+  />
+
+  <state-view
+    wx:if="{{errorMessage}}"
+    tone="warning"
+    title="无法继续"
+    description="{{errorMessage}}"
+  />
+
+  <view class="primary-button bottom-action" bindtap="goResults" hover-class="button-hover">匹配唱片</view>
+</view>

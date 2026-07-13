@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "media-format-selector": "/components/media-format-selector/index"
+  }
+}

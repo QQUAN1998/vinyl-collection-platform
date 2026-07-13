@@ -1,0 +1,67 @@
+.state-view {
+  display: grid;
+  grid-template-columns: 28rpx 1fr;
+  gap: 18rpx;
+  align-items: flex-start;
+  padding: 22rpx;
+  border: 1rpx solid rgba(185, 109, 91, 0.28);
+  border-radius: var(--radius-card);
+  background: var(--palette-red-soft);
+}
+
+.state-view-info {
+  border-color: rgba(101, 118, 77, 0.24);
+  background: var(--palette-green-soft);
+}
+
+.state-view-mark {
+  width: 28rpx;
+  height: 28rpx;
+  margin-top: 4rpx;
+  border-radius: var(--radius-card);
+  background: var(--color-action);
+}
+
+.state-view-info .state-view-mark {
+  background: var(--color-select);
+}
+
+.state-view-copy {
+  min-width: 0;
+}
+
+.state-view-title {
+  color: var(--color-action);
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.state-view-info .state-view-title {
+  color: var(--color-select);
+}
+
+.state-view-description {
+  margin-top: 10rpx;
+  color: var(--color-muted);
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.state-view-action {
+  grid-column: 1 / -1;
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-ink);
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.state-view-action-hover {
+  background: #ffffff;
+}

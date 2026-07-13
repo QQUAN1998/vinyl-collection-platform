@@ -7,9 +7,10 @@ import { AppModule } from "./app.module.js";
 
 async function bootstrap(): Promise<void> {
   const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+  const host = process.env.HOST ?? "0.0.0.0";
   const app = await NestFactory.create(AppModule);
 
-  await app.listen(port, "127.0.0.1");
+  await app.listen(port, host);
 }
 
 bootstrap().catch((error: unknown) => {

@@ -1,0 +1,134 @@
+<view class="screen all-collection-screen">
+  <view class="screen-header">
+    <view class="screen-title">全部唱片</view>
+    <view class="screen-kicker">COLLECTION</view>
+  </view>
+
+  <view class="owner-panel">
+    <view class="owner-avatar">{{avatarInitial}}</view>
+    <view class="owner-copy">
+      <view class="owner-title">{{userName}} 的唱片柜</view>
+      <view class="owner-desc">按唱片价格排序</view>
+    </view>
+  </view>
+
+  <view class="collection-summary-grid">
+    <view class="summary-cell">
+      <view class="summary-value">{{stats.albumCount}}</view>
+      <view class="summary-label">唱片</view>
+    </view>
+    <view class="summary-cell">
+      <view class="summary-value">{{stats.artistCount}}</view>
+      <view class="summary-label">艺人</view>
+    </view>
+    <view class="summary-cell">
+      <view class="summary-value">{{stats.totalPriceLabel}}</view>
+      <view class="summary-label">投入</view>
+    </view>
+  </view>
+
+  <view class="collection-search-tools">
+    <view class="search-box collection-search-box">
+      <input class="search-input" value="{{query}}" bindinput="handleQuery" placeholder="搜唱片 / 艺人 / 风格 / 年份" confirm-type="search" />
+      <view wx:if="{{query}}" class="search-action is-clear" bindtap="clearQuery" aria-role="button" aria-label="清空搜索">
+        <image class="search-action-icon" src="/assets/icons/close-action.png" mode="aspectFit" />
+      </view>
+      <view wx:else class="search-action" aria-role="button" aria-label="搜索">
+        <image class="search-action-icon" src="/assets/icons/search-action.png" mode="aspectFit" />
+      </view>
+    </view>
+    <scroll-view class="collection-search-scopes" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{searchScopes}}"
+        wx:key="key"
+        class="collection-scope-chip {{item.active ? 'is-active' : ''}}"
+        data-scope="{{item.key}}"
+        bindtap="selectSearchScope"
+      >{{item.label}}</view>
+    </scroll-view>
+  </view>
+
+  <view class="section all-list-section">
+    <view class="head-row">
+      <view class="section-title">收藏列表</view>
+      <view class="row-meta">{{visibleAlbums.length}} / {{collectedAlbums.length}} 张</view>
+    </view>
+
+    <view class="all-album-list" wx:if="{{visibleAlbums.length}}">
+      <view
+        wx:for="{{visibleAlbums}}"
+        wx:key="id"
+        class="all-album-row"
+        data-album-id="{{item.id}}"
+        bindtap="openAlbumCard"
+        hover-class="all-album-row-hover"
+        aria-role="button"
+      >
+        <image class="all-album-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="all-album-copy">
+          <view class="all-album-title">{{item.title}}</view>
+          <view class="all-album-meta">{{item.artist}} · {{item.year}}</view>
+          <view class="all-album-tags">
+            <text>{{item.mediumLabel}}</text>
+            <text>{{item.priceLabel}}</text>
+          </view>
+        </view>
+        <view class="all-album-rarity {{item.rarityClass}}">
+          <text>{{item.rarityCode}}</text>
+        </view>
+      </view>
+    </view>
+
+    <state-view
+      wx:else
+      tone="warning"
+      title="{{collectedAlbums.length ? '没有匹配结果' : '暂无收藏'}}"
+      description="{{collectedAlbums.length ? '换个关键词或筛选范围再试试。' : '添加唱片后会在这里生成可分享清单。'}}"
+    />
+  </view>
+
+  <view class="album-card-modal" wx:if="{{albumCard}}" catchtouchmove="noop">
+    <view class="album-card-scrim" bindtap="closeAlbumCard"></view>
+    <view class="album-modal-card {{albumCard.rarityClass}}" catchtap="noop" aria-role="dialog" aria-label="{{albumCard.title}} 展示卡片">
+      <view class="modal-close" bindtap="closeAlbumCard" aria-role="button" aria-label="关闭">×</view>
+      <view class="modal-cover-wrap">
+        <image class="modal-cover" src="{{albumCard.cover}}" mode="aspectFill" />
+      </view>
+      <view class="modal-copy">
+        <view class="modal-card-meta">
+          <view class="screen-kicker">{{cardPositionLabel}}</view>
+          <view class="rarity-corner">
+            <text class="rarity-code">{{albumCard.rarityCode}}</text>
+            <text class="rarity-name">{{albumCard.rarityName}}</text>
+          </view>
+        </view>
+        <view class="modal-title">{{albumCard.title}}</view>
+        <view class="modal-subtitle">{{albumCard.artist}} · {{albumCard.year}}</view>
+        <view class="modal-tags">
+          <view>{{albumCard.style}}</view>
+          <view>{{albumCard.mediumLabel}}</view>
+          <view>{{albumCard.priceLabel}}</view>
+          <view>{{albumCard.collectionDateLabel}}</view>
+          <view>{{albumCard.conditionLabel}}</view>
+        </view>
+        <view class="modal-tracks">
+          <view class="modal-tracks-title">曲目</view>
+          <scroll-view scroll-y class="modal-track-scroll" enhanced="{{true}}" show-scrollbar="{{true}}">
+            <view class="modal-track" wx:for="{{albumCard.tracksPreview}}" wx:key="*this">
+              <text>{{index + 1}}</text>
+              <text>{{item}}</text>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+      <view class="modal-actions all-modal-actions">
+        <view class="circle-action is-prev" data-direction="-1" bindtap="moveAlbumCard" aria-role="button" aria-label="上一张">‹</view>
+        <view class="modal-action-button modal-detail-action" bindtap="openCardDetail" aria-role="button">
+          <image class="modal-action-icon" src="/assets/icons/detail-white.png" mode="aspectFit" />
+          <text>详情</text>
+        </view>
+        <view class="circle-action is-next" data-direction="1" bindtap="moveAlbumCard" aria-role="button" aria-label="下一张">›</view>
+      </view>
+    </view>
+  </view>
+</view>

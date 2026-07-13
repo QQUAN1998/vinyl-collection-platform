@@ -1,0 +1,44 @@
+<view class="screen edit-screen">
+  <view class="screen-header">
+    <view class="screen-title">编辑收藏</view>
+    <view class="screen-kicker">PRIVATE</view>
+  </view>
+
+  <view class="edit-cover-block" wx:if="{{album}}">
+    <image class="edit-cover" src="{{album.cover}}" mode="aspectFill" />
+    <view class="edit-cover-copy">
+      <view class="edit-album-title">{{album.title}}</view>
+      <view class="edit-album-meta">{{album.artist}} · {{album.year}}</view>
+      <view class="ghost-button cover-button" bindtap="chooseAlbumCover" hover-class="button-hover">替换封面</view>
+    </view>
+  </view>
+
+  <state-view
+    wx:if="{{errorMessage}}"
+    tone="warning"
+    title="无法编辑"
+    description="{{errorMessage}}"
+  />
+
+  <view class="section">
+    <view class="section-title">收藏字段</view>
+    <view class="edit-form">
+      <form-field label="收藏日期" value="{{collectionForm.collectionDate}}" data-key="collectionDate" bind:change="handleFieldChange" />
+      <form-field label="购买来源" value="{{collectionForm.source}}" data-key="source" bind:change="handleFieldChange" />
+      <form-field label="数量" type="number" value="{{collectionForm.quantity}}" data-key="quantity" bind:change="handleFieldChange" />
+      <form-field label="品相" value="{{collectionForm.condition}}" data-key="condition" bind:change="handleFieldChange" />
+      <media-format-selector
+        options="{{mediaFormats}}"
+        selected-key="{{collectionForm.mediumKey}}"
+        bind:change="handleMediumChange"
+      />
+      <form-field label="价格" type="number" value="{{collectionForm.price}}" data-key="price" bind:change="handleFieldChange" />
+      <form-field label="备注" mode="textarea" value="{{collectionForm.notes}}" data-key="notes" bind:change="handleFieldChange" />
+    </view>
+  </view>
+
+  <view class="edit-actions">
+    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">取消</view>
+    <view class="primary-button" bindtap="saveCollection" hover-class="button-hover">保存</view>
+  </view>
+</view>

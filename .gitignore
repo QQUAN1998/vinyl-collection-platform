@@ -6,3 +6,6 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+outputs/
+work/
+apps/miniprogram/project.private.config.json

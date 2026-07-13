@@ -1,0 +1,119 @@
+.guide-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 34rpx;
+}
+
+.guide-lead {
+  padding: 30rpx;
+  border: 1rpx solid rgba(101, 118, 77, 0.22);
+  border-radius: var(--radius-card);
+  background: var(--palette-green-soft);
+}
+
+.guide-lead-title {
+  color: var(--color-ink);
+  font-size: 32rpx;
+  font-weight: 950;
+  line-height: 1.16;
+}
+
+.guide-lead-copy {
+  margin-top: 10rpx;
+  color: var(--color-muted);
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.guide-list {
+  display: grid;
+  gap: 26rpx;
+}
+
+.guide-card {
+  padding: 30rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+}
+
+.guide-card:nth-child(2) .guide-index {
+  background: var(--color-mustard);
+}
+
+.guide-card:nth-child(3) .guide-index {
+  background: var(--palette-red);
+  color: #ffffff;
+}
+
+.guide-card:nth-child(4) .guide-index {
+  background: var(--palette-black);
+  color: #ffffff;
+}
+
+.guide-card-head {
+  display: grid;
+  grid-template-columns: 68rpx 1fr auto;
+  gap: 20rpx;
+  align-items: start;
+}
+
+.guide-index {
+  width: 68rpx;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  background: var(--palette-green-soft);
+  color: var(--color-ink);
+  font-size: 24rpx;
+  font-weight: 950;
+}
+
+.guide-heading {
+  min-width: 0;
+}
+
+.guide-title {
+  color: var(--color-ink);
+  font-size: 32rpx;
+  font-weight: 950;
+  line-height: 1.14;
+}
+
+.guide-desc {
+  margin-top: 8rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.guide-steps {
+  display: grid;
+  gap: 16rpx;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid var(--color-line);
+}
+
+.guide-step {
+  display: grid;
+  grid-template-columns: 14rpx 1fr;
+  gap: 16rpx;
+  align-items: start;
+  color: var(--color-ink);
+  font-size: 25rpx;
+  font-weight: 820;
+  line-height: 1.45;
+}
+
+.guide-dot {
+  width: 12rpx;
+  height: 12rpx;
+  margin-top: 12rpx;
+  border-radius: 50%;
+  background: var(--color-action);
+}

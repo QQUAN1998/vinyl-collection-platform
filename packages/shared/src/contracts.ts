@@ -17,6 +17,20 @@ export interface UserProfile {
   membership: MembershipSummary;
 }
 
+export interface UserStatsSummary {
+  collectionCount: number;
+}
+
+export interface MeResponse {
+  user: UserProfile;
+  stats: UserStatsSummary;
+}
+
+export interface AuthLoginResponse {
+  token: string;
+  me: MeResponse;
+}
+
 export type AlbumRarity = "N" | "R" | "SR" | "SSR" | "UR";
 export type AlbumSource = "CATALOG" | "USER_CREATED";
 
@@ -49,6 +63,57 @@ export interface CollectionRecord {
   note: string | null;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
+}
+
+export interface CloudAlbumTrack {
+  position: number;
+  title: string;
+}
+
+export interface CloudAlbum {
+  id: string;
+  title: string;
+  artist: string;
+  year: number | null;
+  region: string | null;
+  style: string | null;
+  coverUrl: string | null;
+  tracks: CloudAlbumTrack[];
+}
+
+export interface CloudCollectionItem {
+  id: string;
+  userId: string;
+  albumId: string;
+  collectionDate: string;
+  source: string;
+  quantity: number;
+  condition: string;
+  mediumKey: string;
+  price: number | undefined;
+  notes: string;
+  createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
+}
+
+export interface CloudCollectionOwner {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface CloudCollectionPayload {
+  owner: CloudCollectionOwner;
+  albums: CloudAlbum[];
+  collectionItems: CloudCollectionItem[];
+}
+
+export interface UpsertCloudCollectionInput {
+  album: CloudAlbum;
+  collection: Omit<
+    CloudCollectionItem,
+    "id" | "userId" | "albumId" | "createdAt" | "updatedAt"
+  >;
 }
 
 export type TvDeviceStatus = "BOUND" | "UNBOUND" | "DISABLED";

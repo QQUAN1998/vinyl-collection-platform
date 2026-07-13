@@ -1,7 +1,0 @@
-<view class="page-shell">
-  <text class="eyebrow">{{userName}}</text>
-  <view class="title-row">
-    <text class="title">我的唱片柜</text>
-    <text class="count">{{collectionCount}} 张</text>
-  </view>
-</view>

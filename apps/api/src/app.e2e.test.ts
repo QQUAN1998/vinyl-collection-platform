@@ -9,7 +9,7 @@ describe("API application", () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    process.env["DATABASE_URL"] = "postgresql://vinyl:vinyl@127.0.0.1:5432/vinyl";
+    process.env["DATABASE_URL"] = "mysql://vinyl:vinyl@127.0.0.1:3306/vinyl";
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = module.createNestApplication();
     await app.init();

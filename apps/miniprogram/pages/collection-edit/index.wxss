@@ -1,0 +1,71 @@
+.edit-screen {
+  padding-bottom: calc(260rpx + var(--safe-bottom));
+}
+
+.edit-form {
+  display: grid;
+  gap: 24rpx;
+}
+
+.edit-cover-block {
+  display: grid;
+  grid-template-columns: 180rpx 1fr;
+  gap: 22rpx;
+  align-items: center;
+  margin-bottom: 28rpx;
+  padding: 22rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.edit-cover {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: var(--radius-cover);
+  background: var(--color-soft);
+  box-shadow: var(--shadow-cover);
+}
+
+.edit-cover-copy {
+  min-width: 0;
+  display: grid;
+  gap: 10rpx;
+}
+
+.edit-album-title {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-album-meta {
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 24rpx;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cover-button {
+  width: 164rpx;
+  min-height: 60rpx;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+}
+
+.edit-actions {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + var(--safe-bottom));
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 180rpx 1fr;
+  gap: 18rpx;
+}

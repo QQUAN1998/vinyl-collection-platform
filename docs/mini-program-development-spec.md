@@ -9,6 +9,12 @@
 5. 电视端先按“绑定设备 + 拉取展示数据”的方式设计，具体电视运行载体后续再定。
 6. 当前不生成正式源码，先确认规格、接口和数据模型。
 
+## 当前执行路线
+
+2026-07-12 起，MVP 先按微信云托管落地：小程序通过 `wx.cloud.callContainer`
+调用云托管服务 `express-i2ts`，后端使用 NestJS + Prisma + MySQL（数据库
+`vinyl_cabinet`）。长期是否迁回 PostgreSQL 或独立云服务器，放到后续阶段评估。
+
 ## Objective
 
 构建一个面向个人唱片收藏者的微信小程序，用于记录、展示、搜索、统计和同步唱片收藏。
@@ -252,17 +258,24 @@
 
 ### Auth
 
-- `POST /api/auth/wechat-login`
+- `POST /v1/auth/wechat-login`
   - Input: `{ code: string }`
-  - Output: `{ token, user, membership }`
+  - Output: `{ token, me }`
 
 ### Me
 
-- `GET /api/me`
+- `GET /v1/me`
   - Output: `{ user, membership, stats, tvDevices }`
 - `PATCH /api/me`
   - Input: `{ nickname?, avatarUrl?, bio? }`
   - Output: `{ user }`
+
+### Share
+
+- 小程序需支持分享给微信好友。
+- 首版分享入口包括首页显式分享按钮和页面右上角分享菜单。
+- 默认分享落点为 `pages/home/index`，分享文案使用 `David的唱片柜`。
+- 后续唱片详情页完成后，单张唱片卡片需支持分享到对应详情页。
 
 ### Albums
 

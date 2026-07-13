@@ -1,0 +1,30 @@
+<view class="screen guide-screen">
+  <view class="screen-header">
+    <view class="screen-title">小程序操作手册</view>
+    <view class="screen-kicker">GUIDE</view>
+  </view>
+
+  <view class="guide-lead">
+    <view class="guide-lead-title">不会使用看这里</view>
+    <view class="guide-lead-copy">按板块查看常用操作，收藏、上墙、统计和微信分享都在这里。</view>
+  </view>
+
+  <view class="guide-list">
+    <view class="guide-card" wx:for="{{guideSections}}" wx:key="title">
+      <view class="guide-card-head">
+        <view class="guide-index">{{item.index}}</view>
+        <view class="guide-heading">
+          <view class="guide-title">{{item.title}}</view>
+          <view class="guide-desc">{{item.description}}</view>
+        </view>
+        <view class="screen-kicker">{{item.badge}}</view>
+      </view>
+      <view class="guide-steps">
+        <view class="guide-step" wx:for="{{item.steps}}" wx:for-item="step" wx:key="*this">
+          <view class="guide-dot"></view>
+          <view>{{step}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

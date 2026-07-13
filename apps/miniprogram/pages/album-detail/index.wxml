@@ -1,0 +1,47 @@
+<view class="screen detail-screen">
+  <block wx:if="{{album}}">
+    <image class="detail-cover" src="{{album.cover}}" mode="aspectFit" />
+    <view class="detail-title">{{album.title}}</view>
+    <view class="detail-artist">{{album.artist}}</view>
+
+    <view class="fact-grid">
+      <view class="fact" wx:for="{{detailFacts}}" wx:key="label">
+        <view class="fact-label">{{item.label}}</view>
+        <view class="fact-value">{{item.value}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{collectionItem}}" class="detail-actions">
+      <view class="ghost-button edit-button" bindtap="openEdit" hover-class="button-hover">编辑收藏</view>
+    </view>
+    <view wx:else class="notice detail-collection-notice">
+      <view class="notice-title">还没有加入收藏</view>
+      <view class="notice-desc">加入后可以继续维护品相、价格和备注。</view>
+      <media-format-selector
+        label="选择收藏形式"
+        options="{{mediaFormats}}"
+        selected-key="{{pendingMediumKey}}"
+        bind:change="handleMediumChange"
+      />
+      <view class="secondary-action" bindtap="addToCollection" hover-class="secondary-action-hover">加入收藏</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">曲目</view>
+      <view class="track-list">
+        <view class="track-row" wx:for="{{tracks}}" wx:key="*this">
+          <text class="track-index">{{index + 1}}</text>
+          <text class="track-name">{{item}}</text>
+          <text class="track-duration">--</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <state-view
+    wx:else
+    tone="warning"
+    title="没有找到这张专辑"
+    description="可能是本地资料还没有同步。"
+  />
+</view>

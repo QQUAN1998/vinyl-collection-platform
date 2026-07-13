@@ -1,0 +1,32 @@
+<view class="screen results-screen">
+  <view class="screen-header">
+    <view class="screen-title">搜索结果</view>
+    <view class="screen-kicker">{{candidates.length}} 个结果</view>
+  </view>
+
+  <view class="result-query">{{query || "批量匹配"}}</view>
+  <view class="section-title">选择要加入的唱片</view>
+
+  <view class="result-list">
+    <album-row
+      wx:for="{{candidates}}"
+      wx:key="id"
+      album="{{item}}"
+      show-check="{{true}}"
+      selected="{{item.selected}}"
+      bind:select="toggleAlbum"
+    />
+  </view>
+
+  <state-view
+    wx:if="{{!candidates.length}}"
+    tone="warning"
+    title="没有匹配结果"
+    description="可以返回手动新建，之后再补充公共资料。"
+  />
+
+  <view class="floating-action">
+    <view class="selected-count">已选择 {{selectedCount}} 张</view>
+    <view class="next-action" bindtap="goConfirm" hover-class="next-action-hover">下一步 →</view>
+  </view>
+</view>

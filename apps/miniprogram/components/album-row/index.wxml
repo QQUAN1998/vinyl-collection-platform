@@ -1,0 +1,19 @@
+<view
+  class="album-row {{selected ? 'is-selected' : ''}} {{disabled ? 'is-disabled' : ''}} {{compact ? 'is-compact' : ''}}"
+  bindtap="handleTap"
+  hover-class="album-row-hover"
+  aria-role="button"
+>
+  <image class="album-row-cover" src="{{album.cover}}" mode="aspectFill" />
+  <view class="album-row-copy">
+    <view class="album-row-title">{{album.title}}</view>
+    <view class="album-row-subtitle">{{album.artist}}<text wx:if="{{album.year}}"> · {{album.year}}</text></view>
+    <view class="album-row-meta" wx:if="{{meta || album.region || album.styles}}">
+      {{meta || album.region}}<text wx:if="{{album.styles}}"> · {{album.styles}}</text>
+    </view>
+  </view>
+  <view wx:if="{{showCheck}}" class="album-row-check {{selected ? 'is-on' : ''}}">
+    <view class="album-row-check-mark"></view>
+  </view>
+  <view wx:elif="{{showArrow}}" class="album-row-arrow">›</view>
+</view>

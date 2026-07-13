@@ -20,7 +20,7 @@
 ## Phase 2: Backend Foundation
 
 - [x] Task 4: 初始化 NestJS API 和 Prisma
-  - Acceptance: API 项目可启动，Prisma 可连接 PostgreSQL。
+  - Acceptance: API 项目可启动，Prisma 可连接微信云托管 MySQL。
   - Verify: `npm run api:dev` 和 `npm run prisma:migrate` 可执行。
   - Files: `apps/api`, `prisma/schema.prisma`
 
@@ -29,8 +29,8 @@
   - Verify: 迁移后数据库结构与规格一致。
   - Files: `prisma/schema.prisma`, `apps/api/tests`
 
-- [ ] Task 6: 实现微信登录和用户资料接口
-  - Acceptance: 小程序 code 可换取后端 token；`GET /api/me` 返回用户、会员和统计摘要。
+- [x] Task 6: 实现微信登录和用户资料接口
+  - Acceptance: 小程序 code 可换取后端 token；`GET /v1/me` 返回用户、会员和统计摘要。
   - Verify: API 测试覆盖成功登录和无效 code。
   - Files: `apps/api/src/auth`, `apps/api/src/users`
 
@@ -42,8 +42,8 @@
   - Files: `apps/api/src/albums`
 
 - [ ] Task 8: 实现收藏 CRUD 和容量限制
-  - Acceptance: 普通用户第 11 张新增失败；VIP 可新增到 10,000 上限。
-  - Verify: API 测试覆盖普通、VIP、过期 VIP 三种状态。
+  - Acceptance: 云托管 `/api/collections/*` 已支持小程序收藏持久化和分享读取；普通用户第 11 张新增失败、VIP 容量限制仍待接入。
+  - Verify: API 测试覆盖云托管收藏写入/分享读取；后续补普通、VIP、过期 VIP 三种容量状态。
   - Files: `apps/api/src/collections`, `apps/api/src/membership`
 
 - [ ] Task 9: 实现统计和收藏排行接口
@@ -53,10 +53,15 @@
 
 ## Phase 4: Mini Program UI
 
-- [ ] Task 10: 搭建小程序 Tab 和页面路由
+- [x] Task 10: 搭建小程序 Tab 和页面路由
   - Acceptance: 首页、添加、统计、我的四个 Tab 可切换。
   - Verify: 微信开发者工具可运行，无页面路由错误。
   - Files: `apps/miniprogram/app.json`, `apps/miniprogram/pages/*`
+
+- [x] Task 10a: 支持分享给微信好友
+  - Acceptance: 首页有显式分享入口，主要页面右上角菜单可分享给微信好友。
+  - Verify: 微信开发者工具中点击分享按钮或右上角菜单可触发分享卡片。
+  - Files: `apps/miniprogram/services/share.js`, `apps/miniprogram/pages/*`
 
 - [ ] Task 11: 实现首页和唱片详情卡片
   - Acceptance: 首页展示用户概览、照片墙、全部唱片搜索；封面可打开详情卡片。

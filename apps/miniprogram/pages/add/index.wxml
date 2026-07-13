@@ -1,0 +1,88 @@
+<view class="screen add-screen">
+  <view class="screen-header">
+    <view class="screen-title">添加唱片</view>
+    <view class="screen-kicker">ADD</view>
+  </view>
+
+  <view class="search-box add-search-box">
+    <input class="search-input" value="{{query}}" bindinput="handleQuery" placeholder="搜索要添加的唱片" confirm-type="search" bindconfirm="goSearch" />
+    <view wx:if="{{query}}" class="search-action is-clear" bindtap="clearQuery" aria-role="button" aria-label="清空搜索">
+      <image class="search-action-icon" src="/assets/icons/close-action.png" mode="aspectFit" />
+    </view>
+    <view wx:else class="search-action" bindtap="goSearch" aria-role="button" aria-label="搜索">
+      <image class="search-action-icon" src="/assets/icons/search-action.png" mode="aspectFit" />
+    </view>
+  </view>
+
+  <view wx:if="{{hasSearch}}" class="add-search-results">
+    <view class="head-row">
+      <view class="section-title">搜索结果</view>
+      <view class="row-meta">{{results.length}} 条</view>
+    </view>
+    <view wx:if="{{results.length}}" class="list">
+      <view
+        wx:for="{{results}}"
+        wx:key="id"
+        class="add-row"
+        data-album-id="{{item.id}}"
+        bindtap="openAlbum"
+        hover-class="add-row-hover"
+      >
+        <image class="mini-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="row-copy">
+          <view class="row-title">{{item.title}}</view>
+          <view class="row-meta">{{item.artist}} · {{item.year}}</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+    </view>
+    <view wx:else class="notice">
+      <view class="notice-title">没有匹配结果</view>
+      <view class="notice-desc">可以手动新建这张唱片。</view>
+    </view>
+  </view>
+
+  <view class="two-actions">
+    <view class="secondary-action" bindtap="goBatchInput" hover-class="secondary-action-hover">批量输入</view>
+    <view class="secondary-action" bindtap="goManualAdd" hover-class="secondary-action-hover">手动新建</view>
+  </view>
+
+  <view class="notice">
+    <view class="notice-title">资料库没有？</view>
+    <view class="notice-desc">可以手动创建，之后再补充封面和曲目信息。</view>
+  </view>
+
+  <view class="add-section">
+    <view class="head-row">
+      <view class="section-title">最近加入</view>
+      <view class="row-meta">最近 3 张</view>
+    </view>
+    <view class="list add-recent-list">
+      <view
+        wx:for="{{recentAlbums}}"
+        wx:key="id"
+        class="add-row"
+        data-album-id="{{item.id}}"
+        bindtap="openAlbum"
+        hover-class="add-row-hover"
+      >
+        <image class="mini-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="row-copy">
+          <view class="row-title">{{item.title}}</view>
+          <view class="row-meta">{{item.artist}} · {{item.year}}</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="all-collection-card" bindtap="goAllCollection" hover-class="all-collection-card-hover" aria-role="button">
+    <view>
+      <view class="all-collection-title">全部唱片</view>
+      <view class="all-collection-desc">查看当前收藏清单</view>
+    </view>
+    <view class="all-collection-count">{{collectionCount}} 张</view>
+  </view>
+
+  <bottom-nav active="add" />
+</view>

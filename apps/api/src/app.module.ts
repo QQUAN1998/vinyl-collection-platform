@@ -4,11 +4,12 @@ import { APP_FILTER } from "@nestjs/core";
 import { ApiExceptionFilter } from "./api-exception.filter.js";
 import { AuthModule } from "./auth/auth.module.js";
 import { AppController } from "./app.controller.js";
+import { CatalogModule } from "./catalog/catalog.module.js";
 import { CloudCollectionsModule } from "./collections/cloud-collections.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, CloudCollectionsModule],
+  imports: [DatabaseModule, AuthModule, CloudCollectionsModule, CatalogModule],
   controllers: [AppController],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
 })

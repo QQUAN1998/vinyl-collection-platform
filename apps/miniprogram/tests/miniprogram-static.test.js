@@ -102,6 +102,10 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.match(appScript, /enableFriendShare\(\)/);
   assert.match(appScript, /initWechatCloud/);
   assert.match(appScript, /loadCloudCollection/);
+  assert.match(appScript, /userId:\s*""/);
+  assert.match(appScript, /collectionItems:\s*\[\]/);
+  assert.match(appScript, /showCloudSessionRequired/);
+  assert.doesNotMatch(appScript, /collectionItems:\s*\[\.\.\.collectionItems\]/);
   assert.doesNotMatch(appScript, /Page\s*=\s*function registerPage/);
   assert.match(cloudScript, /wx\.cloud\.callContainer/);
   assert.match(cloudScript, /X-WX-SERVICE/);

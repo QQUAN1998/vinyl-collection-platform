@@ -12,6 +12,7 @@ const {
   buildPhotoWallAlbums,
   removeAlbumFromPhotoWall
 } = require("../../services/photo-wall-service.js");
+const { ensureCloudSession, showCloudDeleteFailed, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { getAlbumRarity } = require("../../services/rarity-service.js");
 const { createShareMessage } = require("../../services/share.js");
 
@@ -125,8 +126,8 @@ function buildCatalogState(sourceAlbums, query, scope, collectionCount) {
 
 Page({
   data: {
-    userLabel: "DAVID / ¥184,000",
-    collectionCount: collectionItems.length,
+    userLabel: "\u5531\u7247\u67dc\u7528\u6237 / \u00a50",
+    collectionCount: 0,
     collectionUnit: "张唱片",
     featuredAlbum: null,
     photoWallAlbums: [],
@@ -134,7 +135,7 @@ Page({
     catalogSearch: "",
     catalogScope: "all",
     catalogScopes: CATALOG_SCOPES.map((item, index) => ({ ...item, active: index === 0 })),
-    catalogCountLabel: `${collectionItems.length} 张收藏`,
+    catalogCountLabel: "0 \u5f20\u6536\u85cf",
     visibleAlbums: [],
     albumCard: null,
     cardAlbumIds: [],
@@ -182,7 +183,7 @@ Page({
       : null;
 
     this.setData({
-      userLabel: app.globalData.userLabel || "DAVID / ¥184,000",
+      userLabel: app.globalData.userLabel || "\u5531\u7247\u67dc\u7528\u6237 / \u00a50",
       collectionCount: liveCollectionItems.length,
       featuredAlbum: findAlbum(featuredAlbumId, sourceAlbums),
       photoWallAlbums: buildPhotoWallAlbums(
@@ -340,6 +341,10 @@ Page({
     }
 
     const app = getApp();
+    if (!ensureCloudSession(app)) {
+      return;
+    }
+
     const now = new Date().toISOString();
     const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
     const result = confirmSelectedAlbums({
@@ -347,7 +352,7 @@ Page({
       albums: sourceAlbums,
       existingCollectionItems: app.globalData.collectionItems || [],
       defaults: {
-        userId: app.globalData.userId || "david",
+        userId: app.globalData.userId || "",
         collectionDate: now.slice(0, 10),
         source: "资料库添加",
         quantity: 1,
@@ -359,22 +364,35 @@ Page({
       now
     });
 
-    app.globalData.collectionItems = result.collectionItems;
-    if (typeof app.refreshUserLabel === "function") {
-      app.refreshUserLabel();
+    if (!result.createdItems.length) {
+      this.loadCabinet();
+      this.openAlbumCard(albumCard.id, this.data.cardContext);
+      wx.showToast({
+        title: "\u5df2\u5728\u6536\u85cf",
+        icon: "success"
+      });
+      return;
     }
 
-    this.loadCabinet();
-    this.openAlbumCard(albumCard.id, this.data.cardContext);
-    if (result.createdItems.length && typeof app.saveCollectionToCloud === "function") {
-      app.saveCollectionToCloud(result.createdItems[0], albumCard).then(() => {
+    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    app.saveCollectionToCloud(result.createdItems[0], albumCard)
+      .then((payload) => {
+        if (!payload) {
+          showCloudSaveFailed();
+          return;
+        }
+
         this.loadCabinet();
+        this.openAlbumCard(albumCard.id, this.data.cardContext);
+        wx.showToast({
+          title: "\u5df2\u52a0\u5165\u6536\u85cf",
+          icon: "success"
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
       });
-    }
-    wx.showToast({
-      title: result.createdItems.length ? "已加入收藏" : "已在收藏",
-      icon: "success"
-    });
+    return;
   },
   handleCardStarAction() {
     const albumCard = this.data.albumCard;
@@ -384,33 +402,33 @@ Page({
 
     if (albumCard.isCollected) {
       const app = getApp();
-      const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+      if (!ensureCloudSession(app)) {
+        return;
+      }
+
       const result = removeCollectionItem({
         collectionItems: app.globalData.collectionItems || [],
         albumId: albumCard.id
       });
-      app.globalData.collectionItems = result.collectionItems;
-      app.globalData.photoWallOrder = removeAlbumFromPhotoWall(
-        app.globalData.photoWallOrder || [],
-        albumCard.id,
-        sourceAlbums,
-        result.collectionItems
-      );
-      if (typeof app.refreshUserLabel === "function") {
-        app.refreshUserLabel();
-      }
+      wx.showLoading({ title: "\u53d6\u6d88\u4e2d" });
+      app.deleteCollectionFromCloud(result.removedItem.id)
+        .then((payload) => {
+          if (!payload) {
+            showCloudDeleteFailed();
+            return;
+          }
 
-      this.loadCabinet();
-      this.openAlbumCard(albumCard.id, this.data.cardContext);
-      if (typeof app.deleteCollectionFromCloud === "function") {
-        app.deleteCollectionFromCloud(result.removedItem.id).then(() => {
           this.loadCabinet();
+          this.openAlbumCard(albumCard.id, this.data.cardContext);
+          wx.showToast({
+            title: "\u5df2\u53d6\u6d88\u6536\u85cf",
+            icon: "success"
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
         });
-      }
-      wx.showToast({
-        title: "已取消收藏",
-        icon: "success"
-      });
+      return;
       return;
     }
 
@@ -459,7 +477,7 @@ Page({
   noop() {},
   onShareAppMessage() {
     const app = getApp();
-    const name = app.globalData.userProfile?.name || "David";
+    const name = app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
     const album = this.data.albumCard;
     if (album) {
       return createShareMessage({

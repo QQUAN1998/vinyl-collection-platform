@@ -28,6 +28,11 @@ const {
   normalizeCloudCollectionPayload,
 } = require("../services/cloud-api.js");
 const {
+  SESSION_REQUIRED_TITLE,
+  ensureCloudSession,
+  isCloudSessionReady,
+} = require("../services/cloud-session.js");
+const {
   buildCatalogSearchPath,
   catalogCandidateToAlbum,
   normalizeCatalogQuery,
@@ -240,11 +245,28 @@ test("share service enables official friend sharing and returns cabinet defaults
     menus: ["shareAppMessage"],
   });
   assert.deepEqual(createShareMessage(), {
-    title: "David的唱片柜",
+    title: "唱片柜",
     path: "/pages/cabinet/index",
   });
 
   delete global.wx;
+});
+
+test("cloud session gate blocks collection writes until WeChat identity is ready", () => {
+  let toast;
+  const wxApi = {
+    showToast(input) {
+      toast = input;
+    },
+  };
+
+  assert.equal(isCloudSessionReady({ globalData: { cloud: { ready: false } } }), false);
+  assert.equal(ensureCloudSession({ globalData: { cloud: { ready: false } } }, wxApi), false);
+  assert.deepEqual(toast, {
+    title: SESSION_REQUIRED_TITLE,
+    icon: "none",
+  });
+  assert.equal(ensureCloudSession({ globalData: { cloud: { ready: true } } }, wxApi), true);
 });
 
 test("share title follows the current WeChat profile name", () => {

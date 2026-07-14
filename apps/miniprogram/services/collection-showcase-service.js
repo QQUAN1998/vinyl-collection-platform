@@ -107,7 +107,7 @@ function buildCollectedAlbumViews(sourceAlbums = [], collectionItems = []) {
 }
 
 function buildCollectionShowcase(sourceAlbums = [], collectionItems = [], userProfile = {}) {
-  const userName = userProfile.name || "David";
+  const userName = userProfile.name || "\u5531\u7247\u67dc\u7528\u6237";
   const stats = calculateCollectionStats(sourceAlbums, collectionItems);
 
   return {

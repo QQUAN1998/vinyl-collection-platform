@@ -1,5 +1,6 @@
 const { albums } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
+const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { coverToImageSrc } = require("../../services/catalog-api.js");
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
 const { createShareMessage } = require("../../services/share.js");
@@ -41,7 +42,7 @@ Page({
     selectedAlbums: [],
     selectedCount: 0,
     defaults: {
-      userId: "david",
+      userId: "",
       collectionDate: today(),
       source: "线上搜索",
       quantity: 1,
@@ -98,10 +99,14 @@ Page({
   },
   confirmAdd() {
     const app = getApp();
+    if (!ensureCloudSession(app)) {
+      return;
+    }
+
     const draft = app.globalData.importDraft || {};
     const sourceAlbums = buildAlbumSource(app, draft);
     const selectedAlbumIds = this.data.selectedAlbums.map((album) => album.id);
-    const userId = app.globalData.userId || this.data.defaults.userId;
+    const userId = app.globalData.userId || this.data.defaults.userId || "";
     const result = confirmSelectedAlbums({
       selectedAlbumIds,
       albums: sourceAlbums,
@@ -113,35 +118,45 @@ Page({
       pricesByAlbumId: this.data.pricesByAlbumId
     });
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], userId);
-    const seedIds = new Set(albums.map((album) => album.id));
-    const existingManualIds = new Set((app.globalData.manualAlbums || []).map((album) => album.id));
-    const newManualAlbums = this.data.selectedAlbums
-      .filter((album) => !seedIds.has(album.id) && !existingManualIds.has(album.id))
-      .map((album) => ({ ...album }));
-
-    app.globalData.manualAlbums = [
-      ...(app.globalData.manualAlbums || []),
-      ...newManualAlbums
-    ];
-    app.globalData.collectionItems = result.collectionItems;
-    app.globalData.tvBindings = syncResult.bindings;
-    app.globalData.importDraft = null;
-    app.refreshUserLabel();
-    if (typeof app.saveCollectionToCloud === "function") {
-      result.createdItems.forEach((item) => {
-        const album = this.data.selectedAlbums.find((candidate) => candidate.id === item.albumId);
-        app.saveCollectionToCloud(item, album);
+    if (!result.createdItems.length) {
+      app.globalData.importDraft = null;
+      wx.showToast({
+        title: "\u5df2\u5728\u6536\u85cf",
+        icon: "success"
       });
+      wx.redirectTo({
+        url: "/pages/cabinet/index"
+      });
+      return;
     }
 
-    wx.showToast({
-      title: `已加入 ${result.createdItems.length} 张`,
-      icon: "success"
-    });
+    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    Promise.all(result.createdItems.map((item) => {
+      const album = this.data.selectedAlbums.find((candidate) => candidate.id === item.albumId);
+      return app.saveCollectionToCloud(item, album);
+    }))
+      .then((payloads) => {
+        if (payloads.some((payload) => !payload)) {
+          showCloudSaveFailed();
+          return;
+        }
 
-    wx.redirectTo({
-      url: "/pages/cabinet/index"
-    });
+        app.globalData.tvBindings = syncResult.bindings;
+        app.globalData.importDraft = null;
+        return app.loadCloudCollection({ force: true }).then(() => {
+          wx.showToast({
+            title: `\u5df2\u52a0\u5165 ${result.createdItems.length} \u5f20`,
+            icon: "success"
+          });
+          wx.redirectTo({
+            url: "/pages/cabinet/index"
+          });
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
+    return;
   },
   onShareAppMessage() {
     return createShareMessage();

@@ -145,7 +145,7 @@ Page({
   },
   onShareAppMessage() {
     const app = getApp();
-    const name = app.globalData.userProfile?.name || "David";
+    const name = app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
     const album = this.data.previewAlbum;
     if (this.data.profileType === "all" && !album) {
       return createShareMessage({

@@ -16,7 +16,7 @@
     "pages/user-guide/index"
   ],
   "window": {
-    "navigationBarTitleText": "David 唱片柜",
+    "navigationBarTitleText": "唱片柜",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#edf1f5"

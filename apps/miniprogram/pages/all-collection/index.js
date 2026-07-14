@@ -9,7 +9,7 @@ const { createShareMessage } = require("../../services/share.js");
 
 Page({
   data: {
-    userName: "David",
+    userName: "\u5531\u7247\u67dc\u7528\u6237",
     avatarInitial: "D",
     stats: {
       albumCount: 0,
@@ -166,10 +166,10 @@ Page({
   noop() {},
   onShareAppMessage() {
     const app = getApp();
-    const ownerId = encodeURIComponent(app.globalData.userId || "david");
+    const ownerId = encodeURIComponent(app.globalData.userId || "");
     return createShareMessage({
       title: `${this.data.userName}的全部唱片收藏`,
-      path: `/pages/all-collection/index?ownerId=${ownerId}`
+      path: ownerId ? `/pages/all-collection/index?ownerId=${ownerId}` : "/pages/all-collection/index"
     });
   }
 });

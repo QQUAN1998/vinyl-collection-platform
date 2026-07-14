@@ -1,4 +1,5 @@
-const { albums, collectionItems, tvBindings } = require("./data/seed.js");
+const { albums } = require("./data/seed.js");
+const { SESSION_REQUIRED_TITLE } = require("./services/cloud-session.js");
 const {
   applyCloudCollectionPayload,
   deleteCollectionFromCloud: requestDeleteCollectionFromCloud,
@@ -137,23 +138,35 @@ App({
         return null;
       });
   },
+  isCloudSessionReady() {
+    return Boolean(this.globalData.cloud && this.globalData.cloud.ready);
+  },
+  showCloudSessionRequired(wxApi) {
+    const api = wxApi || (typeof wx === "undefined" ? null : wx);
+    if (api && typeof api.showToast === "function") {
+      api.showToast({
+        title: SESSION_REQUIRED_TITLE,
+        icon: "none"
+      });
+    }
+  },
   rememberCloudError(error) {
     const message = error && error.message ? error.message : "Cloud sync failed";
     this.globalData.cloud.lastError = message;
   },
   globalData: {
-    userId: "david",
-    userLabel: `David / ${collectionTotalLabel(collectionItems)}`,
+    userId: "",
+    userLabel: `\u5531\u7247\u67dc\u7528\u6237 / ${collectionTotalLabel([])}`,
     userProfile: {
-      name: "David",
+      name: "\u5531\u7247\u67dc\u7528\u6237",
       avatar: "",
-      bio: "喜欢华语流行、游戏原声和 City Pop",
+      bio: "",
     },
-    collectionCostLabel: collectionTotalLabel(collectionItems),
+    collectionCostLabel: collectionTotalLabel([]),
     manualAlbums: [],
-    collectionItems: [...collectionItems],
-    photoWallOrder: collectionItems.map((item) => item.albumId),
-    tvBindings: [...tvBindings],
+    collectionItems: [],
+    photoWallOrder: [],
+    tvBindings: [],
     importDraft: null,
     cloud: {
       enabled: true,

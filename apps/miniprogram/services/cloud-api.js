@@ -121,7 +121,7 @@ function buildCloudCollectionRequest(collectionItem, album) {
 
 function normalizeCloudCollectionPayload(payload = {}, seedAlbums = []) {
   const seedIds = new Set(seedAlbums.map((album) => album.id));
-  const owner = payload.owner || { id: "", displayName: "David", avatarUrl: null };
+  const owner = payload.owner || { id: "", displayName: "\u5531\u7247\u67dc\u7528\u6237", avatarUrl: null };
   const albums = (payload.albums || []).map(toLocalAlbum);
   const manualAlbums = albums.filter((album) => !seedIds.has(album.id));
   const collectionItems = (payload.collectionItems || []).map(toLocalCollectionItem);
@@ -143,7 +143,7 @@ function applyCloudCollectionPayload(app, payload, seedAlbums = []) {
   app.globalData.userId = normalized.owner.id || app.globalData.userId;
   app.globalData.userProfile = {
     ...(app.globalData.userProfile || {}),
-    name: normalized.owner.displayName || app.globalData.userProfile?.name || "David",
+    name: normalized.owner.displayName || app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237",
     avatar: normalized.owner.avatarUrl || app.globalData.userProfile?.avatar || ""
   };
   app.globalData.manualAlbums = normalized.manualAlbums;

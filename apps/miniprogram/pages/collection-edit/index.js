@@ -1,5 +1,6 @@
 const { albums, featuredAlbumId } = require("../../data/seed.js");
 const { updateCollectionItem } = require("../../services/collection-service.js");
+const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
 const { createShareMessage } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS, normalizeMediumKey } = require("../../services/media-format-service.js");
@@ -113,6 +114,10 @@ Page({
     }
 
     const app = getApp();
+    if (!ensureCloudSession(app)) {
+      return;
+    }
+
     const patch = {
       ...this.data.collectionForm,
       quantity: Number(this.data.collectionForm.quantity || 1),
@@ -125,21 +130,25 @@ Page({
     });
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], app.globalData.userId);
 
-    app.globalData.collectionItems = result.collectionItems;
-    app.globalData.tvBindings = syncResult.bindings;
-    if (typeof app.refreshUserLabel === "function") {
-      app.refreshUserLabel();
-    }
-    if (typeof app.saveCollectionToCloud === "function") {
-      app.saveCollectionToCloud(result.updatedItem, this.data.album);
-    }
+    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    app.saveCollectionToCloud(result.updatedItem, this.data.album)
+      .then((payload) => {
+        if (!payload) {
+          showCloudSaveFailed();
+          return;
+        }
 
-    wx.showToast({
-      title: "已保存",
-      icon: "success"
-    });
-
-    wx.navigateBack();
+        app.globalData.tvBindings = syncResult.bindings;
+        wx.showToast({
+          title: "\u5df2\u4fdd\u5b58",
+          icon: "success"
+        });
+        wx.navigateBack();
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
+    return;
   },
   cancelEdit() {
     wx.navigateBack();

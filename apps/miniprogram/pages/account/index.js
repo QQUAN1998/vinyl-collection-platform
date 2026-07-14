@@ -14,7 +14,7 @@ Page({
   data: {
     userLabel: "SETTINGS",
     userProfile: {
-      name: "David",
+      name: "\u5531\u7247\u67dc\u7528\u6237",
       avatar: "",
       bio: ""
     },

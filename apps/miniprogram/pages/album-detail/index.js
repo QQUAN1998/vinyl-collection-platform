@@ -1,5 +1,6 @@
 const { albums, collectionItems, demoPricesByAlbumId, featuredAlbumId } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
+const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { createShareMessage } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS, getMediaFormat } = require("../../services/media-format-service.js");
 
@@ -83,13 +84,17 @@ Page({
     }
 
     const app = getApp();
+    if (!ensureCloudSession(app)) {
+      return;
+    }
+
     const now = new Date().toISOString();
     const result = confirmSelectedAlbums({
       selectedAlbumIds: [this.data.album.id],
       albums: [...albums, ...(app.globalData.manualAlbums || [])],
       existingCollectionItems: app.globalData.collectionItems || [],
       defaults: {
-        userId: app.globalData.userId || "david",
+        userId: app.globalData.userId || "",
         collectionDate: now.slice(0, 10),
         source: "资料库添加",
         quantity: 1,
@@ -101,19 +106,33 @@ Page({
       now
     });
 
-    app.globalData.collectionItems = result.collectionItems;
-    if (typeof app.refreshUserLabel === "function") {
-      app.refreshUserLabel();
-    }
-    if (result.createdItems.length && typeof app.saveCollectionToCloud === "function") {
-      app.saveCollectionToCloud(result.createdItems[0], this.data.album);
+    if (!result.createdItems.length) {
+      this.loadAlbumDetail(this.data.album.id);
+      wx.showToast({
+        title: "\u5df2\u5728\u6536\u85cf",
+        icon: "success"
+      });
+      return;
     }
 
-    this.loadAlbumDetail(this.data.album.id);
-    wx.showToast({
-      title: result.createdItems.length ? "已加入收藏" : "已在收藏",
-      icon: "success"
-    });
+    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    app.saveCollectionToCloud(result.createdItems[0], this.data.album)
+      .then((payload) => {
+        if (!payload) {
+          showCloudSaveFailed();
+          return;
+        }
+
+        this.loadAlbumDetail(this.data.album.id);
+        wx.showToast({
+          title: "\u5df2\u52a0\u5165\u6536\u85cf",
+          icon: "success"
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
+    return;
   },
   openEdit() {
     if (!this.data.album) {
@@ -126,7 +145,7 @@ Page({
   },
   onShareAppMessage() {
     const app = getApp();
-    const name = app.globalData.userProfile?.name || "David";
+    const name = app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
     const album = this.data.album;
     if (!album) return createShareMessage();
 

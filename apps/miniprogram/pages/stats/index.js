@@ -397,7 +397,7 @@ Page({
 
     try {
       const app = getApp();
-      const userName = (app.globalData.userProfile && app.globalData.userProfile.name) || "David";
+      const userName = (app.globalData.userProfile && app.globalData.userProfile.name) || "\u5531\u7247\u67dc\u7528\u6237";
       const valueImages = await Promise.all(this.data.topValueAlbums.slice(0, 3).map((item) => getCanvasImagePath(item.cover)));
       const artistImages = await Promise.all(this.data.artistRankByCount.slice(0, 3).map((item) => getCanvasImagePath(item.avatar)));
       const ctx = wx.createCanvasContext(POSTER_CANVAS_ID, this);

@@ -1,9 +1,9 @@
 const { createShareMessage } = require("../../services/share.js");
 Page({
   data: {
-    avatarInitial: "D",
+    avatarInitial: "\u5531",
     profileForm: {
-      name: "David",
+      name: "\u5531\u7247\u67dc\u7528\u6237",
       avatar: "",
       bio: ""
     }
@@ -17,11 +17,11 @@ Page({
 
     this.setData({
       profileForm: {
-        name: profile.name || "David",
+        name: profile.name || "\u5531\u7247\u67dc\u7528\u6237",
         avatar: profile.avatar || "",
         bio: profile.bio || ""
       },
-      avatarInitial: (profile.name || "D").slice(0, 1).toUpperCase()
+      avatarInitial: (profile.name || "\u5531").slice(0, 1).toUpperCase()
     });
   },
   handleFieldChange(event) {
@@ -32,7 +32,7 @@ Page({
         [key]: event.detail.value
       },
       avatarInitial: key === "name"
-        ? (event.detail.value || "D").slice(0, 1).toUpperCase()
+        ? (event.detail.value || "\u5531").slice(0, 1).toUpperCase()
         : this.data.avatarInitial
     });
   },
@@ -69,7 +69,7 @@ Page({
   },
   saveProfile() {
     const app = getApp();
-    const name = this.data.profileForm.name.trim() || "David";
+    const name = this.data.profileForm.name.trim() || "\u5531\u7247\u67dc\u7528\u6237";
     const nextProfile = {
       ...this.data.profileForm,
       name,
@@ -77,7 +77,7 @@ Page({
     };
 
     app.globalData.userProfile = nextProfile;
-    app.globalData.userLabel = `${name} / ${app.globalData.collectionCostLabel || "¥184,000"}`;
+    app.globalData.userLabel = `${name} / ${app.globalData.collectionCostLabel || "\u00a50"}`;
 
     wx.showToast({
       title: "已保存",

@@ -128,11 +128,17 @@ class FakePrismaService {
       create: Omit<FakeAlbum, "createdAt" | "updatedAt" | "tracks"> & {
         tracks?: { create?: Array<{ position: number; title: string }> };
       };
-      update: Partial<Omit<FakeAlbum, "id" | "createdAt" | "tracks">>;
+      update: Partial<Omit<FakeAlbum, "id" | "createdAt" | "tracks">> & {
+        tracks?: { create?: Array<{ position: number; title: string }> };
+      };
     }) => {
       const existing = this.albums.find((album) => album.id === where.id);
       if (existing) {
-        Object.assign(existing, update, { updatedAt: this.now });
+        const { tracks, ...albumPatch } = update;
+        Object.assign(existing, albumPatch, {
+          tracks: tracks?.create ?? existing.tracks,
+          updatedAt: this.now,
+        });
         return { ...existing, tracks: existing.tracks };
       }
 
@@ -303,6 +309,84 @@ describe("WeChat cloud collection API", () => {
     expect(shared.body.collectionItems.map((item: { albumId: string }) => item.albumId)).toEqual([
       "memories",
     ]);
+  });
+
+  it("keeps each WeChat caller collection isolated by openid", async () => {
+    const album = {
+      id: "memories",
+      title: "Memories",
+      artist: "刘德华",
+      year: 2002,
+      style: "粤语流行",
+      coverUrl: "https://example.com/memories.jpg",
+    };
+
+    const alice = await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("x-wx-openid", "openid-alice")
+      .send({
+        album,
+        collection: {
+          collectionDate: "2026-07-01",
+          source: "Alice shelf",
+          quantity: 1,
+          condition: "NM",
+          mediumKey: "vinyl",
+          price: 120,
+          notes: "Alice copy",
+        },
+      })
+      .expect(201);
+
+    const bob = await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("x-wx-openid", "openid-bob")
+      .send({
+        album,
+        collection: {
+          collectionDate: "2026-07-02",
+          source: "Bob shelf",
+          quantity: 2,
+          condition: "VG+",
+          mediumKey: "cd",
+          price: 80,
+          notes: "Bob copy",
+        },
+      })
+      .expect(201);
+
+    expect(alice.body.owner.id).not.toBe(bob.body.owner.id);
+    expect(alice.body.collectionItems).toHaveLength(1);
+    expect(bob.body.collectionItems).toHaveLength(1);
+    expect(alice.body.collectionItems[0]).toMatchObject({
+      userId: alice.body.owner.id,
+      albumId: "memories",
+      quantity: 1,
+      mediumKey: "vinyl",
+      notes: "Alice copy",
+    });
+    expect(bob.body.collectionItems[0]).toMatchObject({
+      userId: bob.body.owner.id,
+      albumId: "memories",
+      quantity: 2,
+      mediumKey: "cd",
+      notes: "Bob copy",
+    });
+
+    await request(app.getHttpServer())
+      .delete(`/api/collections/${alice.body.collectionItems[0].id}`)
+      .set("x-wx-openid", "openid-bob")
+      .expect(404);
+
+    const aliceMine = await request(app.getHttpServer())
+      .get("/api/collections/me")
+      .set("x-wx-openid", "openid-alice")
+      .expect(200);
+
+    expect(aliceMine.body.collectionItems[0]).toMatchObject({
+      userId: alice.body.owner.id,
+      notes: "Alice copy",
+    });
   });
 
   it("requires a WeChat cloud openid header", async () => {

@@ -125,9 +125,9 @@
         <view class="modal-tracks">
           <view class="modal-tracks-title">曲目</view>
           <scroll-view scroll-y class="modal-track-scroll" enhanced="{{true}}" show-scrollbar="{{true}}">
-            <view class="modal-track" wx:for="{{albumCard.tracksPreview}}" wx:key="*this">
-              <text>{{index + 1}}</text>
-              <text>{{item}}</text>
+            <view class="modal-track" wx:for="{{albumCard.tracksPreview}}" wx:key="position">
+              <text>{{item.position || index + 1}}</text>
+              <text>{{item.title}}</text>
             </view>
           </scroll-view>
         </view>

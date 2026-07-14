@@ -6,9 +6,29 @@ const DEFAULT_PUBLIC_CATALOG_BASE_URL = "https://express-i2ts-281225-8-145315574
 function searchCatalogAlbums(query, options = {}, config = {}, wxApi) {
   const parsed = parseSearchQuery(query);
   const params = buildCatalogSearchParams(parsed, options);
+  const shouldForceArtistSearch = !parsed.artist
+    && options.artistFallback === "always";
 
-  return callCatalogEndpoint(buildCatalogSearchPath(params), { method: "GET" }, config, wxApi)
-    .then(normalizeCatalogSearchResponse)
+  if (shouldForceArtistSearch) {
+    const mainRequest = requestCatalogSearch(params, config, wxApi);
+    const artistRequest = requestCatalogSearch({ ...params, artist: parsed.query }, config, wxApi);
+
+    return Promise.allSettled([mainRequest, artistRequest])
+      .then(([mainResult, artistResult]) => {
+        if (mainResult.status === "fulfilled" && artistResult.status === "fulfilled") {
+          return mergeSearchResults(artistResult.value, mainResult.value);
+        }
+        if (mainResult.status === "fulfilled") {
+          return mainResult.value;
+        }
+        if (artistResult.status === "fulfilled") {
+          return artistResult.value;
+        }
+        throw mainResult.reason || artistResult.reason;
+      });
+  }
+
+  return requestCatalogSearch(params, config, wxApi)
     .then((result) => {
       const shouldSearchArtist = !parsed.artist
         && options.artistFallback !== false
@@ -17,20 +37,23 @@ function searchCatalogAlbums(query, options = {}, config = {}, wxApi) {
         return result;
       }
 
-      return callCatalogEndpoint(
-        buildCatalogSearchPath({ ...params, artist: parsed.query }),
-        { method: "GET" },
-        config,
-        wxApi
-      )
-        .then(normalizeCatalogSearchResponse)
-        .then((artistResult) => ({
-          ...artistResult,
-          providers: mergeProviderState(result.providers, artistResult.providers),
-          albums: mergeAlbums(result.albums, artistResult.albums)
-        }))
+      return requestCatalogSearch({ ...params, artist: parsed.query }, config, wxApi)
+        .then((artistResult) => mergeSearchResults(result, artistResult))
         .catch(() => result);
     });
+}
+
+function requestCatalogSearch(params, config, wxApi) {
+  return callCatalogEndpoint(buildCatalogSearchPath(params), { method: "GET" }, config, wxApi)
+    .then(normalizeCatalogSearchResponse);
+}
+
+function mergeSearchResults(primary, fallback) {
+  return {
+    ...fallback,
+    providers: mergeProviderState(primary.providers, fallback.providers),
+    albums: mergeAlbums(primary.albums, fallback.albums)
+  };
 }
 
 function fetchCatalogAlbumDetail(album, options = {}, config = {}, wxApi) {

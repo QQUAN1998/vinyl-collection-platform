@@ -3,6 +3,7 @@ const { confirmSelectedAlbums } = require("../../services/collection-service.js"
 const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { createShareMessage } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS, getMediaFormat } = require("../../services/media-format-service.js");
+const { normalizeTrackDisplayList } = require("../../services/track-display-service.js");
 
 function toAlbumView(album) {
   if (!album) {
@@ -70,7 +71,7 @@ Page({
         { label: "数量", value: collectionItem ? `${collectionItem.quantity}` : "--" },
         { label: "品相", value: collectionItem ? collectionItem.condition : "--" }
       ],
-      tracks: album.tracks || []
+      tracks: normalizeTrackDisplayList(album.tracks || [])
     });
   },
   handleMediumChange(event) {

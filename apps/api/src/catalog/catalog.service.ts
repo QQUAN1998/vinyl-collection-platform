@@ -38,21 +38,97 @@ interface ProviderClient {
   getAlbum(input: CatalogAlbumInput, context: ProviderContext): Promise<CatalogAlbumCandidate | null>;
 }
 
+interface ProviderSearchBatch {
+  providers: CatalogProvider[];
+  failed: CatalogProvider[];
+  data: CatalogAlbumCandidate[];
+}
+
+interface CacheEntry<T> {
+  expiresAt: number;
+  value: T;
+}
+
+const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+const ALBUM_CACHE_TTL_MS = 30 * 60 * 1000;
+const PROVIDER_TIMEOUT_MS = 4000;
+const SECONDARY_PROVIDER_LIMIT_THRESHOLD = 20;
+
 @Injectable()
 export class CatalogService {
   private readonly providers: ProviderClient[] = [
-    musicBrainzProvider,
-    iTunesProvider,
     neteaseProvider,
     qqMusicProvider,
+    musicBrainzProvider,
+    iTunesProvider,
     discogsProvider,
   ];
+  private readonly searchCache = new Map<string, CacheEntry<CatalogSearchResponse>>();
+  private readonly albumCache = new Map<string, CacheEntry<CatalogAlbumCandidate | null>>();
 
   async search(input: CatalogSearchInput): Promise<CatalogSearchResponse> {
     const context = createProviderContext();
+    const cacheKey = searchCacheKey(input, context);
+    const cached = readCache(this.searchCache, cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const enabledProviders = this.providers.filter((provider) => provider.isEnabled(input, context));
+    const primaryProviders = enabledProviders.filter((provider) => isPrimaryProvider(provider.provider));
+    const secondaryProviders = enabledProviders.filter((provider) => !isPrimaryProvider(provider.provider));
+    const primaryBatch = await this.searchProviders(primaryProviders, input, context);
+
+    const failed = [...primaryBatch.failed];
+    const data = [...primaryBatch.data];
+    const queriedProviders = [...primaryBatch.providers];
+    let ranked = rankAndDedupe(data, input);
+
+    if (shouldSearchSecondaryProviders(ranked, input, primaryProviders, secondaryProviders)) {
+      const secondaryBatch = await this.searchProviders(secondaryProviders, input, context);
+      failed.push(...secondaryBatch.failed);
+      data.push(...secondaryBatch.data);
+      queriedProviders.push(...secondaryBatch.providers);
+      ranked = rankAndDedupe(data, input);
+    }
+
+    const response = {
+      query: input.query,
+      artist: input.artist,
+      providers: {
+        enabled: queriedProviders,
+        failed: Array.from(new Set(failed)),
+      },
+      data: ranked.slice(0, input.limit),
+    };
+    writeCache(this.searchCache, cacheKey, response, SEARCH_CACHE_TTL_MS);
+    return response;
+  }
+
+  async getAlbum(input: CatalogAlbumInput): Promise<CatalogAlbumCandidate | null> {
+    const context = createProviderContext();
+    const cacheKey = albumCacheKey(input, context);
+    const cached = readCache(this.albumCache, cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const provider = this.providers.find((item) => item.provider === input.provider);
+    if (!provider || !provider.isEnabled(input, context)) {
+      return null;
+    }
+    const album = await provider.getAlbum(input, context);
+    writeCache(this.albumCache, cacheKey, album, ALBUM_CACHE_TTL_MS);
+    return album;
+  }
+
+  private async searchProviders(
+    providers: ProviderClient[],
+    input: CatalogSearchInput,
+    context: ProviderContext,
+  ): Promise<ProviderSearchBatch> {
     const results = await Promise.allSettled(
-      enabledProviders.map(async (provider): Promise<ProviderResult> => ({
+      providers.map(async (provider): Promise<ProviderResult> => ({
         provider: provider.provider,
         data: await provider.search(input, context),
       })),
@@ -60,12 +136,11 @@ export class CatalogService {
 
     const failed: CatalogProvider[] = [];
     const data: CatalogAlbumCandidate[] = [];
-    for (const result of results) {
+    for (const [index, result] of results.entries()) {
       if (result.status === "fulfilled") {
         data.push(...result.value.data);
       } else {
-        const index = results.indexOf(result);
-        const provider = enabledProviders[index]?.provider;
+        const provider = providers[index]?.provider;
         if (provider) {
           failed.push(provider);
         }
@@ -73,24 +148,73 @@ export class CatalogService {
     }
 
     return {
-      query: input.query,
-      artist: input.artist,
-      providers: {
-        enabled: enabledProviders.map((provider) => provider.provider),
-        failed,
-      },
-      data: rankAndDedupe(data, input).slice(0, input.limit),
+      providers: providers.map((provider) => provider.provider),
+      failed,
+      data,
     };
   }
+}
 
-  async getAlbum(input: CatalogAlbumInput): Promise<CatalogAlbumCandidate | null> {
-    const context = createProviderContext();
-    const provider = this.providers.find((item) => item.provider === input.provider);
-    if (!provider || !provider.isEnabled(input, context)) {
-      return null;
-    }
-    return provider.getAlbum(input, context);
+function isPrimaryProvider(provider: CatalogProvider): boolean {
+  return provider === "NETEASE" || provider === "QQMUSIC";
+}
+
+function shouldSearchSecondaryProviders(
+  primaryData: CatalogAlbumCandidate[],
+  input: CatalogSearchInput,
+  primaryProviders: ProviderClient[],
+  secondaryProviders: ProviderClient[],
+): boolean {
+  if (!secondaryProviders.length) {
+    return false;
   }
+  if (!primaryProviders.length) {
+    return true;
+  }
+  if (input.limit > SECONDARY_PROVIDER_LIMIT_THRESHOLD) {
+    return true;
+  }
+  return primaryData.length < input.limit;
+}
+
+function searchCacheKey(input: CatalogSearchInput, context: ProviderContext): string {
+  return JSON.stringify({
+    query: input.query,
+    artist: input.artist,
+    limit: input.limit,
+    country: input.country,
+    includeUnofficial: input.includeUnofficial,
+    discogs: Boolean(context.discogsToken),
+  });
+}
+
+function albumCacheKey(input: CatalogAlbumInput, context: ProviderContext): string {
+  return JSON.stringify({
+    provider: input.provider,
+    providerId: input.providerId,
+    country: input.country,
+    includeUnofficial: input.includeUnofficial,
+    discogs: Boolean(context.discogsToken),
+  });
+}
+
+function readCache<T>(cache: Map<string, CacheEntry<T>>, key: string): T | undefined {
+  const entry = cache.get(key);
+  if (!entry) {
+    return undefined;
+  }
+  if (entry.expiresAt <= Date.now()) {
+    cache.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function writeCache<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T, ttlMs: number): void {
+  cache.set(key, {
+    expiresAt: Date.now() + ttlMs,
+    value,
+  });
 }
 
 const musicBrainzProvider: ProviderClient = {
@@ -121,16 +245,16 @@ const iTunesProvider: ProviderClient = {
   provider: "ITUNES",
   isEnabled: () => true,
   async search(input) {
-    const url = new URL("https://itunes.apple.com/search");
-    url.searchParams.set("term", providerSearchTerm(input));
-    url.searchParams.set("entity", "album");
-    url.searchParams.set("media", "music");
-    url.searchParams.set("limit", String(input.limit));
-    url.searchParams.set("country", input.country);
+    const albums = await searchITunesAlbums(input);
+    if (!isArtistOnlySearch(input)) {
+      return albums;
+    }
 
-    const payload = await fetchJson(url);
-    const results = asArray(readRecord(payload)["results"]);
-    return results.map((result, index) => mapITunesCollection(result, index, []));
+    try {
+      return mergeProviderCandidates(albums, await searchITunesArtistAlbums(input));
+    } catch {
+      return albums;
+    }
   },
   async getAlbum(input) {
     const url = new URL("https://itunes.apple.com/lookup");
@@ -151,6 +275,54 @@ const iTunesProvider: ProviderClient = {
     return mapITunesCollection(collection, 0, tracks);
   },
 };
+
+async function searchITunesAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+  const url = new URL("https://itunes.apple.com/search");
+  url.searchParams.set("term", providerSearchTerm(input));
+  url.searchParams.set("entity", "album");
+  url.searchParams.set("media", "music");
+  url.searchParams.set("limit", String(input.limit));
+  url.searchParams.set("country", input.country);
+
+  const payload = await fetchJson(url);
+  const results = asArray(readRecord(payload)["results"]);
+  return results.map((result, index) => mapITunesCollection(result, index, []));
+}
+
+async function searchITunesArtistAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+  const artistIds = await searchITunesArtistIds(input);
+  const results = await Promise.all(
+    artistIds.map(async (artistId) => {
+      const url = new URL("https://itunes.apple.com/lookup");
+      url.searchParams.set("id", artistId);
+      url.searchParams.set("entity", "album");
+      url.searchParams.set("limit", String(Math.min(input.limit, 200)));
+      url.searchParams.set("country", input.country);
+
+      const payload = await fetchJson(url);
+      const collections = asArray(readRecord(payload)["results"])
+        .filter((item) => readString(readRecord(item)["wrapperType"]) === "collection");
+      return collections.map((collection, index) => mapITunesCollection(collection, Math.min(index, 10), []));
+    }),
+  );
+  return results.flat();
+}
+
+async function searchITunesArtistIds(input: CatalogSearchInput): Promise<string[]> {
+  const url = new URL("https://itunes.apple.com/search");
+  url.searchParams.set("term", input.artist ?? input.query);
+  url.searchParams.set("entity", "musicArtist");
+  url.searchParams.set("media", "music");
+  url.searchParams.set("limit", "3");
+  url.searchParams.set("country", input.country);
+
+  const payload = await fetchJson(url);
+  return asArray(readRecord(payload)["results"])
+    .map(readRecord)
+    .map((artist) => String(readNumber(artist["artistId"]) ?? readString(artist["artistId"]) ?? ""))
+    .filter(Boolean)
+    .slice(0, 2);
+}
 
 const neteaseProvider: ProviderClient = {
   provider: "NETEASE",
@@ -196,16 +368,21 @@ async function searchNeteaseAlbums(input: CatalogSearchInput): Promise<CatalogAl
 
 async function searchNeteaseArtistAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
   const artistIds = await searchNeteaseArtistIds(input);
+  const pageSize = 50;
+  const pageCount = Math.max(1, Math.ceil(Math.min(input.limit, 200) / pageSize));
+  const offsets = Array.from({ length: pageCount }, (_item, index) => index * pageSize);
   const results = await Promise.all(
-    artistIds.map(async (artistId) => {
-      const url = new URL(`https://music.163.com/api/artist/albums/${encodeURIComponent(artistId)}`);
-      url.searchParams.set("offset", "0");
-      url.searchParams.set("limit", String(input.limit));
+    artistIds.flatMap((artistId) =>
+      offsets.map(async (offset) => {
+        const url = new URL(`https://music.163.com/api/artist/albums/${encodeURIComponent(artistId)}`);
+        url.searchParams.set("offset", String(offset));
+        url.searchParams.set("limit", String(Math.min(pageSize, Math.max(1, input.limit - offset))));
 
-      const payload = await fetchJson(url, { referer: "https://music.163.com/" });
-      const albums = asArray(readRecord(payload)["hotAlbums"]);
-      return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
-    }),
+        const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+        const albums = asArray(readRecord(payload)["hotAlbums"]);
+        return albums.map((album, index) => mapNeteaseAlbum(album, Math.min(index, 10), []));
+      }),
+    ),
   );
   return results.flat();
 }
@@ -313,7 +490,7 @@ async function fetchJson(
 
   const response = await fetch(url, {
     headers,
-    signal: AbortSignal.timeout(7000),
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`Provider request failed: ${response.status}`);
@@ -642,26 +819,160 @@ function rankAndDedupe(
   candidates: CatalogAlbumCandidate[],
   input: CatalogSearchInput,
 ): CatalogAlbumCandidate[] {
-  const seen = new Set<string>();
-  return candidates
+  const filtered = candidates.filter((candidate) => matchesRequestedArtist(candidate, input.artist));
+  const ranked = filtered
     .map((candidate) => ({
       candidate,
-      score: candidate.score + scoreText(candidate, input),
+      score: candidate.score + scoreText(candidate, input) + providerScore(candidate.provider),
     }))
-    .sort((left, right) => right.score - left.score)
     .map(({ candidate, score }) => ({ ...candidate, score: Math.min(100, Math.round(score)) }))
-    .filter((candidate) => {
-      const key = [
-        normalizeText(candidate.title),
-        normalizeText(candidate.artist),
-        candidate.year ?? "",
-      ].join("|");
-      if (seen.has(key)) {
-        return false;
+    .sort(compareCandidates);
+  const deduped = new Map<string, CatalogAlbumCandidate[]>();
+
+  for (const candidate of ranked) {
+    const key = candidateDedupeKey(candidate);
+    const bucket = deduped.get(key) ?? [];
+    const existingIndex = bucket.findIndex((existing) => shouldMergeDuplicateCandidate(existing, candidate));
+    if (existingIndex >= 0) {
+      const existing = bucket[existingIndex];
+      if (existing) {
+        bucket[existingIndex] = mergeDuplicateCandidate(existing, candidate);
       }
-      seen.add(key);
-      return true;
-    });
+      deduped.set(key, bucket);
+      continue;
+    }
+
+    bucket.push(candidate);
+    deduped.set(key, bucket);
+  }
+
+  return Array.from(deduped.values()).flat().sort(compareCandidates);
+}
+
+function compareCandidates(left: CatalogAlbumCandidate, right: CatalogAlbumCandidate): number {
+  return right.score - left.score
+    || providerRank(left.provider) - providerRank(right.provider)
+    || Number(right.year || 0) - Number(left.year || 0)
+    || left.title.localeCompare(right.title, "zh-CN");
+}
+
+function matchesRequestedArtist(candidate: CatalogAlbumCandidate, artist: string | null): boolean {
+  if (!artist) {
+    return true;
+  }
+  if (!candidate.artist) {
+    return false;
+  }
+
+  const requested = normalizeDedupeText(artist);
+  const candidateArtist = normalizeDedupeText(candidate.artist);
+  if (candidateArtist === requested) {
+    return true;
+  }
+
+  return splitArtistTokens(candidate.artist).some((token) => token === requested);
+}
+
+function splitArtistTokens(value: string): string[] {
+  return normalizeText(value)
+    .normalize("NFKC")
+    .split(/\s*(?:\/|,|，|、|&|＆|\+|;|；|\band\b|\bwith\b|\bfeat\.?\b)\s*/iu)
+    .map(normalizeDedupeText)
+    .filter(Boolean);
+}
+
+function candidateDedupeKey(candidate: CatalogAlbumCandidate): string {
+  const title = normalizeDedupeText(candidate.title);
+  const artist = normalizeDedupeText(candidate.artist);
+  if (title && artist) {
+    return `${title}|${artist}`;
+  }
+  return `${title}|${artist}|${candidate.year ?? ""}|${candidate.provider}:${candidate.providerId}`;
+}
+
+function shouldMergeDuplicateCandidate(
+  existing: CatalogAlbumCandidate,
+  incoming: CatalogAlbumCandidate,
+): boolean {
+  if (existing.provider === incoming.provider && existing.providerId === incoming.providerId) {
+    return true;
+  }
+  if (existing.year && incoming.year && Math.abs(existing.year - incoming.year) > 1) {
+    return false;
+  }
+  return true;
+}
+
+function mergeDuplicateCandidate(
+  existing: CatalogAlbumCandidate,
+  incoming: CatalogAlbumCandidate,
+): CatalogAlbumCandidate {
+  const preferred = compareCandidates(incoming, existing) < 0 ? incoming : existing;
+  const supplemental = preferred === incoming ? existing : incoming;
+
+  return {
+    ...preferred,
+    year: preferred.year ?? supplemental.year,
+    releaseDate: preferred.releaseDate ?? supplemental.releaseDate,
+    region: preferred.region ?? supplemental.region,
+    label: preferred.label ?? supplemental.label,
+    genre: preferred.genre ?? supplemental.genre,
+    style: preferred.style ?? supplemental.style,
+    format: preferred.format ?? supplemental.format,
+    barcode: preferred.barcode ?? supplemental.barcode,
+    coverUrl: preferred.coverUrl ?? supplemental.coverUrl,
+    coverThumbUrl: preferred.coverThumbUrl ?? supplemental.coverThumbUrl,
+    trackCount: preferred.trackCount ?? supplemental.trackCount,
+    tracks: preferred.tracks.length ? preferred.tracks : supplemental.tracks,
+    externalUrl: preferred.externalUrl ?? supplemental.externalUrl,
+    providerRefs: mergeProviderRefs(preferred.providerRefs, supplemental.providerRefs),
+  };
+}
+
+function mergeProviderRefs(
+  primary: CatalogAlbumCandidate["providerRefs"],
+  supplemental: CatalogAlbumCandidate["providerRefs"],
+): CatalogAlbumCandidate["providerRefs"] {
+  const refs = new Map<string, CatalogAlbumCandidate["providerRefs"][number]>();
+  for (const ref of [...primary, ...supplemental]) {
+    const key = `${ref.provider}:${ref.id}`;
+    if (!refs.has(key)) {
+      refs.set(key, ref);
+    }
+  }
+  return Array.from(refs.values());
+}
+
+function providerScore(provider: CatalogProvider): number {
+  switch (provider) {
+    case "NETEASE":
+      return 12;
+    case "QQMUSIC":
+      return 10;
+    case "ITUNES":
+      return 2;
+    case "DISCOGS":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function providerRank(provider: CatalogProvider): number {
+  switch (provider) {
+    case "NETEASE":
+      return 0;
+    case "QQMUSIC":
+      return 1;
+    case "ITUNES":
+      return 2;
+    case "MUSICBRAINZ":
+      return 3;
+    case "DISCOGS":
+      return 4;
+    default:
+      return 5;
+  }
 }
 
 function mergeProviderCandidates(
@@ -815,6 +1126,12 @@ function readNumber(value: unknown): number | null {
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/\s+/gu, " ").trim();
+}
+
+function normalizeDedupeText(value: string): string {
+  return normalizeText(value)
+    .normalize("NFKC")
+    .replace(/[\s'"’‘“”`´\-–—_:：,，.。!！?？()[\]【】<>《》]+/gu, "");
 }
 
 function isDefined<T>(value: T | null | undefined): value is T {

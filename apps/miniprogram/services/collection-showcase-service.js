@@ -1,6 +1,7 @@
 const { getMediaFormat } = require("./media-format-service.js");
 const { getAlbumRarity } = require("./rarity-service.js");
 const { calculateCollectionStats } = require("./stats-service.js");
+const { normalizeTrackDisplayList } = require("./track-display-service.js");
 
 function formatMoney(value) {
   return `¥${Number(value || 0).toLocaleString("zh-CN")}`;
@@ -99,7 +100,7 @@ function buildCollectedAlbumViews(sourceAlbums = [], collectionItems = []) {
         rarityClass: `rarity-${rarity.code.toLowerCase()}`,
         cover: coverOf(album),
         styles: album.style,
-        tracksPreview: album.tracks || []
+        tracksPreview: normalizeTrackDisplayList(album.tracks || [])
       };
     })
     .filter(Boolean)

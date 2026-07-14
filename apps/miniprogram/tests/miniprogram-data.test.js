@@ -40,6 +40,10 @@ const {
   parseSearchQuery,
   searchCatalogAlbums,
 } = require("../services/catalog-api.js");
+const {
+  formatTrackDuration,
+  normalizeTrackDisplayList,
+} = require("../services/track-display-service.js");
 
 test("David seed library contains searchable album metadata", () => {
   assert.equal(albums.length, 9);
@@ -393,6 +397,23 @@ test("catalog API candidates become addable local albums", () => {
   assert.deepEqual(response.albums[0].tracks, [{ position: 1, title: "爱在西元前" }]);
 });
 
+test("track display models render structured catalog tracks as text", () => {
+  assert.equal(formatTrackDuration(234253), "3:54");
+  assert.deepEqual(
+    normalizeTrackDisplayList([
+      { position: 1, title: "\u767d\u9e3d", durationMs: 234253 },
+      { title: "\u7ec3\u4e60" },
+      "\u4e00\u8d77\u8d70\u8fc7\u7684\u65e5\u5b50",
+      { position: 4, title: "" },
+    ]),
+    [
+      { position: 1, title: "\u767d\u9e3d", durationLabel: "3:54" },
+      { position: 2, title: "\u7ec3\u4e60", durationLabel: "" },
+      { position: 3, title: "\u4e00\u8d77\u8d70\u8fc7\u7684\u65e5\u5b50", durationLabel: "" },
+    ],
+  );
+});
+
 test("catalog search path preserves artist-title input", () => {
   const encodedArtistTitle = "%E5%91%A8%E6%9D%B0%E4%BC%A6%20-%20%E8%8C%83%E7%89%B9%E8%A5%BF";
   assert.equal(normalizeCatalogQuery(encodedArtistTitle), decodeURIComponent(encodedArtistTitle));
@@ -504,8 +525,60 @@ test("catalog search can force artist-name expansion for full results", async ()
 
   assert.equal(requestedUrls.length, 2);
   assert.ok(requestedUrls[1].includes("limit=50"));
+  assert.equal(result.albums[0].catalogProviderId, "002Neh8l0uciQZ");
   assert.ok(result.albums.some((album) => album.title === "魔杰座"));
   assert.ok(result.albums.some((album) => album.title === "周杰伦 Type Beat"));
+});
+
+test("catalog search starts forced artist expansion without waiting for the first response", async () => {
+  const requestedUrls = [];
+  const pendingRequests = [];
+  const wxApi = {
+    request(options) {
+      requestedUrls.push(options.url);
+      pendingRequests.push(options);
+    },
+  };
+
+  const resultPromise = searchCatalogAlbums(
+    "\u5468\u6770\u4f26",
+    { limit: 50, country: "CN", artistFallback: "always" },
+    {},
+    wxApi,
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(requestedUrls.length, 2);
+  pendingRequests[0].success({
+    statusCode: 200,
+    data: {
+      query: "\u5468\u6770\u4f26",
+      artist: null,
+      providers: { enabled: ["NETEASE"], failed: [] },
+      data: [],
+    },
+  });
+  pendingRequests[1].success({
+    statusCode: 200,
+    data: {
+      query: "\u5468\u6770\u4f26",
+      artist: "\u5468\u6770\u4f26",
+      providers: { enabled: ["NETEASE"], failed: [] },
+      data: [
+        {
+          id: "netease:18915",
+          provider: "NETEASE",
+          providerId: "18915",
+          title: "\u8303\u7279\u897f",
+          artist: "\u5468\u6770\u4f26",
+        },
+      ],
+    },
+  });
+
+  const result = await resultPromise;
+  assert.equal(result.albums[0].title, "\u8303\u7279\u897f");
 });
 
 test("catalog detail can enrich a selected search candidate", () => {

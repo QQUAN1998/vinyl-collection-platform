@@ -170,6 +170,10 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(cabinetMarkup.includes("modal-edit-action"), "album card keeps a direct edit action");
   assert.ok(cabinetMarkup.includes("modal-wall-action"), "album card can move albums up or down the photo wall");
   assert.ok(cabinetMarkup.includes('<scroll-view scroll-y class="modal-track-scroll"'), "album card tracks use native mini-program scrolling");
+  for (const markup of [cabinetMarkup, allCollectionMarkup, archiveMarkup, detailMarkup]) {
+    assert.ok(markup.includes("{{item.title}}"), "track rows render the track title instead of the raw object");
+    assert.doesNotMatch(markup, /wx:for="\{\{[^"]*tracks[^"]*\}\}"[\s\S]{0,240}\{\{item\}\}/i);
+  }
   assert.ok(cabinetScript.includes("openAlbumCard"), "home album tap opens the prototype-style card");
   assert.ok(cabinetScript.includes("moveAlbumCard"), "home album card supports previous and next navigation");
   assert.ok(cabinetScript.includes("handleWallAction"), "home album card wires direct wall actions");

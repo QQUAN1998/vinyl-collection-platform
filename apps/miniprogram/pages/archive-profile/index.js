@@ -2,6 +2,7 @@ const { albums } = require("../../data/seed.js");
 const { getMediaFormat } = require("../../services/media-format-service.js");
 const { getAlbumRarity } = require("../../services/rarity-service.js");
 const { createShareMessage } = require("../../services/share.js");
+const { normalizeTrackDisplayList } = require("../../services/track-display-service.js");
 
 function decadeOf(year) {
   return `${Math.floor(Number(year || 0) / 10) * 10}s`;
@@ -22,7 +23,8 @@ function toAlbumView(album, collectionItem = {}) {
     rarityClass: `rarity-${rarity.code.toLowerCase()}`,
     decade: decadeOf(album.year),
     cover: `/${album.coverUrl}`,
-    styles: album.style
+    styles: album.style,
+    tracks: normalizeTrackDisplayList(album.tracks || [])
   };
 }
 

@@ -29,10 +29,10 @@
     <view class="section">
       <view class="section-title">曲目</view>
       <view class="track-list">
-        <view class="track-row" wx:for="{{tracks}}" wx:key="*this">
-          <text class="track-index">{{index + 1}}</text>
-          <text class="track-name">{{item}}</text>
-          <text class="track-duration">--</text>
+        <view class="track-row" wx:for="{{tracks}}" wx:key="position">
+          <text class="track-index">{{item.position || index + 1}}</text>
+          <text class="track-name">{{item.title}}</text>
+          <text class="track-duration">{{item.durationLabel || "--"}}</text>
         </view>
       </view>
     </view>

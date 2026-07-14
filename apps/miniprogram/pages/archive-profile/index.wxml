@@ -86,9 +86,9 @@
       </view>
       <view class="preview-tracks">
         <view class="preview-tracks-title">曲目</view>
-        <view class="preview-track" wx:for="{{previewAlbum.tracks}}" wx:key="*this">
-          <text>{{index + 1}}</text>
-          <text>{{item}}</text>
+        <view class="preview-track" wx:for="{{previewAlbum.tracks}}" wx:key="position">
+          <text>{{item.position || index + 1}}</text>
+          <text>{{item.title}}</text>
         </view>
       </view>
       <view class="preview-actions">

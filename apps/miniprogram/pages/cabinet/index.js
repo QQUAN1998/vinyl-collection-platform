@@ -15,6 +15,7 @@ const {
 const { ensureCloudSession, showCloudDeleteFailed, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { getAlbumRarity } = require("../../services/rarity-service.js");
 const { createShareMessage } = require("../../services/share.js");
+const { normalizeTrackDisplayList } = require("../../services/track-display-service.js");
 
 const CATALOG_SCOPES = [
   { key: "all", label: "全部" },
@@ -75,7 +76,7 @@ function buildAlbumCard(album, collectionItem, photoWallOrder = []) {
     rarityLabel: rarity.label,
     rarityName: rarity.name,
     rarityClass: `rarity-${rarity.code.toLowerCase()}`,
-    tracksPreview: albumView.tracks || []
+    tracksPreview: normalizeTrackDisplayList(albumView.tracks || [])
   };
 }
 

@@ -9,8 +9,8 @@ const { toggleSelected } = require("../../services/import-service.js");
 const { createShareMessage } = require("../../services/share.js");
 
 const INITIAL_CATALOG_LIMIT = 20;
-const CATALOG_LIMIT_STEP = 20;
-const MAX_CATALOG_LIMIT = 100;
+const CATALOG_LIMIT_STEP = 40;
+const MAX_CATALOG_LIMIT = 300;
 
 function toAlbumView(album) {
   return {

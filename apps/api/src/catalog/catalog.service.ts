@@ -156,17 +156,16 @@ const neteaseProvider: ProviderClient = {
   provider: "NETEASE",
   isEnabled: (input) => input.includeUnofficial,
   async search(input) {
-    const url = new URL("https://music.163.com/api/search/get/web");
-    url.searchParams.set("csrf_token", "");
-    url.searchParams.set("s", providerSearchTerm(input));
-    url.searchParams.set("type", "10");
-    url.searchParams.set("offset", "0");
-    url.searchParams.set("limit", String(input.limit));
+    const albums = await searchNeteaseAlbums(input);
+    if (!isArtistOnlySearch(input)) {
+      return albums;
+    }
 
-    const payload = await fetchJson(url, { referer: "https://music.163.com/" });
-    const result = readRecord(readRecord(payload)["result"]);
-    const albums = asArray(result["albums"]);
-    return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+    try {
+      return mergeProviderCandidates(albums, await searchNeteaseArtistAlbums(input));
+    } catch {
+      return albums;
+    }
   },
   async getAlbum(input) {
     const url = new URL(`https://music.163.com/api/v1/album/${encodeURIComponent(input.providerId)}`);
@@ -180,6 +179,62 @@ const neteaseProvider: ProviderClient = {
     return mapNeteaseAlbum(album, 0, songs);
   },
 };
+
+async function searchNeteaseAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+    const url = new URL("https://music.163.com/api/search/get/web");
+    url.searchParams.set("csrf_token", "");
+    url.searchParams.set("s", providerSearchTerm(input));
+    url.searchParams.set("type", "10");
+    url.searchParams.set("offset", "0");
+    url.searchParams.set("limit", String(input.limit));
+
+    const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+    const result = readRecord(readRecord(payload)["result"]);
+    const albums = asArray(result["albums"]);
+    return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+}
+
+async function searchNeteaseArtistAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+  const artistIds = await searchNeteaseArtistIds(input);
+  const results = await Promise.all(
+    artistIds.map(async (artistId) => {
+      const url = new URL(`https://music.163.com/api/artist/albums/${encodeURIComponent(artistId)}`);
+      url.searchParams.set("offset", "0");
+      url.searchParams.set("limit", String(input.limit));
+
+      const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+      const albums = asArray(readRecord(payload)["hotAlbums"]);
+      return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+    }),
+  );
+  return results.flat();
+}
+
+async function searchNeteaseArtistIds(input: CatalogSearchInput): Promise<string[]> {
+  const target = normalizeText(input.artist ?? input.query);
+  const url = new URL("https://music.163.com/api/search/get/web");
+  url.searchParams.set("csrf_token", "");
+  url.searchParams.set("s", input.artist ?? input.query);
+  url.searchParams.set("type", "100");
+  url.searchParams.set("offset", "0");
+  url.searchParams.set("limit", "5");
+
+  const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+  const result = readRecord(readRecord(payload)["result"]);
+  const artists = asArray(result["artists"]).map(readRecord);
+  return artists
+    .filter((artist) => {
+      const name = readString(artist["name"]);
+      if (!name) {
+        return false;
+      }
+      const normalizedName = normalizeText(name);
+      return normalizedName === target || normalizedName.includes(target) || target.includes(normalizedName);
+    })
+    .map((artist) => String(readNumber(artist["id"]) ?? readString(artist["id"]) ?? ""))
+    .filter(Boolean)
+    .slice(0, 2);
+}
 
 const qqMusicProvider: ProviderClient = {
   provider: "QQMUSIC",
@@ -607,6 +662,23 @@ function rankAndDedupe(
       seen.add(key);
       return true;
     });
+}
+
+function mergeProviderCandidates(
+  primary: CatalogAlbumCandidate[],
+  supplemental: CatalogAlbumCandidate[],
+): CatalogAlbumCandidate[] {
+  const seen = new Set<string>();
+  const result: CatalogAlbumCandidate[] = [];
+  for (const candidate of [...primary, ...supplemental]) {
+    const key = `${candidate.provider}:${candidate.providerId}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push(candidate);
+  }
+  return result;
 }
 
 function scoreText(candidate: CatalogAlbumCandidate, input: CatalogSearchInput): number {

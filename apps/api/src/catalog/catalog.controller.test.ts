@@ -34,16 +34,16 @@ describe("CatalogController", () => {
     await app.close();
   });
 
-  it("allows full search pages to request up to 100 catalog results", async () => {
+  it("allows full search pages to request up to 300 catalog results", async () => {
     await request(app.getHttpServer())
       .get("/api/catalog/search")
-      .query({ q: "周杰伦", artist: "周杰伦", limit: "140", country: "cn" })
+      .query({ q: "周杰伦", artist: "周杰伦", limit: "400", country: "cn" })
       .expect(200);
 
     expect(catalog.search).toHaveBeenCalledWith(expect.objectContaining({
       query: "周杰伦",
       artist: "周杰伦",
-      limit: 100,
+      limit: 300,
       country: "CN",
     }));
   });

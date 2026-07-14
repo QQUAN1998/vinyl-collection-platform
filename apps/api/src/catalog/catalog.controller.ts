@@ -99,7 +99,7 @@ function parseLimit(value: string | undefined): number {
   if (!Number.isInteger(limit) || limit < 1) {
     throw new UnprocessableEntityException();
   }
-  return Math.min(limit, 100);
+  return Math.min(limit, 300);
 }
 
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {

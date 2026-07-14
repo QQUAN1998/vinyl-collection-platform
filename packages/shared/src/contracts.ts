@@ -116,6 +116,58 @@ export interface UpsertCloudCollectionInput {
   >;
 }
 
+export type CatalogProvider =
+  | "MUSICBRAINZ"
+  | "ITUNES"
+  | "NETEASE"
+  | "QQMUSIC"
+  | "DISCOGS";
+
+export interface CatalogProviderRef {
+  provider: CatalogProvider;
+  id: string;
+  url: string | null;
+}
+
+export interface CatalogAlbumTrack {
+  position: number;
+  title: string;
+  durationMs: number | null;
+}
+
+export interface CatalogAlbumCandidate {
+  id: string;
+  provider: CatalogProvider;
+  providerId: string;
+  title: string;
+  artist: string;
+  year: number | null;
+  releaseDate: string | null;
+  region: string | null;
+  label: string | null;
+  genre: string | null;
+  style: string | null;
+  format: string | null;
+  barcode: string | null;
+  coverUrl: string | null;
+  coverThumbUrl: string | null;
+  trackCount: number | null;
+  tracks: CatalogAlbumTrack[];
+  externalUrl: string | null;
+  score: number;
+  providerRefs: CatalogProviderRef[];
+}
+
+export interface CatalogSearchResponse {
+  query: string;
+  artist: string | null;
+  providers: {
+    enabled: CatalogProvider[];
+    failed: CatalogProvider[];
+  };
+  data: CatalogAlbumCandidate[];
+}
+
 export type TvDeviceStatus = "BOUND" | "UNBOUND" | "DISABLED";
 
 export interface TvDevice {

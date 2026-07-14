@@ -2,6 +2,7 @@ const { albums } = require("../../data/seed.js");
 const {
   coverToImageSrc,
   fetchCatalogAlbumDetail,
+  normalizeCatalogQuery,
   searchCatalogAlbums
 } = require("../../services/catalog-api.js");
 const { toggleSelected } = require("../../services/import-service.js");
@@ -56,6 +57,7 @@ Page({
     this.loadCandidates(options.query || "");
   },
   loadCandidates(query) {
+    const normalizedQuery = normalizeCatalogQuery(query);
     const app = getApp();
     const draft = app.globalData.importDraft;
     const draftCandidates = draft && draft.matches
@@ -63,7 +65,7 @@ Page({
       : [];
 
     if (draftCandidates.length) {
-      this.applyCandidates(query, uniqueAlbums(draftCandidates), {
+      this.applyCandidates(normalizedQuery, uniqueAlbums(draftCandidates), {
         draft,
         selectedLimit: 3,
         source: "batch"
@@ -72,7 +74,7 @@ Page({
     }
 
     if (!app.globalData.cloud.ready) {
-      this.applyCandidates(query, uniqueAlbums(searchLocalAlbums(query)), {
+      this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
         draft,
         selectedLimit: 3,
         source: "local",
@@ -87,11 +89,11 @@ Page({
       providerNotice: ""
     });
 
-    searchCatalogAlbums(query, { limit: 8, country: "CN" }, app.globalData.cloud)
+    searchCatalogAlbums(normalizedQuery, { limit: 8, country: "CN" }, app.globalData.cloud)
       .then((result) => {
         const remoteAlbums = uniqueAlbums(result.albums || []);
         if (!remoteAlbums.length) {
-          this.applyCandidates(query, uniqueAlbums(searchLocalAlbums(query)), {
+          this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
             draft,
             selectedLimit: 3,
             source: "local",
@@ -100,7 +102,7 @@ Page({
           return;
         }
 
-        this.applyCandidates(query, remoteAlbums, {
+        this.applyCandidates(normalizedQuery, remoteAlbums, {
           draft,
           selectedLimit: 1,
           source: "catalog",
@@ -110,7 +112,7 @@ Page({
         });
       })
       .catch(() => {
-        this.applyCandidates(query, uniqueAlbums(searchLocalAlbums(query)), {
+        this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
           draft,
           selectedLimit: 3,
           source: "local",

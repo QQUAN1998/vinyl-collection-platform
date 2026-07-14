@@ -105,6 +105,7 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.match(cloudScript, /wx\.cloud\.callContainer/);
   assert.match(cloudScript, /X-WX-SERVICE/);
   assert.match(cloudScript, /express-i2ts/);
+  assert.match(appScript + cloudScript, /vinyl-prod-d0g8u61k95ee7a1e6/);
   assert.match(shareScript, /wx\.showShareMenu/);
   assert.match(shareScript, /shareAppMessage/);
   for (const text of ["全部唱片", "catalogSearch", "visibleAlbums", "搜唱片"]) {

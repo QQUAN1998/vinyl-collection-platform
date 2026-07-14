@@ -30,6 +30,7 @@ const {
 const {
   buildCatalogSearchPath,
   catalogCandidateToAlbum,
+  normalizeCatalogQuery,
   normalizeCatalogSearchResponse,
   parseSearchQuery,
 } = require("../services/catalog-api.js");
@@ -370,6 +371,14 @@ test("catalog API candidates become addable local albums", () => {
 });
 
 test("catalog search path preserves artist-title input", () => {
+  const encodedArtistTitle = "%E5%91%A8%E6%9D%B0%E4%BC%A6%20-%20%E8%8C%83%E7%89%B9%E8%A5%BF";
+  assert.equal(normalizeCatalogQuery(encodedArtistTitle), decodeURIComponent(encodedArtistTitle));
+  assert.deepEqual(parseSearchQuery(encodedArtistTitle), {
+    query: "周杰伦 - 范特西",
+    artist: "周杰伦",
+    title: "范特西",
+  });
+
   assert.deepEqual(parseSearchQuery("周杰伦 - 范特西"), {
     query: "周杰伦 - 范特西",
     artist: "周杰伦",

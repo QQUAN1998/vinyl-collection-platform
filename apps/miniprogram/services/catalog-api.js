@@ -93,7 +93,7 @@ function buildQueryString(params) {
 }
 
 function parseSearchQuery(query) {
-  const text = String(query || "").trim();
+  const text = normalizeCatalogQuery(query);
   const parts = text.split(/\s+-\s+/);
   if (parts.length >= 2) {
     return {
@@ -103,6 +103,19 @@ function parseSearchQuery(query) {
     };
   }
   return { query: text, artist: "", title: text };
+}
+
+function normalizeCatalogQuery(query) {
+  const text = String(query || "").trim();
+  if (!text.includes("%")) {
+    return text;
+  }
+
+  try {
+    return decodeURIComponent(text).trim();
+  } catch (error) {
+    return text;
+  }
 }
 
 function coverToImageSrc(value) {
@@ -136,6 +149,7 @@ module.exports = {
   catalogCandidateToAlbum,
   coverToImageSrc,
   fetchCatalogAlbumDetail,
+  normalizeCatalogQuery,
   normalizeCatalogSearchResponse,
   parseSearchQuery,
   providerLabel,

@@ -202,9 +202,14 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(addScript.includes("pages/search-results/index?query="), "add page search action opens the full results page");
   assert.ok(addMarkup.includes("在线资料"), "add page tells users search results come from the online catalog");
   assert.ok(searchResultsScript.includes("searchCatalogAlbums"), "search results page uses the cloud catalog search API");
-  assert.ok(searchResultsScript.includes("FULL_CATALOG_LIMIT = 50"), "search results page requests the fuller catalog result set");
+  assert.ok(searchResultsScript.includes("INITIAL_CATALOG_LIMIT = 20"), "search results page starts with a scannable first result set");
+  assert.ok(searchResultsScript.includes("MAX_CATALOG_LIMIT = 100"), "search results page can progressively expand the online catalog result set");
+  assert.ok(searchResultsScript.includes("loadMoreResults"), "search results page can load more online catalog results");
+  assert.ok(searchResultsScript.includes("onReachBottom"), "search results page keeps loading when users scroll to the bottom");
   assert.ok(searchResultsScript.includes('artistFallback: "always"'), "search results page merges artist-name matches");
   assert.ok(searchResultsScript.includes("fetchCatalogAlbumDetail"), "search results page hydrates selected catalog albums before confirming");
+  assert.ok(searchResultsMarkup.includes("load-more-panel"), "search results page exposes a visible load-more control");
+  assert.ok(searchResultsMarkup.includes("loadingMore"), "search results page shows incremental loading state");
   assert.ok(searchResultsMarkup.includes("正在搜索在线资料"), "search results page shows a remote catalog loading state");
   assert.ok(batchConfirmScript.includes("draft.candidates"), "batch confirm can add online catalog candidates");
   assert.ok(addMarkup.includes("批量输入"), "add page keeps batch input action");

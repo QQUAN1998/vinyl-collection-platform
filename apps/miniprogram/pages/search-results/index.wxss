@@ -1,5 +1,5 @@
 .results-screen {
-  padding-bottom: calc(158rpx + var(--safe-bottom));
+  padding-bottom: calc(220rpx + var(--safe-bottom));
 }
 
 .result-query {
@@ -34,6 +34,50 @@
 
 .result-notice.is-warning {
   background: rgba(211, 179, 106, 0.18);
+}
+
+.result-notice.is-muted {
+  background: rgba(99, 116, 77, 0.12);
+}
+
+.load-more-panel {
+  display: grid;
+  gap: 14rpx;
+  justify-items: center;
+  margin: 34rpx 0 8rpx;
+}
+
+.load-more-button {
+  min-height: 76rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300rpx;
+  padding: 0 34rpx;
+  border: 2rpx solid var(--color-olive);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  color: var(--color-olive);
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.load-more-button.is-loading,
+.load-more-button.is-done {
+  border-color: rgba(99, 116, 77, 0.22);
+  background: var(--color-soft);
+  color: var(--color-muted);
+}
+
+.load-more-hover {
+  opacity: 0.72;
+}
+
+.load-more-meta {
+  color: var(--color-muted);
+  font-size: 22rpx;
+  font-weight: 700;
 }
 
 .floating-action {

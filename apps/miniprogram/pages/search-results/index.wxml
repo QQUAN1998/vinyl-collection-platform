@@ -6,6 +6,7 @@
 
   <view class="result-query">{{query || "批量匹配"}}</view>
   <view class="result-notice" wx:if="{{providerNotice}}">{{providerNotice}}</view>
+  <view class="result-notice is-muted" wx:if="{{resultNotice}}">{{resultNotice}}</view>
   <view class="result-notice is-warning" wx:if="{{errorMessage}}">{{errorMessage}}</view>
   <view class="section-title">选择要加入的唱片</view>
 
@@ -25,6 +26,17 @@
       selected="{{item.selected}}"
       bind:select="toggleAlbum"
     />
+  </view>
+
+  <view class="load-more-panel" wx:if="{{!loading && candidates.length}}">
+    <view
+      class="load-more-button {{loadingMore ? 'is-loading' : ''}} {{!hasMoreResults ? 'is-done' : ''}}"
+      bindtap="loadMoreResults"
+      hover-class="load-more-hover"
+    >
+      {{loadingMore ? "正在继续查找" : (hasMoreResults ? "继续加载更多" : "已显示全部可获取结果")}}
+    </view>
+    <view class="load-more-meta">已显示 {{candidates.length}} 个结果</view>
   </view>
 
   <state-view

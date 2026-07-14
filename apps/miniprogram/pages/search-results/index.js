@@ -8,7 +8,9 @@ const {
 const { toggleSelected } = require("../../services/import-service.js");
 const { createShareMessage } = require("../../services/share.js");
 
-const FULL_CATALOG_LIMIT = 50;
+const INITIAL_CATALOG_LIMIT = 20;
+const CATALOG_LIMIT_STEP = 20;
+const MAX_CATALOG_LIMIT = 100;
 
 function toAlbumView(album) {
   return {
@@ -44,6 +46,20 @@ function searchLocalAlbums(query) {
   });
 }
 
+function markSelected(candidates, selectedIds) {
+  const selectedSet = new Set(selectedIds);
+  return candidates.map((album) => ({
+    ...album,
+    selected: selectedSet.has(album.id)
+  }));
+}
+
+function buildProviderNotice(result = {}) {
+  return result.providers && result.providers.failed && result.providers.failed.length
+    ? "部分资料源暂不可用，已显示可用结果"
+    : "";
+}
+
 Page({
   data: {
     query: "",
@@ -51,7 +67,11 @@ Page({
     selectedIds: [],
     selectedCount: 0,
     loading: false,
+    loadingMore: false,
     hydrating: false,
+    searchLimit: INITIAL_CATALOG_LIMIT,
+    hasMoreResults: false,
+    resultNotice: "",
     errorMessage: "",
     providerNotice: ""
   },
@@ -75,55 +95,112 @@ Page({
       return;
     }
 
-    this.setData({
+    this.loadCatalogResults(normalizedQuery, INITIAL_CATALOG_LIMIT, {
+      draft,
+      reset: true
+    });
+  },
+  loadCatalogResults(query, limit, options = {}) {
+    const app = getApp();
+    const reset = options.reset !== false;
+    const currentCandidates = reset ? [] : this.data.candidates;
+    const currentSelectedIds = reset ? [] : this.data.selectedIds;
+
+    this.setData(reset ? {
       loading: true,
+      loadingMore: false,
+      searchLimit: limit,
+      hasMoreResults: false,
+      resultNotice: "",
       errorMessage: "",
       providerNotice: ""
+    } : {
+      loadingMore: true,
+      resultNotice: "",
+      errorMessage: ""
     });
 
     searchCatalogAlbums(
-      normalizedQuery,
-      { limit: FULL_CATALOG_LIMIT, country: "CN", artistFallback: "always" },
+      query,
+      { limit, country: "CN", artistFallback: "always" },
       app.globalData.cloud
     )
       .then((result) => {
         const remoteAlbums = uniqueAlbums(result.albums || []);
-        if (!remoteAlbums.length) {
-          this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
-            draft,
+        if (reset && !remoteAlbums.length) {
+          this.applyCandidates(query, uniqueAlbums(searchLocalAlbums(query)), {
+            draft: options.draft,
             selectedLimit: 3,
             source: "local",
+            hasMoreResults: false,
+            searchLimit: limit,
             errorMessage: "在线资料没有匹配结果，已显示本地结果"
           });
           return;
         }
 
-        this.applyCandidates(normalizedQuery, remoteAlbums, {
-          draft,
-          selectedLimit: 1,
+        const nextCandidates = reset
+          ? remoteAlbums
+          : uniqueAlbums(currentCandidates.concat(remoteAlbums));
+        const newCount = nextCandidates.length - currentCandidates.length;
+        const hasMoreResults = nextCandidates.length >= limit && limit < MAX_CATALOG_LIMIT && (reset || newCount > 0);
+        const resultNotice = !hasMoreResults && nextCandidates.length
+          ? "已显示全部可获取结果"
+          : "";
+
+        this.applyCandidates(query, nextCandidates, {
+          draft: reset ? options.draft : app.globalData.importDraft,
+          selectedLimit: reset ? 1 : 0,
+          selectedIds: reset ? undefined : currentSelectedIds,
           source: "catalog",
-          providerNotice: result.providers && result.providers.failed && result.providers.failed.length
-            ? "部分资料源暂不可用，已显示可用结果"
-            : ""
+          hasMoreResults,
+          searchLimit: limit,
+          resultNotice,
+          providerNotice: buildProviderNotice(result)
         });
       })
       .catch(() => {
-        this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
-          draft,
-          selectedLimit: 3,
-          source: "local",
-          errorMessage: "在线搜索失败，已显示本地结果"
+        if (reset) {
+          this.applyCandidates(query, uniqueAlbums(searchLocalAlbums(query)), {
+            draft: options.draft,
+            selectedLimit: 3,
+            source: "local",
+            hasMoreResults: false,
+            searchLimit: limit,
+            errorMessage: "在线搜索失败，已显示本地结果"
+          });
+          return;
+        }
+
+        this.setData({
+          loadingMore: false,
+          hasMoreResults: false,
+          resultNotice: "暂时没有获取到更多结果"
         });
       });
   },
+  loadMoreResults() {
+    if (this.data.loading || this.data.loadingMore || !this.data.hasMoreResults) {
+      return;
+    }
+
+    const nextLimit = Math.min(
+      (this.data.searchLimit || INITIAL_CATALOG_LIMIT) + CATALOG_LIMIT_STEP,
+      MAX_CATALOG_LIMIT
+    );
+    this.loadCatalogResults(this.data.query, nextLimit, { reset: false });
+  },
+  onReachBottom() {
+    this.loadMoreResults();
+  },
   applyCandidates(query, baseCandidates, options = {}) {
     const app = getApp();
-    const selectedLimit = options.selectedLimit || 1;
-    const selectedIds = baseCandidates.slice(0, selectedLimit).map((album) => album.id);
-    const candidates = baseCandidates.map((album, index) => ({
-      ...album,
-      selected: index < selectedLimit
-    }));
+    const candidateIds = new Set(baseCandidates.map((album) => album.id));
+    const selectedLimit = options.selectedLimit === undefined ? 1 : options.selectedLimit;
+    const selectedIds = options.selectedIds
+      ? options.selectedIds.filter((id) => candidateIds.has(id))
+      : baseCandidates.slice(0, selectedLimit).map((album) => album.id);
+    const candidates = markSelected(baseCandidates, selectedIds);
 
     app.globalData.importDraft = {
       ...(options.draft || {}),
@@ -139,7 +216,11 @@ Page({
       selectedIds,
       selectedCount: selectedIds.length,
       loading: false,
+      loadingMore: false,
       hydrating: false,
+      searchLimit: options.searchLimit || this.data.searchLimit || INITIAL_CATALOG_LIMIT,
+      hasMoreResults: Boolean(options.hasMoreResults),
+      resultNotice: options.resultNotice || "",
       errorMessage: options.errorMessage || "",
       providerNotice: options.providerNotice || ""
     });

@@ -171,6 +171,84 @@ describe("CatalogService", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it("expands Netease artist-only searches through the artist album list", async () => {
+    const andy = "\u5218\u5fb7\u534e";
+    const requestedUrls: string[] = [];
+    globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+      requestedUrls.push(String(input));
+      const url = new URL(String(input));
+      if (url.origin === "https://musicbrainz.org") {
+        return jsonResponse({ releases: [] });
+      }
+      if (url.origin === "https://itunes.apple.com") {
+        return jsonResponse({ resultCount: 0, results: [] });
+      }
+      if (url.href.startsWith("https://music.163.com/api/search/get/web")) {
+        if (url.searchParams.get("type") === "100") {
+          return jsonResponse({
+            code: 200,
+            result: {
+              artists: [{ id: 3691, name: andy }],
+            },
+          });
+        }
+        return jsonResponse({
+          code: 200,
+          result: {
+            albums: [
+              {
+                id: 100,
+                name: `${andy}\u7ecf\u5178\u6b4c\u66f2`,
+                type: "\u4e13\u8f91",
+                picUrl: "https://p2.music.126.net/andy.jpg",
+                publishTime: 1609430400000,
+                artist: { name: andy },
+              },
+            ],
+          },
+        });
+      }
+      if (url.href.startsWith("https://music.163.com/api/artist/albums/3691")) {
+        return jsonResponse({
+          code: 200,
+          more: false,
+          hotAlbums: [
+            {
+              id: 11006,
+              name: "Memories",
+              type: "\u4e13\u8f91",
+              picUrl: "https://p2.music.126.net/memories.jpg",
+              publishTime: 788889600000,
+              artist: { name: andy },
+            },
+          ],
+        });
+      }
+      if (url.origin === "https://c.y.qq.com") {
+        return jsonResponse({ code: 0, data: { album: { itemlist: [] } } });
+      }
+      throw new Error(`Unexpected URL: ${url.href}`);
+    }) as unknown as typeof fetch;
+
+    const service = new CatalogService();
+    const response = await service.search({
+      query: andy,
+      artist: andy,
+      limit: 120,
+      country: "CN",
+      includeUnofficial: true,
+    });
+
+    expect(requestedUrls.some((url) => url.includes("type=100"))).toBe(true);
+    expect(requestedUrls.some((url) => url.includes("/api/artist/albums/3691"))).toBe(true);
+    expect(response.data.map((album) => album.title)).toContain("Memories");
+    expect(response.data.find((album) => album.title === "Memories")).toEqual(expect.objectContaining({
+      artist: andy,
+      provider: "NETEASE",
+      providerId: "11006",
+    }));
+  });
+
   it("loads QQ Music album details with tracks", async () => {
     globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

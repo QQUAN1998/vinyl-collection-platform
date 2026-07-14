@@ -13,7 +13,7 @@ The mini program should call our Cloud Hosting API instead of calling third-part
 ## Search
 
 ```http
-GET /api/catalog/search?q=范特西&artist=周杰伦&limit=8&country=CN&includeUnofficial=true
+GET /api/catalog/search?q=范特西&artist=周杰伦&limit=300&country=CN&includeUnofficial=true
 ```
 
 Response shape:

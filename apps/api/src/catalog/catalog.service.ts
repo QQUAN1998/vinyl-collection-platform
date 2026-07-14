@@ -97,9 +97,7 @@ const musicBrainzProvider: ProviderClient = {
   provider: "MUSICBRAINZ",
   isEnabled: () => true,
   async search(input, context) {
-    const query = input.artist
-      ? `release:"${escapeMusicBrainzQuery(input.query)}" AND artist:"${escapeMusicBrainzQuery(input.artist)}"`
-      : escapeMusicBrainzQuery(input.query);
+    const query = buildMusicBrainzSearchQuery(input);
     const url = new URL("https://musicbrainz.org/ws/2/release/");
     url.searchParams.set("query", query);
     url.searchParams.set("fmt", "json");
@@ -124,7 +122,7 @@ const iTunesProvider: ProviderClient = {
   isEnabled: () => true,
   async search(input) {
     const url = new URL("https://itunes.apple.com/search");
-    url.searchParams.set("term", [input.query, input.artist].filter(isDefined).join(" "));
+    url.searchParams.set("term", providerSearchTerm(input));
     url.searchParams.set("entity", "album");
     url.searchParams.set("media", "music");
     url.searchParams.set("limit", String(input.limit));
@@ -158,17 +156,16 @@ const neteaseProvider: ProviderClient = {
   provider: "NETEASE",
   isEnabled: (input) => input.includeUnofficial,
   async search(input) {
-    const url = new URL("https://music.163.com/api/search/get/web");
-    url.searchParams.set("csrf_token", "");
-    url.searchParams.set("s", [input.query, input.artist].filter(isDefined).join(" "));
-    url.searchParams.set("type", "10");
-    url.searchParams.set("offset", "0");
-    url.searchParams.set("limit", String(input.limit));
+    const albums = await searchNeteaseAlbums(input);
+    if (!isArtistOnlySearch(input)) {
+      return albums;
+    }
 
-    const payload = await fetchJson(url, { referer: "https://music.163.com/" });
-    const result = readRecord(readRecord(payload)["result"]);
-    const albums = asArray(result["albums"]);
-    return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+    try {
+      return mergeProviderCandidates(albums, await searchNeteaseArtistAlbums(input));
+    } catch {
+      return albums;
+    }
   },
   async getAlbum(input) {
     const url = new URL(`https://music.163.com/api/v1/album/${encodeURIComponent(input.providerId)}`);
@@ -183,12 +180,68 @@ const neteaseProvider: ProviderClient = {
   },
 };
 
+async function searchNeteaseAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+    const url = new URL("https://music.163.com/api/search/get/web");
+    url.searchParams.set("csrf_token", "");
+    url.searchParams.set("s", providerSearchTerm(input));
+    url.searchParams.set("type", "10");
+    url.searchParams.set("offset", "0");
+    url.searchParams.set("limit", String(input.limit));
+
+    const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+    const result = readRecord(readRecord(payload)["result"]);
+    const albums = asArray(result["albums"]);
+    return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+}
+
+async function searchNeteaseArtistAlbums(input: CatalogSearchInput): Promise<CatalogAlbumCandidate[]> {
+  const artistIds = await searchNeteaseArtistIds(input);
+  const results = await Promise.all(
+    artistIds.map(async (artistId) => {
+      const url = new URL(`https://music.163.com/api/artist/albums/${encodeURIComponent(artistId)}`);
+      url.searchParams.set("offset", "0");
+      url.searchParams.set("limit", String(input.limit));
+
+      const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+      const albums = asArray(readRecord(payload)["hotAlbums"]);
+      return albums.map((album, index) => mapNeteaseAlbum(album, index, []));
+    }),
+  );
+  return results.flat();
+}
+
+async function searchNeteaseArtistIds(input: CatalogSearchInput): Promise<string[]> {
+  const target = normalizeText(input.artist ?? input.query);
+  const url = new URL("https://music.163.com/api/search/get/web");
+  url.searchParams.set("csrf_token", "");
+  url.searchParams.set("s", input.artist ?? input.query);
+  url.searchParams.set("type", "100");
+  url.searchParams.set("offset", "0");
+  url.searchParams.set("limit", "5");
+
+  const payload = await fetchJson(url, { referer: "https://music.163.com/" });
+  const result = readRecord(readRecord(payload)["result"]);
+  const artists = asArray(result["artists"]).map(readRecord);
+  return artists
+    .filter((artist) => {
+      const name = readString(artist["name"]);
+      if (!name) {
+        return false;
+      }
+      const normalizedName = normalizeText(name);
+      return normalizedName === target || normalizedName.includes(target) || target.includes(normalizedName);
+    })
+    .map((artist) => String(readNumber(artist["id"]) ?? readString(artist["id"]) ?? ""))
+    .filter(Boolean)
+    .slice(0, 2);
+}
+
 const qqMusicProvider: ProviderClient = {
   provider: "QQMUSIC",
   isEnabled: (input) => input.includeUnofficial,
   async search(input) {
     const url = new URL("https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg");
-    url.searchParams.set("key", input.query);
+    url.searchParams.set("key", providerSearchTerm(input));
     url.searchParams.set("format", "json");
     url.searchParams.set("inCharset", "utf8");
     url.searchParams.set("outCharset", "utf-8");
@@ -225,7 +278,7 @@ const discogsProvider: ProviderClient = {
   async search(input, context) {
     const url = new URL("https://api.discogs.com/database/search");
     url.searchParams.set("type", "release");
-    url.searchParams.set("q", [input.query, input.artist].filter(isDefined).join(" "));
+    url.searchParams.set("q", providerSearchTerm(input));
     url.searchParams.set("per_page", String(input.limit));
     if (context.discogsToken) {
       url.searchParams.set("token", context.discogsToken);
@@ -611,6 +664,23 @@ function rankAndDedupe(
     });
 }
 
+function mergeProviderCandidates(
+  primary: CatalogAlbumCandidate[],
+  supplemental: CatalogAlbumCandidate[],
+): CatalogAlbumCandidate[] {
+  const seen = new Set<string>();
+  const result: CatalogAlbumCandidate[] = [];
+  for (const candidate of [...primary, ...supplemental]) {
+    const key = `${candidate.provider}:${candidate.providerId}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push(candidate);
+  }
+  return result;
+}
+
 function scoreText(candidate: CatalogAlbumCandidate, input: CatalogSearchInput): number {
   let score = 0;
   const title = normalizeText(candidate.title);
@@ -640,6 +710,27 @@ function scoreText(candidate: CatalogAlbumCandidate, input: CatalogSearchInput):
 
 function escapeMusicBrainzQuery(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+}
+
+function buildMusicBrainzSearchQuery(input: CatalogSearchInput): string {
+  if (isArtistOnlySearch(input)) {
+    return `artist:"${escapeMusicBrainzQuery(input.artist ?? input.query)}"`;
+  }
+  if (input.artist) {
+    return `release:"${escapeMusicBrainzQuery(input.query)}" AND artist:"${escapeMusicBrainzQuery(input.artist)}"`;
+  }
+  return escapeMusicBrainzQuery(input.query);
+}
+
+function providerSearchTerm(input: CatalogSearchInput): string {
+  if (isArtistOnlySearch(input)) {
+    return input.artist ?? input.query;
+  }
+  return [input.query, input.artist].filter(isDefined).join(" ");
+}
+
+function isArtistOnlySearch(input: CatalogSearchInput): boolean {
+  return Boolean(input.artist && normalizeText(input.artist) === normalizeText(input.query));
 }
 
 function readMusicBrainzArtistCredit(value: unknown): string | null {

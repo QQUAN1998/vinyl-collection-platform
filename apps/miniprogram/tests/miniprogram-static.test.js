@@ -197,9 +197,13 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(addMarkup.includes(">ADD<"), "add page includes a right-side header badge");
   assert.doesNotMatch(addMarkup, /recent-search|recentSearches|useRecent/, "add page no longer keeps recent-search records");
   assert.ok(addMarkup.includes("search-action.png"), "add page search uses downloaded icon");
+  assert.ok(addMarkup.includes("查看全部在线结果"), "add page exposes a full online results entry");
   assert.ok(addScript.includes("searchCatalogAlbums"), "add page search fetches online catalog results directly");
+  assert.ok(addScript.includes("pages/search-results/index?query="), "add page search action opens the full results page");
   assert.ok(addMarkup.includes("在线资料"), "add page tells users search results come from the online catalog");
   assert.ok(searchResultsScript.includes("searchCatalogAlbums"), "search results page uses the cloud catalog search API");
+  assert.ok(searchResultsScript.includes("FULL_CATALOG_LIMIT = 50"), "search results page requests the fuller catalog result set");
+  assert.ok(searchResultsScript.includes('artistFallback: "always"'), "search results page merges artist-name matches");
   assert.ok(searchResultsScript.includes("fetchCatalogAlbumDetail"), "search results page hydrates selected catalog albums before confirming");
   assert.ok(searchResultsMarkup.includes("正在搜索在线资料"), "search results page shows a remote catalog loading state");
   assert.ok(batchConfirmScript.includes("draft.candidates"), "batch confirm can add online catalog candidates");

@@ -435,6 +435,57 @@ test("catalog search can fall back to artist-name results through public request
   assert.equal(result.albums[0].artist, "周杰伦");
 });
 
+test("catalog search can force artist-name expansion for full results", async () => {
+  const requestedUrls = [];
+  const wxApi = {
+    request(options) {
+      requestedUrls.push(options.url);
+      const isArtistExpansion = options.url.includes("artist=%E5%91%A8%E6%9D%B0%E4%BC%A6");
+      options.success({
+        statusCode: 200,
+        data: {
+          query: "周杰伦",
+          artist: isArtistExpansion ? "周杰伦" : null,
+          providers: { enabled: ["QQMUSIC"], failed: [] },
+          data: isArtistExpansion
+            ? [
+                {
+                  id: "qqmusic:002Neh8l0uciQZ",
+                  provider: "QQMUSIC",
+                  providerId: "002Neh8l0uciQZ",
+                  title: "魔杰座",
+                  artist: "周杰伦",
+                  coverThumbUrl: "https://y.gtimg.cn/music/photo_new/T002R180x180M000002Neh8l0uciQZ_3.jpg",
+                },
+              ]
+            : [
+                {
+                  id: "netease:noise",
+                  provider: "NETEASE",
+                  providerId: "noise",
+                  title: "周杰伦 Type Beat",
+                  artist: "Other Artist",
+                  coverThumbUrl: "https://p1.music.126.net/noise.jpg",
+                },
+              ],
+        },
+      });
+    },
+  };
+
+  const result = await searchCatalogAlbums(
+    "周杰伦",
+    { limit: 50, country: "CN", artistFallback: "always" },
+    {},
+    wxApi,
+  );
+
+  assert.equal(requestedUrls.length, 2);
+  assert.ok(requestedUrls[1].includes("limit=50"));
+  assert.ok(result.albums.some((album) => album.title === "魔杰座"));
+  assert.ok(result.albums.some((album) => album.title === "周杰伦 Type Beat"));
+});
+
 test("catalog detail can enrich a selected search candidate", () => {
   const selected = catalogCandidateToAlbum({
     id: "qqmusic:000I5jJB3blWeN",

@@ -171,6 +171,45 @@ describe("CatalogService", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it("searches artist-only queries without duplicating provider terms", async () => {
+    const requestedUrls: string[] = [];
+    globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+      requestedUrls.push(String(input));
+      const url = String(input);
+      if (url.startsWith("https://musicbrainz.org/ws/2/release/")) {
+        return jsonResponse({ releases: [] });
+      }
+      if (url.startsWith("https://itunes.apple.com/search")) {
+        return jsonResponse({ resultCount: 0, results: [] });
+      }
+      if (url.startsWith("https://music.163.com/api/search/get/web")) {
+        return jsonResponse({ code: 200, result: { albums: [] } });
+      }
+      if (url.startsWith("https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg")) {
+        return jsonResponse({ code: 0, data: { album: { itemlist: [] } } });
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    }) as unknown as typeof fetch;
+
+    const service = new CatalogService();
+    await service.search({
+      query: "周杰伦",
+      artist: "周杰伦",
+      limit: 50,
+      country: "CN",
+      includeUnofficial: true,
+    });
+
+    const musicBrainzUrl = new URL(requestedUrls.find((url) => url.startsWith("https://musicbrainz.org")) ?? "");
+    expect(musicBrainzUrl.searchParams.get("query")).toBe('artist:"周杰伦"');
+    expect(new URL(requestedUrls.find((url) => url.startsWith("https://itunes.apple.com/search")) ?? "").searchParams.get("term"))
+      .toBe("周杰伦");
+    expect(new URL(requestedUrls.find((url) => url.startsWith("https://music.163.com")) ?? "").searchParams.get("s"))
+      .toBe("周杰伦");
+    expect(new URL(requestedUrls.find((url) => url.startsWith("https://c.y.qq.com")) ?? "").searchParams.get("key"))
+      .toBe("周杰伦");
+  });
+
   it("loads QQ Music album details with tracks", async () => {
     globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

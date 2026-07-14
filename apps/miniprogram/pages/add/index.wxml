@@ -38,7 +38,11 @@
         <view class="arrow">›</view>
       </view>
     </view>
-    <view wx:else class="notice">
+    <view wx:if="{{results.length}}" class="full-results-action" bindtap="goSearch" hover-class="full-results-action-hover" aria-role="button">
+      <view class="full-results-title">查看全部在线结果</view>
+      <view class="full-results-meta">进入结果页自己选择添加</view>
+    </view>
+    <view wx:elif="{{!searchLoading}}" class="notice">
       <view class="notice-title">没有匹配结果</view>
       <view class="notice-desc">已搜索在线资料，可以换关键词或手动新建这张唱片。</view>
     </view>

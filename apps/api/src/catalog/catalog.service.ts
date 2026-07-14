@@ -97,9 +97,7 @@ const musicBrainzProvider: ProviderClient = {
   provider: "MUSICBRAINZ",
   isEnabled: () => true,
   async search(input, context) {
-    const query = input.artist
-      ? `release:"${escapeMusicBrainzQuery(input.query)}" AND artist:"${escapeMusicBrainzQuery(input.artist)}"`
-      : escapeMusicBrainzQuery(input.query);
+    const query = buildMusicBrainzSearchQuery(input);
     const url = new URL("https://musicbrainz.org/ws/2/release/");
     url.searchParams.set("query", query);
     url.searchParams.set("fmt", "json");
@@ -124,7 +122,7 @@ const iTunesProvider: ProviderClient = {
   isEnabled: () => true,
   async search(input) {
     const url = new URL("https://itunes.apple.com/search");
-    url.searchParams.set("term", [input.query, input.artist].filter(isDefined).join(" "));
+    url.searchParams.set("term", providerSearchTerm(input));
     url.searchParams.set("entity", "album");
     url.searchParams.set("media", "music");
     url.searchParams.set("limit", String(input.limit));
@@ -160,7 +158,7 @@ const neteaseProvider: ProviderClient = {
   async search(input) {
     const url = new URL("https://music.163.com/api/search/get/web");
     url.searchParams.set("csrf_token", "");
-    url.searchParams.set("s", [input.query, input.artist].filter(isDefined).join(" "));
+    url.searchParams.set("s", providerSearchTerm(input));
     url.searchParams.set("type", "10");
     url.searchParams.set("offset", "0");
     url.searchParams.set("limit", String(input.limit));
@@ -188,7 +186,7 @@ const qqMusicProvider: ProviderClient = {
   isEnabled: (input) => input.includeUnofficial,
   async search(input) {
     const url = new URL("https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg");
-    url.searchParams.set("key", input.query);
+    url.searchParams.set("key", providerSearchTerm(input));
     url.searchParams.set("format", "json");
     url.searchParams.set("inCharset", "utf8");
     url.searchParams.set("outCharset", "utf-8");
@@ -225,7 +223,7 @@ const discogsProvider: ProviderClient = {
   async search(input, context) {
     const url = new URL("https://api.discogs.com/database/search");
     url.searchParams.set("type", "release");
-    url.searchParams.set("q", [input.query, input.artist].filter(isDefined).join(" "));
+    url.searchParams.set("q", providerSearchTerm(input));
     url.searchParams.set("per_page", String(input.limit));
     if (context.discogsToken) {
       url.searchParams.set("token", context.discogsToken);
@@ -640,6 +638,27 @@ function scoreText(candidate: CatalogAlbumCandidate, input: CatalogSearchInput):
 
 function escapeMusicBrainzQuery(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+}
+
+function buildMusicBrainzSearchQuery(input: CatalogSearchInput): string {
+  if (isArtistOnlySearch(input)) {
+    return `artist:"${escapeMusicBrainzQuery(input.artist ?? input.query)}"`;
+  }
+  if (input.artist) {
+    return `release:"${escapeMusicBrainzQuery(input.query)}" AND artist:"${escapeMusicBrainzQuery(input.artist)}"`;
+  }
+  return escapeMusicBrainzQuery(input.query);
+}
+
+function providerSearchTerm(input: CatalogSearchInput): string {
+  if (isArtistOnlySearch(input)) {
+    return input.artist ?? input.query;
+  }
+  return [input.query, input.artist].filter(isDefined).join(" ");
+}
+
+function isArtistOnlySearch(input: CatalogSearchInput): boolean {
+  return Boolean(input.artist && normalizeText(input.artist) === normalizeText(input.query));
 }
 
 function readMusicBrainzArtistCredit(value: unknown): string | null {

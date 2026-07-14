@@ -8,6 +8,8 @@ const {
 const { toggleSelected } = require("../../services/import-service.js");
 const { createShareMessage } = require("../../services/share.js");
 
+const FULL_CATALOG_LIMIT = 50;
+
 function toAlbumView(album) {
   return {
     ...album,
@@ -79,7 +81,11 @@ Page({
       providerNotice: ""
     });
 
-    searchCatalogAlbums(normalizedQuery, { limit: 8, country: "CN" }, app.globalData.cloud)
+    searchCatalogAlbums(
+      normalizedQuery,
+      { limit: FULL_CATALOG_LIMIT, country: "CN", artistFallback: "always" },
+      app.globalData.cloud
+    )
       .then((result) => {
         const remoteAlbums = uniqueAlbums(result.albums || []);
         if (!remoteAlbums.length) {

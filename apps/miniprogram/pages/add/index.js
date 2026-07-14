@@ -126,7 +126,10 @@ Page({
       });
       return;
     }
-    this.performOnlineSearch(query);
+    this.cancelOnlineSearch();
+    wx.navigateTo({
+      url: `/pages/search-results/index?query=${encodeURIComponent(query)}`
+    });
   },
   cancelOnlineSearch() {
     if (this.searchTimer) {
@@ -159,11 +162,11 @@ Page({
       searchNotice: "正在搜索在线资料"
     });
 
-    searchCatalogAlbums(normalizedQuery, { limit: 8, country: "CN" }, app.globalData.cloud)
+    searchCatalogAlbums(normalizedQuery, { limit: 8, country: "CN", artistFallback: "always" }, app.globalData.cloud)
       .then((result) => {
         if (this.searchRequestId !== requestId) return;
 
-        const remoteResults = uniqueAlbums(result.albums || []);
+        const remoteResults = uniqueAlbums(result.albums || []).slice(0, 8);
         if (remoteResults.length) {
           this.setData({
             results: remoteResults,

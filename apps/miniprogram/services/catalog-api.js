@@ -10,7 +10,10 @@ function searchCatalogAlbums(query, options = {}, config = {}, wxApi) {
   return callCatalogEndpoint(buildCatalogSearchPath(params), { method: "GET" }, config, wxApi)
     .then(normalizeCatalogSearchResponse)
     .then((result) => {
-      if (result.albums.length || parsed.artist || options.artistFallback === false) {
+      const shouldSearchArtist = !parsed.artist
+        && options.artistFallback !== false
+        && (!result.albums.length || options.artistFallback === "always");
+      if (!shouldSearchArtist) {
         return result;
       }
 

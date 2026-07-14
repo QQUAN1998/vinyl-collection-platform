@@ -1,19 +1,33 @@
 const { callCloudContainer } = require("./cloud-api.js");
 
 const DEFAULT_CATALOG_LIMIT = 8;
+const DEFAULT_PUBLIC_CATALOG_BASE_URL = "https://express-i2ts-281225-8-1453155745.sh.run.tcloudbase.com";
 
 function searchCatalogAlbums(query, options = {}, config = {}, wxApi) {
   const parsed = parseSearchQuery(query);
-  const params = {
-    q: parsed.title || parsed.query,
-    artist: parsed.artist,
-    limit: options.limit || DEFAULT_CATALOG_LIMIT,
-    country: options.country || "CN",
-    includeUnofficial: options.includeUnofficial !== false
-  };
+  const params = buildCatalogSearchParams(parsed, options);
 
-  return callCloudContainer(buildCatalogSearchPath(params), { method: "GET" }, config, wxApi)
-    .then(normalizeCatalogSearchResponse);
+  return callCatalogEndpoint(buildCatalogSearchPath(params), { method: "GET" }, config, wxApi)
+    .then(normalizeCatalogSearchResponse)
+    .then((result) => {
+      if (result.albums.length || parsed.artist || options.artistFallback === false) {
+        return result;
+      }
+
+      return callCatalogEndpoint(
+        buildCatalogSearchPath({ ...params, artist: parsed.query }),
+        { method: "GET" },
+        config,
+        wxApi
+      )
+        .then(normalizeCatalogSearchResponse)
+        .then((artistResult) => ({
+          ...artistResult,
+          providers: mergeProviderState(result.providers, artistResult.providers),
+          albums: mergeAlbums(result.albums, artistResult.albums)
+        }))
+        .catch(() => result);
+    });
 }
 
 function fetchCatalogAlbumDetail(album, options = {}, config = {}, wxApi) {
@@ -27,8 +41,61 @@ function fetchCatalogAlbumDetail(album, options = {}, config = {}, wxApi) {
   });
   const path = `/api/catalog/albums/${encodeURIComponent(album.catalogProvider)}/${encodeURIComponent(album.catalogProviderId)}?${query}`;
 
-  return callCloudContainer(path, { method: "GET" }, config, wxApi)
+  return callCatalogEndpoint(path, { method: "GET" }, config, wxApi)
     .then((candidate) => catalogCandidateToAlbum(candidate, album));
+}
+
+function callCatalogEndpoint(path, options = {}, config = {}, wxApi) {
+  return callCloudContainer(path, options, config, wxApi)
+    .catch((cloudError) =>
+      requestPublicCatalog(path, options, config, wxApi)
+        .catch((publicError) => {
+          const error = new Error("Catalog request failed.");
+          error.cloudError = cloudError;
+          error.publicError = publicError;
+          throw error;
+        })
+    );
+}
+
+function requestPublicCatalog(path, options = {}, config = {}, wxApi) {
+  const api = wxApi || (typeof wx === "undefined" ? null : wx);
+  if (!api || typeof api.request !== "function") {
+    return Promise.reject(new Error("WeChat request is not available."));
+  }
+
+  const baseUrl = String(config.publicBaseUrl || config.catalogBaseUrl || DEFAULT_PUBLIC_CATALOG_BASE_URL).replace(/\/+$/, "");
+  const url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+
+  return new Promise((resolve, reject) => {
+    api.request({
+      url,
+      method: options.method || "GET",
+      data: options.data,
+      header: options.header || {},
+      success(response = {}) {
+        const statusCode = Number(response.statusCode || 0);
+        if (statusCode >= 200 && statusCode < 300) {
+          resolve(response.data);
+          return;
+        }
+        reject(new Error(`Catalog request failed with ${statusCode || "unknown status"}.`));
+      },
+      fail(error) {
+        reject(error || new Error("Catalog request failed."));
+      }
+    });
+  });
+}
+
+function buildCatalogSearchParams(parsed, options = {}) {
+  return {
+    q: options.q || parsed.title || parsed.query,
+    artist: options.artist || parsed.artist,
+    limit: options.limit || DEFAULT_CATALOG_LIMIT,
+    country: options.country || "CN",
+    includeUnofficial: options.includeUnofficial !== false
+  };
 }
 
 function normalizeCatalogSearchResponse(response = {}) {
@@ -64,6 +131,26 @@ function catalogCandidateToAlbum(candidate = {}, previousAlbum = {}) {
     catalogExternalUrl: candidate.externalUrl || previousAlbum.catalogExternalUrl || "",
     catalogScore: candidate.score || previousAlbum.catalogScore || 0,
     providerRefs: candidate.providerRefs || previousAlbum.providerRefs || []
+  };
+}
+
+function mergeAlbums(primary = [], fallback = []) {
+  const seen = new Set();
+  const result = [];
+  for (const album of [...primary, ...fallback]) {
+    if (!album || !album.id || seen.has(album.id)) {
+      continue;
+    }
+    seen.add(album.id);
+    result.push(album);
+  }
+  return result;
+}
+
+function mergeProviderState(primary = {}, fallback = {}) {
+  return {
+    enabled: Array.from(new Set([...(primary.enabled || []), ...(fallback.enabled || [])])),
+    failed: Array.from(new Set([...(primary.failed || []), ...(fallback.failed || [])]))
   };
 }
 
@@ -145,10 +232,13 @@ function providerLabel(provider) {
 }
 
 module.exports = {
+  DEFAULT_PUBLIC_CATALOG_BASE_URL,
   buildCatalogSearchPath,
+  buildCatalogSearchParams,
   catalogCandidateToAlbum,
   coverToImageSrc,
   fetchCatalogAlbumDetail,
+  mergeAlbums,
   normalizeCatalogQuery,
   normalizeCatalogSearchResponse,
   parseSearchQuery,

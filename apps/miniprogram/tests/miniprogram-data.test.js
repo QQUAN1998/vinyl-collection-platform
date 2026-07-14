@@ -33,6 +33,7 @@ const {
   normalizeCatalogQuery,
   normalizeCatalogSearchResponse,
   parseSearchQuery,
+  searchCatalogAlbums,
 } = require("../services/catalog-api.js");
 
 test("David seed library contains searchable album metadata", () => {
@@ -394,6 +395,44 @@ test("catalog search path preserves artist-title input", () => {
     }),
     "/api/catalog/search?q=%E8%8C%83%E7%89%B9%E8%A5%BF&artist=%E5%91%A8%E6%9D%B0%E4%BC%A6&limit=8&country=CN&includeUnofficial=true",
   );
+});
+
+test("catalog search can fall back to artist-name results through public request", async () => {
+  const requestedUrls = [];
+  const wxApi = {
+    request(options) {
+      requestedUrls.push(options.url);
+      const isArtistFallback = options.url.includes("artist=%E5%91%A8%E6%9D%B0%E4%BC%A6");
+      options.success({
+        statusCode: 200,
+        data: {
+          query: "周杰伦",
+          artist: isArtistFallback ? "周杰伦" : null,
+          providers: { enabled: ["QQMUSIC"], failed: [] },
+          data: isArtistFallback
+            ? [
+                {
+                  id: "qqmusic:002Neh8l0uciQZ",
+                  provider: "QQMUSIC",
+                  providerId: "002Neh8l0uciQZ",
+                  title: "魔杰座",
+                  artist: "周杰伦",
+                  coverThumbUrl: "https://y.gtimg.cn/music/photo_new/T002R180x180M000002Neh8l0uciQZ_3.jpg",
+                },
+              ]
+            : [],
+        },
+      });
+    },
+  };
+
+  const result = await searchCatalogAlbums("周杰伦", { limit: 8, country: "CN" }, {}, wxApi);
+
+  assert.equal(requestedUrls.length, 2);
+  assert.ok(requestedUrls[0].includes("/api/catalog/search?q=%E5%91%A8%E6%9D%B0%E4%BC%A6"));
+  assert.ok(requestedUrls[1].includes("artist=%E5%91%A8%E6%9D%B0%E4%BC%A6"));
+  assert.equal(result.albums[0].title, "魔杰座");
+  assert.equal(result.albums[0].artist, "周杰伦");
 });
 
 test("catalog detail can enrich a selected search candidate", () => {

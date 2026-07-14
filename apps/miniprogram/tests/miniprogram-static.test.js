@@ -90,6 +90,7 @@ test("mini program registers the prototype pages and required assets", () => {
 
 test("official WeChat share menu is wired globally without visible page-wide buttons", () => {
   const appScript = readText("app.js");
+  const catalogScript = readText("services/catalog-api.js");
   const cloudScript = readText("services/cloud-api.js");
   const shareScript = readText("services/share.js");
   const cabinetMarkup = readText("pages/cabinet/index.wxml");
@@ -105,6 +106,7 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.match(cloudScript, /wx\.cloud\.callContainer/);
   assert.match(cloudScript, /X-WX-SERVICE/);
   assert.match(cloudScript, /express-i2ts/);
+  assert.match(appScript + catalogScript, /sh\.run\.tcloudbase\.com/);
   assert.match(appScript + cloudScript, /vinyl-prod-d0g8u61k95ee7a1e6/);
   assert.match(shareScript, /wx\.showShareMenu/);
   assert.match(shareScript, /shareAppMessage/);

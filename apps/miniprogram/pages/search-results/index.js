@@ -73,16 +73,6 @@ Page({
       return;
     }
 
-    if (!app.globalData.cloud.ready) {
-      this.applyCandidates(normalizedQuery, uniqueAlbums(searchLocalAlbums(normalizedQuery)), {
-        draft,
-        selectedLimit: 3,
-        source: "local",
-        errorMessage: "在线资料暂不可用，已显示本地结果"
-      });
-      return;
-    }
-
     this.setData({
       loading: true,
       errorMessage: "",
@@ -185,10 +175,6 @@ Page({
   },
   hydrateSelectedAlbums() {
     const app = getApp();
-    if (!app.globalData.cloud.ready) {
-      return Promise.resolve();
-    }
-
     const selectedSet = new Set(this.data.selectedIds);
     const candidates = this.data.candidates || [];
     const selectedCandidates = candidates.filter((album) => selectedSet.has(album.id));

@@ -159,6 +159,7 @@ App({
       enabled: true,
       env: "vinyl-prod-d0g8u61k95ee7a1e6",
       service: "express-i2ts",
+      publicBaseUrl: "https://express-i2ts-281225-8-1453155745.sh.run.tcloudbase.com",
       ready: false,
       loadingPromise: null,
       lastError: ""

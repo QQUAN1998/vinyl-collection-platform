@@ -152,16 +152,6 @@ Page({
       return;
     }
 
-    if (!app.globalData.cloud.ready) {
-      const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
-      this.setData({
-        results: searchAlbums(sourceAlbums, normalizedQuery),
-        searchLoading: false,
-        searchNotice: "在线资料暂不可用，已显示本地结果"
-      });
-      return;
-    }
-
     const requestId = (this.searchRequestId || 0) + 1;
     this.searchRequestId = requestId;
     this.setData({

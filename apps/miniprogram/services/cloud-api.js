@@ -1,6 +1,6 @@
 const DEFAULT_CLOUD_CONFIG = {
   enabled: true,
-  env: "vinyl-prod-d0g8u61k95ee7a1e6",
+  env: "prod-d5gmzcuby62751753",
   service: "express-i2ts"
 };
 

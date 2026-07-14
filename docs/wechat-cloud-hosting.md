@@ -35,12 +35,12 @@ The mini program uses:
 
 ```js
 wx.cloud.init({
-  env: "prod",
+  env: "prod-d5gmzcuby62751753",
   traceUser: true
 });
 
 wx.cloud.callContainer({
-  config: { env: "prod" },
+  config: { env: "prod-d5gmzcuby62751753" },
   path: "/api/collections/me",
   header: { "X-WX-SERVICE": "express-i2ts" }
 });
@@ -88,7 +88,7 @@ CLI deploy command after `tcb login`:
 
 ```powershell
 npx.cmd -y -p @cloudbase/cli tcb cloudrun deploy `
-  -e prod `
+  -e prod-d5gmzcuby62751753 `
   -s express-i2ts `
   --port 3000 `
   --source . `

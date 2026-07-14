@@ -137,6 +137,14 @@
   gap: 30rpx;
 }
 
+.search-inline-notice {
+  margin-top: -12rpx;
+  color: var(--color-action);
+  font-size: 23rpx;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
 .list {
   display: grid;
   gap: 0;

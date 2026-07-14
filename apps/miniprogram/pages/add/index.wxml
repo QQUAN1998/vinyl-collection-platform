@@ -16,9 +16,11 @@
 
   <view wx:if="{{hasSearch}}" class="add-search-results">
     <view class="head-row">
-      <view class="section-title">搜索结果</view>
-      <view class="row-meta">{{results.length}} 条</view>
+      <view class="section-title">在线资料搜索结果</view>
+      <view wx:if="{{searchLoading}}" class="row-meta">搜索中</view>
+      <view wx:else class="row-meta">{{results.length}} 条</view>
     </view>
+    <view wx:if="{{searchNotice}}" class="search-inline-notice">{{searchNotice}}</view>
     <view wx:if="{{results.length}}" class="list">
       <view
         wx:for="{{results}}"
@@ -38,7 +40,7 @@
     </view>
     <view wx:else class="notice">
       <view class="notice-title">没有匹配结果</view>
-      <view class="notice-desc">可以手动新建这张唱片。</view>
+      <view class="notice-desc">已搜索在线资料，可以换关键词或手动新建这张唱片。</view>
     </view>
   </view>
 

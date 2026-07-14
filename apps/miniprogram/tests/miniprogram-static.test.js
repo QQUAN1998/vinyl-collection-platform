@@ -131,6 +131,7 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   const batchConfirmScript = readText("pages/batch-confirm/index.js");
   const collectionEditMarkup = readText("pages/collection-edit/index.wxml");
   const addMarkup = readText("pages/add/index.wxml");
+  const addScript = readText("pages/add/index.js");
   const searchResultsMarkup = readText("pages/search-results/index.wxml");
   const searchResultsScript = readText("pages/search-results/index.js");
   const statsMarkup = readText("pages/stats/index.wxml");
@@ -194,6 +195,8 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(addMarkup.includes(">ADD<"), "add page includes a right-side header badge");
   assert.doesNotMatch(addMarkup, /recent-search|recentSearches|useRecent/, "add page no longer keeps recent-search records");
   assert.ok(addMarkup.includes("search-action.png"), "add page search uses downloaded icon");
+  assert.ok(addScript.includes("searchCatalogAlbums"), "add page search fetches online catalog results directly");
+  assert.ok(addMarkup.includes("在线资料"), "add page tells users search results come from the online catalog");
   assert.ok(searchResultsScript.includes("searchCatalogAlbums"), "search results page uses the cloud catalog search API");
   assert.ok(searchResultsScript.includes("fetchCatalogAlbumDetail"), "search results page hydrates selected catalog albums before confirming");
   assert.ok(searchResultsMarkup.includes("正在搜索在线资料"), "search results page shows a remote catalog loading state");

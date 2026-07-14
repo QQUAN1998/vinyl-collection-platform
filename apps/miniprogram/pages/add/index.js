@@ -1,11 +1,16 @@
 const { albums, recentAlbumIds } = require("../../data/seed.js");
+const {
+  coverToImageSrc,
+  fetchCatalogAlbumDetail,
+  searchCatalogAlbums
+} = require("../../services/catalog-api.js");
 const { calculateCollectionStats } = require("../../services/stats-service.js");
 const { createShareMessage } = require("../../services/share.js");
 
 function toAlbumView(album) {
   return {
     ...album,
-    cover: album.cover || `/${album.coverUrl}`,
+    cover: album.cover || coverToImageSrc(album.coverUrl),
     styles: album.style
   };
 }
@@ -27,6 +32,19 @@ function searchAlbums(sourceAlbums, query, limit = 4) {
     .map(toAlbumView);
 }
 
+function uniqueAlbums(items) {
+  const seen = new Set();
+  const result = [];
+  for (const album of items || []) {
+    if (!album || !album.id || seen.has(album.id)) {
+      continue;
+    }
+    seen.add(album.id);
+    result.push(toAlbumView(album));
+  }
+  return result;
+}
+
 function recentAlbumsFrom(sourceAlbums) {
   return recentAlbumIds
     .map((albumId) => sourceAlbums.find((album) => album.id === albumId))
@@ -38,6 +56,8 @@ Page({
   data: {
     query: "",
     hasSearch: false,
+    searchLoading: false,
+    searchNotice: "",
     collectionCount: 0,
     recentAlbums: [],
     results: []
@@ -52,28 +72,48 @@ Page({
     const app = getApp();
     const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
     const stats = calculateCollectionStats(sourceAlbums, app.globalData.collectionItems || []);
+    const query = this.data.query;
+    const hasSearch = Boolean(normalize(query));
     this.setData({
       collectionCount: stats.albumCount,
       recentAlbums: recentAlbumsFrom(sourceAlbums),
-      results: searchAlbums(sourceAlbums, this.data.query),
-      hasSearch: Boolean(normalize(this.data.query))
+      results: hasSearch ? this.data.results : [],
+      hasSearch
     });
+
+    if (hasSearch && !this.data.searchLoading) {
+      this.scheduleOnlineSearch(query, 0);
+    }
   },
   handleQuery(event) {
     const app = getApp();
     const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
     const query = event.detail.value;
+    const hasSearch = Boolean(normalize(query));
+    const localResults = searchAlbums(sourceAlbums, query);
 
     this.setData({
       query,
-      hasSearch: Boolean(normalize(query)),
-      results: searchAlbums(sourceAlbums, query)
+      hasSearch,
+      results: localResults,
+      searchNotice: hasSearch ? "正在搜索在线资料" : "",
+      searchLoading: false
     });
+
+    if (!hasSearch) {
+      this.cancelOnlineSearch();
+      return;
+    }
+
+    this.scheduleOnlineSearch(query, 350);
   },
   clearQuery() {
+    this.cancelOnlineSearch();
     this.setData({
       query: "",
       hasSearch: false,
+      searchLoading: false,
+      searchNotice: "",
       results: []
     });
   },
@@ -86,9 +126,84 @@ Page({
       });
       return;
     }
-    wx.navigateTo({
-      url: `/pages/search-results/index?query=${encodeURIComponent(query)}`
+    this.performOnlineSearch(query);
+  },
+  cancelOnlineSearch() {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
+    this.searchRequestId = (this.searchRequestId || 0) + 1;
+  },
+  scheduleOnlineSearch(query, delay = 300) {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+
+    this.searchTimer = setTimeout(() => {
+      this.searchTimer = null;
+      this.performOnlineSearch(query);
+    }, delay);
+  },
+  performOnlineSearch(query) {
+    const normalizedQuery = String(query || "").trim();
+    const app = getApp();
+    if (!normalizedQuery) {
+      return;
+    }
+
+    if (!app.globalData.cloud.ready) {
+      const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+      this.setData({
+        results: searchAlbums(sourceAlbums, normalizedQuery),
+        searchLoading: false,
+        searchNotice: "在线资料暂不可用，已显示本地结果"
+      });
+      return;
+    }
+
+    const requestId = (this.searchRequestId || 0) + 1;
+    this.searchRequestId = requestId;
+    this.setData({
+      searchLoading: true,
+      searchNotice: "正在搜索在线资料"
     });
+
+    searchCatalogAlbums(normalizedQuery, { limit: 8, country: "CN" }, app.globalData.cloud)
+      .then((result) => {
+        if (this.searchRequestId !== requestId) return;
+
+        const remoteResults = uniqueAlbums(result.albums || []);
+        if (remoteResults.length) {
+          this.setData({
+            results: remoteResults,
+            searchNotice: result.providers && result.providers.failed && result.providers.failed.length
+              ? "部分在线资料源暂不可用，已显示可用结果"
+              : "已显示在线资料结果"
+          });
+          return;
+        }
+
+        const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+        this.setData({
+          results: searchAlbums(sourceAlbums, normalizedQuery),
+          searchNotice: "在线资料没有匹配结果，已显示本地结果"
+        });
+      })
+      .catch(() => {
+        if (this.searchRequestId !== requestId) return;
+
+        const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+        this.setData({
+          results: searchAlbums(sourceAlbums, normalizedQuery),
+          searchNotice: "在线搜索失败，已显示本地结果"
+        });
+      })
+      .finally(() => {
+        if (this.searchRequestId === requestId) {
+          this.setData({ searchLoading: false });
+        }
+      });
   },
   goBatchInput() {
     wx.navigateTo({
@@ -111,9 +226,49 @@ Page({
       return;
     }
 
+    const album = (this.data.results || []).find((item) => item.id === albumId);
+    if (album && album.catalogProvider && album.catalogProviderId) {
+      this.openCatalogAlbum(album);
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/album-detail/index?albumId=${albumId}`
     });
+  },
+  openCatalogAlbum(album) {
+    const app = getApp();
+    const selectedId = album.id;
+    const saveDraftAndContinue = (selectedAlbum) => {
+      const candidates = (this.data.results || []).map((candidate) => ({
+        ...(candidate.id === selectedId ? selectedAlbum : candidate),
+        selected: candidate.id === selectedId
+      }));
+
+      app.globalData.importDraft = {
+        source: "catalog",
+        query: this.data.query,
+        candidates,
+        selectedAlbumIds: [selectedId]
+      };
+
+      wx.navigateTo({
+        url: "/pages/batch-confirm/index"
+      });
+    };
+
+    if (!app.globalData.cloud.ready) {
+      saveDraftAndContinue(album);
+      return;
+    }
+
+    wx.showLoading({ title: "补全专辑信息" });
+    fetchCatalogAlbumDetail(album, { country: "CN" }, app.globalData.cloud)
+      .then(saveDraftAndContinue)
+      .catch(() => saveDraftAndContinue(album))
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
   onShareAppMessage() {
     return createShareMessage();

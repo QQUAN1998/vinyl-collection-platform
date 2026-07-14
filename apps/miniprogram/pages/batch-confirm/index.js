@@ -1,5 +1,6 @@
 const { albums } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
+const { coverToImageSrc } = require("../../services/catalog-api.js");
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
 const { createShareMessage } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS } = require("../../services/media-format-service.js");
@@ -7,13 +8,32 @@ const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS } = require("../../services/media-form
 function toAlbumView(album) {
   return {
     ...album,
-    cover: `/${album.coverUrl}`,
+    cover: album.cover || coverToImageSrc(album.coverUrl),
     styles: album.style
   };
 }
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function uniqueById(items) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items || []) {
+    if (!item || !item.id || seen.has(item.id)) continue;
+    seen.add(item.id);
+    result.push(item);
+  }
+  return result;
+}
+
+function buildAlbumSource(app, draft = {}) {
+  return uniqueById([
+    ...albums,
+    ...(app.globalData.manualAlbums || []),
+    ...(draft.candidates || [])
+  ]);
 }
 
 Page({
@@ -23,7 +43,7 @@ Page({
     defaults: {
       userId: "david",
       collectionDate: today(),
-      source: "线上购买",
+      source: "线上搜索",
       quantity: 1,
       condition: "NM",
       mediumKey: DEFAULT_MEDIUM_KEY,
@@ -38,9 +58,10 @@ Page({
   loadSelectedAlbums() {
     const app = getApp();
     const draft = app.globalData.importDraft || {};
+    const sourceAlbums = buildAlbumSource(app, draft);
     const selectedIds = draft.selectedAlbumIds || [];
     const selectedAlbums = selectedIds
-      .map((albumId) => albums.find((album) => album.id === albumId))
+      .map((albumId) => sourceAlbums.find((album) => album.id === albumId))
       .filter(Boolean)
       .map(toAlbumView);
 
@@ -77,16 +98,31 @@ Page({
   },
   confirmAdd() {
     const app = getApp();
+    const draft = app.globalData.importDraft || {};
+    const sourceAlbums = buildAlbumSource(app, draft);
     const selectedAlbumIds = this.data.selectedAlbums.map((album) => album.id);
+    const userId = app.globalData.userId || this.data.defaults.userId;
     const result = confirmSelectedAlbums({
       selectedAlbumIds,
-      albums,
+      albums: sourceAlbums,
       existingCollectionItems: app.globalData.collectionItems || [],
-      defaults: this.data.defaults,
+      defaults: {
+        ...this.data.defaults,
+        userId
+      },
       pricesByAlbumId: this.data.pricesByAlbumId
     });
-    const syncResult = triggerTvSync(app.globalData.tvBindings || [], this.data.defaults.userId);
+    const syncResult = triggerTvSync(app.globalData.tvBindings || [], userId);
+    const seedIds = new Set(albums.map((album) => album.id));
+    const existingManualIds = new Set((app.globalData.manualAlbums || []).map((album) => album.id));
+    const newManualAlbums = this.data.selectedAlbums
+      .filter((album) => !seedIds.has(album.id) && !existingManualIds.has(album.id))
+      .map((album) => ({ ...album }));
 
+    app.globalData.manualAlbums = [
+      ...(app.globalData.manualAlbums || []),
+      ...newManualAlbums
+    ];
     app.globalData.collectionItems = result.collectionItems;
     app.globalData.tvBindings = syncResult.bindings;
     app.globalData.importDraft = null;

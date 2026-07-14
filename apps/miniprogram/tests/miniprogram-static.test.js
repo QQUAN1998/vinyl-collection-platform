@@ -127,8 +127,11 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   const archiveMarkup = readText("pages/archive-profile/index.wxml");
   const archiveStyles = readText("pages/archive-profile/index.wxss");
   const batchConfirmMarkup = readText("pages/batch-confirm/index.wxml");
+  const batchConfirmScript = readText("pages/batch-confirm/index.js");
   const collectionEditMarkup = readText("pages/collection-edit/index.wxml");
   const addMarkup = readText("pages/add/index.wxml");
+  const searchResultsMarkup = readText("pages/search-results/index.wxml");
+  const searchResultsScript = readText("pages/search-results/index.js");
   const statsMarkup = readText("pages/stats/index.wxml");
   const detailMarkup = readText("pages/album-detail/index.wxml");
   const manualAddMarkup = readText("pages/manual-add/index.wxml");
@@ -190,6 +193,10 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(addMarkup.includes(">ADD<"), "add page includes a right-side header badge");
   assert.doesNotMatch(addMarkup, /recent-search|recentSearches|useRecent/, "add page no longer keeps recent-search records");
   assert.ok(addMarkup.includes("search-action.png"), "add page search uses downloaded icon");
+  assert.ok(searchResultsScript.includes("searchCatalogAlbums"), "search results page uses the cloud catalog search API");
+  assert.ok(searchResultsScript.includes("fetchCatalogAlbumDetail"), "search results page hydrates selected catalog albums before confirming");
+  assert.ok(searchResultsMarkup.includes("正在搜索在线资料"), "search results page shows a remote catalog loading state");
+  assert.ok(batchConfirmScript.includes("draft.candidates"), "batch confirm can add online catalog candidates");
   assert.ok(addMarkup.includes("批量输入"), "add page keeps batch input action");
   assert.ok(addMarkup.includes("手动新建"), "add page keeps manual add action");
   assert.ok(addMarkup.includes("all-collection-card"), "add page includes the all collection card");

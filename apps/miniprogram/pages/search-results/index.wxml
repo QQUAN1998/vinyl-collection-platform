@@ -5,9 +5,18 @@
   </view>
 
   <view class="result-query">{{query || "批量匹配"}}</view>
+  <view class="result-notice" wx:if="{{providerNotice}}">{{providerNotice}}</view>
+  <view class="result-notice is-warning" wx:if="{{errorMessage}}">{{errorMessage}}</view>
   <view class="section-title">选择要加入的唱片</view>
 
-  <view class="result-list">
+  <state-view
+    wx:if="{{loading}}"
+    tone="default"
+    title="正在搜索在线资料"
+    description="正在从网易云、QQ 音乐、Apple 和 MusicBrainz 获取候选"
+  />
+
+  <view class="result-list" wx:if="{{!loading}}">
     <album-row
       wx:for="{{candidates}}"
       wx:key="id"
@@ -19,7 +28,7 @@
   </view>
 
   <state-view
-    wx:if="{{!candidates.length}}"
+    wx:if="{{!loading && !candidates.length}}"
     tone="warning"
     title="没有匹配结果"
     description="可以返回手动新建，之后再补充公共资料。"
@@ -27,6 +36,8 @@
 
   <view class="floating-action">
     <view class="selected-count">已选择 {{selectedCount}} 张</view>
-    <view class="next-action" bindtap="goConfirm" hover-class="next-action-hover">下一步 →</view>
+    <view class="next-action {{hydrating ? 'is-loading' : ''}}" bindtap="goConfirm" hover-class="next-action-hover">
+      {{hydrating ? "补全中" : "下一步 →"}}
+    </view>
   </view>
 </view>

@@ -27,6 +27,12 @@ const {
   buildCloudCollectionRequest,
   normalizeCloudCollectionPayload,
 } = require("../services/cloud-api.js");
+const {
+  buildCatalogSearchPath,
+  catalogCandidateToAlbum,
+  normalizeCatalogSearchResponse,
+  parseSearchQuery,
+} = require("../services/catalog-api.js");
 
 test("David seed library contains searchable album metadata", () => {
   assert.equal(albums.length, 9);
@@ -304,4 +310,110 @@ test("cloud collection payload can be merged back into local page data", () => {
   assert.equal(payload.manualAlbums[0].id, "manual-cloud");
   assert.equal(payload.manualAlbums[0].cover, "/assets/covers/manual.webp");
   assert.equal(payload.collectionItems[0].price, 500);
+});
+
+test("cloud collection payload keeps remote cover URLs usable", () => {
+  const payload = normalizeCloudCollectionPayload({
+    owner: { id: "user-1", displayName: "Alice", avatarUrl: null },
+    albums: [
+      {
+        id: "qqmusic:000I5jJB3blWeN",
+        title: "范特西",
+        artist: "周杰伦",
+        year: 2001,
+        region: "CN",
+        style: "R&B",
+        coverUrl: "https://y.gtimg.cn/music/photo_new/T002R800x800M000000I5jJB3blWeN.jpg",
+        tracks: [],
+      },
+    ],
+    collectionItems: [],
+  }, albums);
+
+  assert.equal(
+    payload.manualAlbums[0].cover,
+    "https://y.gtimg.cn/music/photo_new/T002R800x800M000000I5jJB3blWeN.jpg",
+  );
+});
+
+test("catalog API candidates become addable local albums", () => {
+  const response = normalizeCatalogSearchResponse({
+    query: "范特西",
+    artist: "周杰伦",
+    providers: { enabled: ["NETEASE", "QQMUSIC"], failed: [] },
+    data: [
+      {
+        id: "netease:18915",
+        provider: "NETEASE",
+        providerId: "18915",
+        title: "范特西",
+        artist: "周杰伦",
+        year: 2001,
+        region: "CN",
+        style: "专辑",
+        coverUrl: "https://p2.music.126.net/fantasy.jpg",
+        coverThumbUrl: "https://p2.music.126.net/fantasy-small.jpg",
+        tracks: [
+          { position: 1, title: "爱在西元前", durationMs: 234253 },
+        ],
+        score: 100,
+      },
+    ],
+  });
+
+  assert.equal(response.albums[0].id, "netease:18915");
+  assert.equal(response.albums[0].title, "范特西");
+  assert.equal(response.albums[0].catalogProvider, "NETEASE");
+  assert.equal(response.albums[0].catalogProviderId, "18915");
+  assert.equal(response.albums[0].cover, "https://p2.music.126.net/fantasy-small.jpg");
+  assert.deepEqual(response.albums[0].tracks, [{ position: 1, title: "爱在西元前" }]);
+});
+
+test("catalog search path preserves artist-title input", () => {
+  assert.deepEqual(parseSearchQuery("周杰伦 - 范特西"), {
+    query: "周杰伦 - 范特西",
+    artist: "周杰伦",
+    title: "范特西",
+  });
+  assert.equal(
+    buildCatalogSearchPath({
+      q: "范特西",
+      artist: "周杰伦",
+      limit: 8,
+      country: "CN",
+      includeUnofficial: true,
+    }),
+    "/api/catalog/search?q=%E8%8C%83%E7%89%B9%E8%A5%BF&artist=%E5%91%A8%E6%9D%B0%E4%BC%A6&limit=8&country=CN&includeUnofficial=true",
+  );
+});
+
+test("catalog detail can enrich a selected search candidate", () => {
+  const selected = catalogCandidateToAlbum({
+    id: "qqmusic:000I5jJB3blWeN",
+    provider: "QQMUSIC",
+    providerId: "000I5jJB3blWeN",
+    title: "范特西",
+    artist: "周杰伦",
+    coverThumbUrl: "https://y.gtimg.cn/small.jpg",
+  });
+  const enriched = catalogCandidateToAlbum({
+    id: "qqmusic:000I5jJB3blWeN",
+    provider: "QQMUSIC",
+    providerId: "000I5jJB3blWeN",
+    title: "范特西",
+    artist: "周杰伦",
+    year: 2001,
+    genre: "R&B 节奏布鲁斯",
+    coverUrl: "https://y.gtimg.cn/large.jpg",
+    tracks: [
+      { position: 1, title: "爱在西元前" },
+      { position: 2, title: "爸，我回来了" },
+    ],
+  }, selected);
+
+  assert.equal(enriched.id, selected.id);
+  assert.equal(enriched.year, 2001);
+  assert.equal(enriched.style, "R&B 节奏布鲁斯");
+  assert.equal(enriched.cover, "https://y.gtimg.cn/large.jpg");
+  assert.equal(enriched.tracks.length, 2);
 });

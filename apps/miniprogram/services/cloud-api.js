@@ -179,7 +179,7 @@ function toLocalAlbum(album) {
     region: album.region || "未记录",
     style: album.style || album.genre || "未分类",
     coverUrl,
-    cover: coverUrl ? `/${coverUrl}` : "",
+    cover: toImageSrc(coverUrl),
     tracks: normalizeTracks(album.tracks || [])
   };
 }
@@ -215,6 +215,15 @@ function normalizeTracks(tracks) {
 
 function stripLeadingSlash(value) {
   return String(value || "").replace(/^\/+/, "");
+}
+
+function toImageSrc(value) {
+  const cover = String(value || "");
+  if (!cover) return "";
+  if (/^(https?:|wxfile:|cloud:|data:)/.test(cover)) {
+    return cover;
+  }
+  return `/${cover.replace(/^\/+/, "")}`;
 }
 
 function today() {

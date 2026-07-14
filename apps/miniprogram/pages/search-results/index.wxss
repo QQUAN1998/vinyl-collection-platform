@@ -22,6 +22,20 @@
   gap: 18rpx;
 }
 
+.result-notice {
+  margin: -18rpx 0 28rpx;
+  padding: 18rpx 22rpx;
+  border-radius: var(--radius-cover);
+  background: rgba(185, 109, 91, 0.12);
+  color: var(--color-ink);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.result-notice.is-warning {
+  background: rgba(211, 179, 106, 0.18);
+}
+
 .floating-action {
   position: fixed;
   left: 24rpx;
@@ -54,4 +68,8 @@
 
 .next-action-hover {
   opacity: 0.72;
+}
+
+.next-action.is-loading {
+  opacity: 0.64;
 }

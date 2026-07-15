@@ -1050,6 +1050,9 @@ export const UserScalarFieldEnum = {
   wechatOpenId: 'wechatOpenId',
   displayName: 'displayName',
   avatarUrl: 'avatarUrl',
+  phoneNumber: 'phoneNumber',
+  phoneCountryCode: 'phoneCountryCode',
+  phoneAuthorizedAt: 'phoneAuthorizedAt',
   registrationSequence: 'registrationSequence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1201,7 +1204,9 @@ export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
   wechatOpenId: 'wechatOpenId',
   displayName: 'displayName',
-  avatarUrl: 'avatarUrl'
+  avatarUrl: 'avatarUrl',
+  phoneNumber: 'phoneNumber',
+  phoneCountryCode: 'phoneCountryCode'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
@@ -1321,16 +1326,16 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'DateTime'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
 
 
 /**
- * Reference to a field of type 'DateTime'
+ * Reference to a field of type 'Int'
  */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 

@@ -443,10 +443,6 @@ export type EnumMembershipPlanFieldUpdateOperationsInput = {
   set?: $Enums.MembershipPlan
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type MembershipCreateNestedOneWithoutOrderInput = {
   create?: Prisma.XOR<Prisma.MembershipCreateWithoutOrderInput, Prisma.MembershipUncheckedCreateWithoutOrderInput>
   connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutOrderInput

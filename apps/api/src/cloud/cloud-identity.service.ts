@@ -25,11 +25,7 @@ export class CloudIdentityService {
       throw new UnauthorizedException();
     }
 
-    return this.authService.findOrCreateWechatUser({
-      wechatOpenId: openId,
-      displayName: "唱片柜用户",
-      avatarUrl: null,
-    });
+    return this.authService.findOrCreateWechatUser({ wechatOpenId: openId });
   }
 }
 

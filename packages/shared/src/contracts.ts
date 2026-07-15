@@ -13,6 +13,10 @@ export interface UserProfile {
   id: string;
   displayName: string;
   avatarUrl: string | null;
+  hasPhoneNumber: boolean;
+  phoneNumberMasked: string | null;
+  phoneCountryCode: string | null;
+  phoneAuthorizedAt: IsoDateTime | null;
   createdAt: IsoDateTime;
   membership: MembershipSummary;
 }

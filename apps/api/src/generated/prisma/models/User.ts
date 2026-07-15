@@ -39,6 +39,9 @@ export type UserMinAggregateOutputType = {
   wechatOpenId: string | null
   displayName: string | null
   avatarUrl: string | null
+  phoneNumber: string | null
+  phoneCountryCode: string | null
+  phoneAuthorizedAt: Date | null
   registrationSequence: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +52,9 @@ export type UserMaxAggregateOutputType = {
   wechatOpenId: string | null
   displayName: string | null
   avatarUrl: string | null
+  phoneNumber: string | null
+  phoneCountryCode: string | null
+  phoneAuthorizedAt: Date | null
   registrationSequence: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +65,9 @@ export type UserCountAggregateOutputType = {
   wechatOpenId: number
   displayName: number
   avatarUrl: number
+  phoneNumber: number
+  phoneCountryCode: number
+  phoneAuthorizedAt: number
   registrationSequence: number
   createdAt: number
   updatedAt: number
@@ -79,6 +88,9 @@ export type UserMinAggregateInputType = {
   wechatOpenId?: true
   displayName?: true
   avatarUrl?: true
+  phoneNumber?: true
+  phoneCountryCode?: true
+  phoneAuthorizedAt?: true
   registrationSequence?: true
   createdAt?: true
   updatedAt?: true
@@ -89,6 +101,9 @@ export type UserMaxAggregateInputType = {
   wechatOpenId?: true
   displayName?: true
   avatarUrl?: true
+  phoneNumber?: true
+  phoneCountryCode?: true
+  phoneAuthorizedAt?: true
   registrationSequence?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +114,9 @@ export type UserCountAggregateInputType = {
   wechatOpenId?: true
   displayName?: true
   avatarUrl?: true
+  phoneNumber?: true
+  phoneCountryCode?: true
+  phoneAuthorizedAt?: true
   registrationSequence?: true
   createdAt?: true
   updatedAt?: true
@@ -196,6 +214,9 @@ export type UserGroupByOutputType = {
   wechatOpenId: string
   displayName: string
   avatarUrl: string | null
+  phoneNumber: string | null
+  phoneCountryCode: string | null
+  phoneAuthorizedAt: Date | null
   registrationSequence: number
   createdAt: Date
   updatedAt: Date
@@ -229,6 +250,9 @@ export type UserWhereInput = {
   wechatOpenId?: Prisma.StringFilter<"User"> | string
   displayName?: Prisma.StringFilter<"User"> | string
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneCountryCode?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneAuthorizedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   registrationSequence?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -246,6 +270,9 @@ export type UserOrderByWithRelationInput = {
   wechatOpenId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneCountryCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneAuthorizedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationSequence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -268,6 +295,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   displayName?: Prisma.StringFilter<"User"> | string
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneCountryCode?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneAuthorizedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   memberships?: Prisma.MembershipListRelationFilter
@@ -284,6 +314,9 @@ export type UserOrderByWithAggregationInput = {
   wechatOpenId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneCountryCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneAuthorizedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationSequence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -302,6 +335,9 @@ export type UserScalarWhereWithAggregatesInput = {
   wechatOpenId?: Prisma.StringWithAggregatesFilter<"User"> | string
   displayName?: Prisma.StringWithAggregatesFilter<"User"> | string
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phoneCountryCode?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phoneAuthorizedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   registrationSequence?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -312,6 +348,9 @@ export type UserCreateInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -329,6 +368,9 @@ export type UserUncheckedCreateInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -346,6 +388,9 @@ export type UserUpdateInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -362,6 +407,9 @@ export type UserUncheckedUpdateInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -379,6 +427,9 @@ export type UserCreateManyInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -389,6 +440,9 @@ export type UserUpdateManyMutationInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -398,6 +452,9 @@ export type UserUncheckedUpdateManyInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,6 +471,9 @@ export type UserCountOrderByAggregateInput = {
   wechatOpenId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  phoneCountryCode?: Prisma.SortOrder
+  phoneAuthorizedAt?: Prisma.SortOrder
   registrationSequence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -428,6 +488,9 @@ export type UserMaxOrderByAggregateInput = {
   wechatOpenId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  phoneCountryCode?: Prisma.SortOrder
+  phoneAuthorizedAt?: Prisma.SortOrder
   registrationSequence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -438,6 +501,9 @@ export type UserMinOrderByAggregateInput = {
   wechatOpenId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  phoneCountryCode?: Prisma.SortOrder
+  phoneAuthorizedAt?: Prisma.SortOrder
   registrationSequence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -463,6 +529,10 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -584,6 +654,9 @@ export type UserCreateWithoutMembershipsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -600,6 +673,9 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -632,6 +708,9 @@ export type UserUpdateWithoutMembershipsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   membershipOrders?: Prisma.MembershipOrderUpdateManyWithoutUserNestedInput
@@ -647,6 +726,9 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -663,6 +745,9 @@ export type UserCreateWithoutMembershipOrdersInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -679,6 +764,9 @@ export type UserUncheckedCreateWithoutMembershipOrdersInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -711,6 +799,9 @@ export type UserUpdateWithoutMembershipOrdersInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -726,6 +817,9 @@ export type UserUncheckedUpdateWithoutMembershipOrdersInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -742,6 +836,9 @@ export type UserCreateWithoutCreatedAlbumsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -758,6 +855,9 @@ export type UserUncheckedCreateWithoutCreatedAlbumsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -790,6 +890,9 @@ export type UserUpdateWithoutCreatedAlbumsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -805,6 +908,9 @@ export type UserUncheckedUpdateWithoutCreatedAlbumsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -821,6 +927,9 @@ export type UserCreateWithoutCollectionsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -837,6 +946,9 @@ export type UserUncheckedCreateWithoutCollectionsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -869,6 +981,9 @@ export type UserUpdateWithoutCollectionsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -884,6 +999,9 @@ export type UserUncheckedUpdateWithoutCollectionsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -900,6 +1018,9 @@ export type UserCreateWithoutTvDevicesInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -916,6 +1037,9 @@ export type UserUncheckedCreateWithoutTvDevicesInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -948,6 +1072,9 @@ export type UserUpdateWithoutTvDevicesInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -963,6 +1090,9 @@ export type UserUncheckedUpdateWithoutTvDevicesInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -979,6 +1109,9 @@ export type UserCreateWithoutSyncEventsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -995,6 +1128,9 @@ export type UserUncheckedCreateWithoutSyncEventsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1027,6 +1163,9 @@ export type UserUpdateWithoutSyncEventsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -1042,6 +1181,9 @@ export type UserUncheckedUpdateWithoutSyncEventsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1058,6 +1200,9 @@ export type UserCreateWithoutAuditLogsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1074,6 +1219,9 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   wechatOpenId: string
   displayName: string
   avatarUrl?: string | null
+  phoneNumber?: string | null
+  phoneCountryCode?: string | null
+  phoneAuthorizedAt?: Date | string | null
   registrationSequence?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1106,6 +1254,9 @@ export type UserUpdateWithoutAuditLogsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
@@ -1121,6 +1272,9 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   wechatOpenId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneCountryCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneAuthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationSequence?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1222,6 +1376,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   wechatOpenId?: boolean
   displayName?: boolean
   avatarUrl?: boolean
+  phoneNumber?: boolean
+  phoneCountryCode?: boolean
+  phoneAuthorizedAt?: boolean
   registrationSequence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1242,12 +1399,15 @@ export type UserSelectScalar = {
   wechatOpenId?: boolean
   displayName?: boolean
   avatarUrl?: boolean
+  phoneNumber?: boolean
+  phoneCountryCode?: boolean
+  phoneAuthorizedAt?: boolean
   registrationSequence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "wechatOpenId" | "displayName" | "avatarUrl" | "registrationSequence" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "wechatOpenId" | "displayName" | "avatarUrl" | "phoneNumber" | "phoneCountryCode" | "phoneAuthorizedAt" | "registrationSequence" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   membershipOrders?: boolean | Prisma.User$membershipOrdersArgs<ExtArgs>
@@ -1275,6 +1435,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     wechatOpenId: string
     displayName: string
     avatarUrl: string | null
+    phoneNumber: string | null
+    phoneCountryCode: string | null
+    phoneAuthorizedAt: Date | null
     registrationSequence: number
     createdAt: Date
     updatedAt: Date
@@ -1658,6 +1821,9 @@ export interface UserFieldRefs {
   readonly wechatOpenId: Prisma.FieldRef<"User", 'String'>
   readonly displayName: Prisma.FieldRef<"User", 'String'>
   readonly avatarUrl: Prisma.FieldRef<"User", 'String'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly phoneCountryCode: Prisma.FieldRef<"User", 'String'>
+  readonly phoneAuthorizedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly registrationSequence: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>

@@ -83,6 +83,9 @@ export const UserScalarFieldEnum = {
   wechatOpenId: 'wechatOpenId',
   displayName: 'displayName',
   avatarUrl: 'avatarUrl',
+  phoneNumber: 'phoneNumber',
+  phoneCountryCode: 'phoneCountryCode',
+  phoneAuthorizedAt: 'phoneAuthorizedAt',
   registrationSequence: 'registrationSequence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -234,7 +237,9 @@ export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
   wechatOpenId: 'wechatOpenId',
   displayName: 'displayName',
-  avatarUrl: 'avatarUrl'
+  avatarUrl: 'avatarUrl',
+  phoneNumber: 'phoneNumber',
+  phoneCountryCode: 'phoneCountryCode'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]

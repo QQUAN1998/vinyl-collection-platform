@@ -3,6 +3,7 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from "@nestjs/common";
+import { request as httpsRequest } from "node:https";
 
 export const WECHAT_SESSION_CLIENT = Symbol("WECHAT_SESSION_CLIENT");
 
@@ -14,8 +15,12 @@ export interface WechatSessionClient {
   exchangeCode(code: string): Promise<WechatSession>;
 }
 
+type Code2SessionRequester = (url: URL) => Promise<Code2SessionResponse>;
+
 @Injectable()
 export class WechatApiSessionClient implements WechatSessionClient {
+  constructor(private readonly requestCode2Session: Code2SessionRequester = requestCode2SessionViaHttps) {}
+
   async exchangeCode(code: string): Promise<WechatSession> {
     const normalizedCode = code.trim();
     if (!normalizedCode) {
@@ -26,28 +31,14 @@ export class WechatApiSessionClient implements WechatSessionClient {
       return getMockSession(normalizedCode);
     }
 
-    const { appId, appSecret } = getWechatAppCredentials();
-    const url =
-      "https://api.weixin.qq.com/sns/jscode2session" +
-      `?appid=${encodeURIComponent(appId)}` +
-      `&secret=${encodeURIComponent(appSecret)}` +
-      `&js_code=${encodeURIComponent(normalizedCode)}` +
-      "&grant_type=authorization_code";
-    let response: Response;
+    const url = buildCode2SessionUrl(normalizedCode, getWechatAppCredentials());
+    let payload: Code2SessionResponse;
     try {
-      response = await fetch(url);
+      payload = await this.requestCode2Session(url);
     } catch (error) {
       console.error("WeChat code2session request failed", toSafeErrorLog(error));
       throw new ServiceUnavailableException();
     }
-    if (!response.ok) {
-      console.error("WeChat code2session returned non-2xx status", {
-        status: response.status,
-      });
-      throw new ServiceUnavailableException();
-    }
-
-    const payload = await parseCode2SessionResponse(response);
     if (payload.errcode && payload.errcode !== 0) {
       throw new UnauthorizedException();
     }
@@ -67,18 +58,71 @@ interface Code2SessionResponse {
   errmsg?: string;
 }
 
-async function parseCode2SessionResponse(response: Response): Promise<Code2SessionResponse> {
-  try {
-    return (await response.json()) as Code2SessionResponse;
-  } catch (error) {
-    console.error("WeChat code2session returned invalid JSON", toSafeErrorLog(error));
-    throw new ServiceUnavailableException();
-  }
+function buildCode2SessionUrl(code: string, credentials: { appId: string; appSecret: string }): URL {
+  const url = new URL("https://api.weixin.qq.com/sns/jscode2session");
+  url.searchParams.set("appid", credentials.appId);
+  url.searchParams.set("secret", credentials.appSecret);
+  url.searchParams.set("js_code", code);
+  url.searchParams.set("grant_type", "authorization_code");
+  return url;
 }
 
-function toSafeErrorLog(error: unknown): { name: string; message: string } {
+function requestCode2SessionViaHttps(url: URL): Promise<Code2SessionResponse> {
+  return new Promise((resolve, reject) => {
+    const request = httpsRequest(
+      url,
+      {
+        family: 4,
+        timeout: 8_000,
+        headers: {
+          accept: "application/json",
+          "user-agent": "vinyl-cabinet-cloudrun/1.0",
+        },
+      },
+      (response) => {
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        response.on("end", () => {
+          const statusCode = response.statusCode ?? 0;
+          const body = Buffer.concat(chunks).toString("utf8");
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(new Error(`WeChat code2session returned HTTP ${statusCode}`));
+            return;
+          }
+
+          try {
+            resolve(JSON.parse(body) as Code2SessionResponse);
+          } catch (error) {
+            reject(new Error(`WeChat code2session returned invalid JSON: ${toSafeErrorLog(error).message}`));
+          }
+        });
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy(new Error("WeChat code2session request timed out"));
+    });
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+function toSafeErrorLog(error: unknown): { name: string; message: string; code?: string; cause?: string } {
   if (error instanceof Error) {
-    return { name: error.name, message: error.message };
+    const withCode = error as Error & { code?: string; cause?: unknown };
+    const log: { name: string; message: string; code?: string; cause?: string } = {
+      name: error.name,
+      message: error.message,
+    };
+    if (withCode.code) {
+      log.code = withCode.code;
+    }
+    if (withCode.cause instanceof Error) {
+      log.cause = withCode.cause.message;
+    }
+    return log;
   }
 
   return { name: typeof error, message: String(error) };

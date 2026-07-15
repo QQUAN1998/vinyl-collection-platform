@@ -33,16 +33,25 @@ export class WechatApiSessionClient implements WechatSessionClient {
       `&secret=${encodeURIComponent(appSecret)}` +
       `&js_code=${encodeURIComponent(normalizedCode)}` +
       "&grant_type=authorization_code";
-    const response = await fetch(url);
+    let response: Response;
+    try {
+      response = await fetch(url);
+    } catch (error) {
+      console.error("WeChat code2session request failed", toSafeErrorLog(error));
+      throw new ServiceUnavailableException();
+    }
     if (!response.ok) {
+      console.error("WeChat code2session returned non-2xx status", {
+        status: response.status,
+      });
       throw new ServiceUnavailableException();
     }
 
-    const payload = (await response.json()) as Code2SessionResponse;
+    const payload = await parseCode2SessionResponse(response);
     if (payload.errcode && payload.errcode !== 0) {
       throw new UnauthorizedException();
     }
-    if (!payload.openid || !isValidOpenId(payload.openid)) {
+    if (typeof payload.openid !== "string" || !isValidOpenId(payload.openid)) {
       throw new UnauthorizedException();
     }
 
@@ -56,6 +65,23 @@ interface Code2SessionResponse {
   unionid?: string;
   errcode?: number;
   errmsg?: string;
+}
+
+async function parseCode2SessionResponse(response: Response): Promise<Code2SessionResponse> {
+  try {
+    return (await response.json()) as Code2SessionResponse;
+  } catch (error) {
+    console.error("WeChat code2session returned invalid JSON", toSafeErrorLog(error));
+    throw new ServiceUnavailableException();
+  }
+}
+
+function toSafeErrorLog(error: unknown): { name: string; message: string } {
+  if (error instanceof Error) {
+    return { name: error.name, message: error.message };
+  }
+
+  return { name: typeof error, message: String(error) };
 }
 
 function getMockSession(code: string): WechatSession {

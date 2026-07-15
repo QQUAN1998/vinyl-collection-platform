@@ -198,7 +198,7 @@ describe("Wechat auth API", () => {
   it("rejects invalid WeChat login codes", async () => {
     const response = await request(app.getHttpServer())
       .post("/v1/auth/wechat-login")
-      .send({ code: "not-a-mock-code" })
+      .send({ code: "mock:bad openid!" })
       .expect(401);
 
     expect(response.body).toEqual({

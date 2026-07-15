@@ -428,6 +428,55 @@ describe("WeChat cloud collection API", () => {
     });
   });
 
+  it("accepts a WeChat login bearer token when cloud openid headers are missing", async () => {
+    const login = await request(app.getHttpServer())
+      .post("/v1/auth/wechat-login")
+      .send({ code: "mock:token-user", displayName: "Token User" })
+      .expect(201);
+
+    const created = await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("Authorization", `Bearer ${login.body.token}`)
+      .send({
+        album: {
+          id: "token-album",
+          title: "Token Album",
+          artist: "Token Artist",
+          year: 2026,
+          style: "Pop",
+          coverUrl: "https://example.com/token.jpg",
+        },
+        collection: {
+          collectionDate: "2026-07-15",
+          source: "token login",
+          quantity: 1,
+          condition: "NM",
+          mediumKey: "vinyl",
+          price: 99,
+          notes: "saved with token",
+        },
+      })
+      .expect(201);
+
+    expect(created.body.owner).toMatchObject({
+      id: login.body.me.user.id,
+      displayName: "Token User",
+    });
+    expect(created.body.collectionItems[0]).toMatchObject({
+      albumId: "token-album",
+      notes: "saved with token",
+    });
+
+    const mine = await request(app.getHttpServer())
+      .get("/api/collections/me")
+      .set("Authorization", `Bearer ${login.body.token}`)
+      .expect(200);
+
+    expect(mine.body.collectionItems.map((item: { albumId: string }) => item.albumId)).toEqual([
+      "token-album",
+    ]);
+  });
+
   it("creates a cloud account and updates the WeChat profile by openid", async () => {
     const login = await request(app.getHttpServer())
       .post("/api/auth/cloud-login")

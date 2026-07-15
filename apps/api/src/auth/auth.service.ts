@@ -58,10 +58,7 @@ export class AuthService {
   }
 
   async getMe(userId: string): Promise<MeResponse> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException();
-    }
+    const user = await this.getUserById(userId);
 
     const [membership, collectionCount] = await Promise.all([
       this.prisma.membership.findFirst({
@@ -84,6 +81,15 @@ export class AuthService {
   }): Promise<MeResponse> {
     const user = await this.findOrCreateWechatUser(compactWechatUserInput(input));
     return this.getMe(user.id);
+  }
+
+  async getUserById(userId: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return user;
   }
 
   async authorizePhoneNumber(userId: string, code: string): Promise<MeResponse> {

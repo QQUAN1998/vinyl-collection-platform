@@ -19,7 +19,11 @@ type Code2SessionRequester = (url: URL) => Promise<Code2SessionResponse>;
 
 @Injectable()
 export class WechatApiSessionClient implements WechatSessionClient {
-  constructor(private readonly requestCode2Session: Code2SessionRequester = requestCode2SessionViaHttps) {}
+  private requestCode2Session: Code2SessionRequester = requestCode2SessionViaHttps;
+
+  setCode2SessionRequesterForTest(requestCode2Session: Code2SessionRequester): void {
+    this.requestCode2Session = requestCode2Session;
+  }
 
   async exchangeCode(code: string): Promise<WechatSession> {
     const normalizedCode = code.trim();
@@ -48,6 +52,14 @@ export class WechatApiSessionClient implements WechatSessionClient {
 
     return { openId: payload.openid.trim() };
   }
+}
+
+export function createWechatApiSessionClientForTest(
+  requestCode2Session: Code2SessionRequester,
+): WechatApiSessionClient {
+  const client = new WechatApiSessionClient();
+  client.setCode2SessionRequesterForTest(requestCode2Session);
+  return client;
 }
 
 interface Code2SessionResponse {

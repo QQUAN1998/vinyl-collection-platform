@@ -1,7 +1,7 @@
 import { UnauthorizedException } from "@nestjs/common";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { WechatApiSessionClient } from "./wechat-session.client.js";
+import { createWechatApiSessionClientForTest } from "./wechat-session.client.js";
 
 describe("WechatApiSessionClient", () => {
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe("WechatApiSessionClient", () => {
 
   it("exchanges a WeChat login code through the injected requester", async () => {
     let requestedUrl: URL | null = null;
-    const client = new WechatApiSessionClient(async (url) => {
+    const client = createWechatApiSessionClientForTest(async (url) => {
       requestedUrl = url;
       return { openid: "openid-user-1", session_key: "session-key" };
     });
@@ -31,7 +31,7 @@ describe("WechatApiSessionClient", () => {
   });
 
   it("rejects WeChat error responses as unauthenticated login attempts", async () => {
-    const client = new WechatApiSessionClient(async () => ({
+    const client = createWechatApiSessionClientForTest(async () => ({
       errcode: 40029,
       errmsg: "invalid code",
     }));

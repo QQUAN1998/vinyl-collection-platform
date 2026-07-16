@@ -139,6 +139,25 @@ export interface CatalogAlbumTrack {
   durationMs: number | null;
 }
 
+export type CatalogTrackPreviewProvider = "ITUNES" | "DEEZER";
+
+export interface CatalogTrackPreviewMatch {
+  track: string;
+  artist: string;
+  album: string | null;
+}
+
+export interface CatalogTrackPreviewResponse {
+  ok: boolean;
+  provider: CatalogTrackPreviewProvider | null;
+  previewUrl: string | null;
+  streamPath: string | null;
+  durationMs: number | null;
+  confidence: number;
+  matched: CatalogTrackPreviewMatch | null;
+  reason?: string;
+}
+
 export interface CatalogAlbumCandidate {
   id: string;
   provider: CatalogProvider;

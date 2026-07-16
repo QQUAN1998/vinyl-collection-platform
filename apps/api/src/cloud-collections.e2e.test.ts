@@ -420,6 +420,68 @@ describe("WeChat cloud collection API", () => {
     });
   });
 
+  it("upserts several current-user collection records in one request", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/api/collections/batch-upsert")
+      .set("x-wx-openid", "openid-alice")
+      .send({
+        items: [
+          {
+            album: {
+              id: "batch-upsert-1",
+              title: "Batch Upsert One",
+              artist: "Artist",
+              year: 2026,
+              style: "Pop",
+              coverUrl: "https://example.com/batch-upsert-1.jpg",
+              tracks: [{ position: 1, title: "One" }],
+            },
+            collection: {
+              collectionDate: "2026-07-16",
+              source: "batch import",
+              quantity: 1,
+              condition: "NM",
+              mediumKey: "vinyl",
+              price: 100,
+              notes: "",
+            },
+          },
+          {
+            album: {
+              id: "batch-upsert-2",
+              title: "Batch Upsert Two",
+              artist: "Artist",
+              year: 2026,
+              style: "Pop",
+              coverUrl: "https://example.com/batch-upsert-2.jpg",
+              tracks: [{ position: 1, title: "Two" }],
+            },
+            collection: {
+              collectionDate: "2026-07-16",
+              source: "batch import",
+              quantity: 2,
+              condition: "VG+",
+              mediumKey: "cd",
+              price: 120,
+              notes: "batch",
+            },
+          },
+        ],
+      })
+      .expect(201);
+
+    expect(response.body.collectionItems).toHaveLength(2);
+    expect(response.body.collectionItems.map((item: { albumId: string }) => item.albumId)).toEqual([
+      "batch-upsert-1",
+      "batch-upsert-2",
+    ]);
+    expect(response.body.collectionItems[1]).toMatchObject({
+      quantity: 2,
+      mediumKey: "cd",
+      notes: "batch",
+    });
+  });
+
   it("requires a WeChat cloud openid header", async () => {
     const response = await request(app.getHttpServer()).get("/api/collections/me").expect(401);
 

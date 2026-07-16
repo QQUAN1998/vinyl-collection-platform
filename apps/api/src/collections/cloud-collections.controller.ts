@@ -76,6 +76,15 @@ export class CloudCollectionsController {
     return this.collections.upsertForUser(user, body);
   }
 
+  @Post("collections/batch-upsert")
+  async upsertManyMine(
+    @Headers() headers: RequestHeaders,
+    @Body() body: unknown,
+  ): Promise<CloudCollectionPayload> {
+    const user = await this.identity.getCurrentUser(headers);
+    return this.collections.upsertManyForUser(user, body);
+  }
+
   @Patch("collections/:id")
   async patchMine(
     @Headers() headers: RequestHeaders,

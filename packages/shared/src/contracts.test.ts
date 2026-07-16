@@ -4,6 +4,7 @@ import {
   createApiError,
   createPaginationMeta,
   type Album,
+  type BatchUpsertCloudCollectionInput,
   type CollectionRecord,
   type MembershipSummary,
   type TvDevice,
@@ -94,6 +95,31 @@ describe("shared domain contracts", () => {
       createdAt: "2026-07-11T00:00:00.000Z",
       updatedAt: "2026-07-11T00:00:00.000Z",
     };
+    const batchUpsert: BatchUpsertCloudCollectionInput = {
+      items: [
+        {
+          album: {
+            id: "cloud-album-1",
+            title: "Cloud Album",
+            artist: "Cloud Artist",
+            year: 2026,
+            region: "CN",
+            style: "Pop",
+            coverUrl: "https://example.com/cloud.jpg",
+            tracks: [{ position: 1, title: "Opening" }],
+          },
+          collection: {
+            collectionDate: "2026-07-16",
+            source: "batch import",
+            quantity: 1,
+            condition: "NM",
+            mediumKey: "vinyl",
+            price: 128,
+            notes: "",
+          },
+        },
+      ],
+    };
     const tvDevice: TvDevice = {
       id: "device-1",
       userId: user.id,
@@ -103,9 +129,10 @@ describe("shared domain contracts", () => {
       createdAt: "2026-07-11T00:00:00.000Z",
     };
 
-    expect({ user, collection, tvDevice }).toMatchObject({
+    expect({ user, collection, batchUpsert, tvDevice }).toMatchObject({
       user: { membership: { collectionLimit: 10_000 } },
       collection: { album: { rarity: "UR" }, purchasePriceCents: 970_000 },
+      batchUpsert: { items: [{ album: { id: "cloud-album-1" }, collection: { mediumKey: "vinyl" } }] },
       tvDevice: { status: "BOUND" },
     });
   });

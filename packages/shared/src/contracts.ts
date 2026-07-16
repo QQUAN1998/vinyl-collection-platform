@@ -120,6 +120,10 @@ export interface UpsertCloudCollectionInput {
   >;
 }
 
+export interface BatchUpsertCloudCollectionInput {
+  items: UpsertCloudCollectionInput[];
+}
+
 export type CatalogProvider =
   | "MUSICBRAINZ"
   | "ITUNES"

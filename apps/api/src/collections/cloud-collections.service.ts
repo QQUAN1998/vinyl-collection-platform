@@ -5,6 +5,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import type {
+  BatchUpsertCloudCollectionInput,
   CloudAlbum,
   CloudCollectionItem,
   CloudCollectionPayload,
@@ -16,9 +17,11 @@ import { AlbumSource } from "../generated/prisma/enums.js";
 import type { Album, AlbumTrack, Collection, User } from "../generated/prisma/client.js";
 
 type CollectionWithAlbum = Collection & { album: Album & { tracks?: AlbumTrack[] } };
+type CollectionPrismaClient = Pick<PrismaService, "album" | "collection">;
 
 const DEFAULT_MEDIUM_KEY = "vinyl";
 const DEFAULT_CONDITION = "NM";
+const MAX_BATCH_UPSERT_ITEMS = 500;
 
 @Injectable()
 export class CloudCollectionsService {
@@ -48,41 +51,18 @@ export class CloudCollectionsService {
 
   async upsertForUser(user: User, body: unknown): Promise<CloudCollectionPayload> {
     const input = parseUpsertInput(body);
-    await this.prisma.album.upsert({
-      where: { id: input.album.id },
-      create: {
-        id: input.album.id,
-        title: input.album.title,
-        artist: input.album.artist,
-        releaseYear: input.album.year,
-        genre: input.album.style,
-        coverUrl: input.album.coverUrl,
-        source: input.album.id.startsWith("manual-") ? AlbumSource.USER_CREATED : AlbumSource.CATALOG,
-        createdById: user.id,
-        tracks: { create: input.album.tracks },
-      },
-      update: {
-        title: input.album.title,
-        artist: input.album.artist,
-        releaseYear: input.album.year,
-        genre: input.album.style,
-        coverUrl: input.album.coverUrl,
-        tracks: {
-          deleteMany: {},
-          create: input.album.tracks,
-        },
-      },
-    });
+    await this.upsertOneForUser(this.prisma, user, input);
 
-    await this.prisma.collection.upsert({
-      where: { userId_albumId: { userId: user.id, albumId: input.album.id } },
-      create: {
-        userId: user.id,
-        albumId: input.album.id,
-        ...toCollectionData(input.collection),
-      },
-      update: toCollectionData(input.collection),
-      include: collectionAlbumInclude,
+    return this.listForUser(user);
+  }
+
+  async upsertManyForUser(user: User, body: unknown): Promise<CloudCollectionPayload> {
+    const inputs = parseBatchUpsertInput(body);
+
+    await this.prisma.$transaction(async (client) => {
+      for (const input of inputs) {
+        await this.upsertOneForUser(client, user, input);
+      }
     });
 
     return this.listForUser(user);
@@ -119,6 +99,49 @@ export class CloudCollectionsService {
 
     return this.listForUser(user);
   }
+
+  private async upsertOneForUser(
+    client: CollectionPrismaClient,
+    user: User,
+    input: UpsertCloudCollectionInput,
+  ): Promise<void> {
+    await client.album.upsert({
+      where: { id: input.album.id },
+      create: {
+        id: input.album.id,
+        title: input.album.title,
+        artist: input.album.artist,
+        releaseYear: input.album.year,
+        genre: input.album.style,
+        coverUrl: input.album.coverUrl,
+        source: input.album.id.startsWith("manual-") ? AlbumSource.USER_CREATED : AlbumSource.CATALOG,
+        createdById: user.id,
+        tracks: { create: input.album.tracks },
+      },
+      update: {
+        title: input.album.title,
+        artist: input.album.artist,
+        releaseYear: input.album.year,
+        genre: input.album.style,
+        coverUrl: input.album.coverUrl,
+        tracks: {
+          deleteMany: {},
+          create: input.album.tracks,
+        },
+      },
+    });
+
+    await client.collection.upsert({
+      where: { userId_albumId: { userId: user.id, albumId: input.album.id } },
+      create: {
+        userId: user.id,
+        albumId: input.album.id,
+        ...toCollectionData(input.collection),
+      },
+      update: toCollectionData(input.collection),
+      include: collectionAlbumInclude,
+    });
+  }
 }
 
 const collectionAlbumInclude = {
@@ -139,6 +162,20 @@ function parseUpsertInput(body: unknown): UpsertCloudCollectionInput {
     album: parseAlbum(value["album"]),
     collection: parseCollection(value["collection"]),
   };
+}
+
+function parseBatchUpsertInput(body: unknown): BatchUpsertCloudCollectionInput["items"] {
+  if (typeof body !== "object" || body === null) {
+    throw new UnprocessableEntityException();
+  }
+
+  const value = body as Record<string, unknown>;
+  const items = value["items"];
+  if (!Array.isArray(items) || !items.length || items.length > MAX_BATCH_UPSERT_ITEMS) {
+    throw new UnprocessableEntityException();
+  }
+
+  return items.map(parseUpsertInput);
 }
 
 function parseAlbum(value: unknown): CloudAlbum {

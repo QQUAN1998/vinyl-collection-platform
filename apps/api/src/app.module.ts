@@ -7,9 +7,10 @@ import { AppController } from "./app.controller.js";
 import { CatalogModule } from "./catalog/catalog.module.js";
 import { CloudCollectionsModule } from "./collections/cloud-collections.module.js";
 import { DatabaseModule } from "./database/database.module.js";
+import { TvDataModule } from "./tv/tv-data.module.js";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, CloudCollectionsModule, CatalogModule],
+  imports: [DatabaseModule, AuthModule, CloudCollectionsModule, CatalogModule, TvDataModule],
   controllers: [AppController],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
 })

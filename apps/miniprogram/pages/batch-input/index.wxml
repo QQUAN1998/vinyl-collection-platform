@@ -1,4 +1,4 @@
-<view class="screen batch-input-screen">
+<view class="screen batch-input-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">批量输入</view>
     <view class="screen-kicker">BATCH</view>

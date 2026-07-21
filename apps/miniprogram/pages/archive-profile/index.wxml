@@ -1,4 +1,4 @@
-<view class="screen archive-screen">
+<view class="screen archive-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view>
       <view class="screen-title">档案</view>

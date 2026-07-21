@@ -55,10 +55,10 @@
   justify-content: center;
   min-width: 300rpx;
   padding: 0 34rpx;
-  border: 2rpx solid var(--color-olive);
+  border: 2rpx solid var(--color-action);
   border-radius: var(--radius-card);
-  background: #ffffff;
-  color: var(--color-olive);
+  background: var(--theme-input-surface);
+  color: var(--color-action);
   font-size: 26rpx;
   font-weight: 900;
 }

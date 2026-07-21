@@ -1,9 +1,9 @@
 const { albums } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
-const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
+const { requireCloudAccount, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { coverToImageSrc } = require("../../services/catalog-api.js");
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS } = require("../../services/media-format-service.js");
 
 function toAlbumView(album) {
@@ -37,6 +37,14 @@ function buildAlbumSource(app, draft = {}) {
   ]);
 }
 
+function getSaveFailureSummary(app) {
+  const diagnostic = app.globalData.cloud && app.globalData.cloud.lastDiagnostic;
+  if (!diagnostic || !diagnostic.albumTitle) {
+    return "";
+  }
+  return `${diagnostic.albumTitle}${diagnostic.statusCode ? `(${diagnostic.statusCode})` : ""}`;
+}
+
 Page({
   data: {
     selectedAlbums: [],
@@ -54,7 +62,17 @@ Page({
     mediaFormats: MEDIA_FORMATS
   },
   onLoad() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadSelectedAlbums();
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   loadSelectedAlbums() {
     const app = getApp();
@@ -97,9 +115,10 @@ Page({
       }
     });
   },
-  confirmAdd() {
+  async confirmAdd() {
     const app = getApp();
-    if (!ensureCloudSession(app)) {
+    const me = await requireCloudAccount(app);
+    if (!me) {
       return;
     }
 
@@ -133,11 +152,26 @@ Page({
     wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
     Promise.all(result.createdItems.map((item) => {
       const album = this.data.selectedAlbums.find((candidate) => candidate.id === item.albumId);
-      return app.saveCollectionToCloud(item, album);
+      return app.saveCollectionToCloud(item, album).then((payload) => ({
+        item,
+        album,
+        payload
+      }));
     }))
-      .then((payloads) => {
-        if (payloads.some((payload) => !payload)) {
+      .then((saveResults) => {
+        const savedResults = saveResults.filter((saveResult) => saveResult.payload);
+        const failedResults = saveResults.filter((saveResult) => !saveResult.payload);
+        if (!savedResults.length) {
+          const failureSummary = getSaveFailureSummary(app);
           showCloudSaveFailed();
+          if (failureSummary && typeof wx.showModal === "function") {
+            wx.showModal({
+              title: "\u4fdd\u5b58\u5931\u8d25",
+              content: `\u5931\u8d25\u5531\u7247\uff1a${failureSummary}\u3002\u8bf7\u7a0d\u540e\u91cd\u8bd5\uff0c\u6216\u628a\u8fd9\u4e2a\u63d0\u793a\u53d1\u7ed9\u6211\u3002`,
+              showCancel: false,
+              confirmText: "\u77e5\u9053\u4e86"
+            });
+          }
           return;
         }
 
@@ -145,8 +179,10 @@ Page({
         app.globalData.importDraft = null;
         return app.loadCloudCollection({ force: true }).then(() => {
           wx.showToast({
-            title: `\u5df2\u52a0\u5165 ${result.createdItems.length} \u5f20`,
-            icon: "success"
+            title: failedResults.length
+              ? `\u5df2\u52a0 ${savedResults.length} \u5f20\uff0c${failedResults.length} \u5f20\u5931\u8d25`
+              : `\u5df2\u52a0\u5165 ${savedResults.length} \u5f20`,
+            icon: failedResults.length ? "none" : "success"
           });
           wx.redirectTo({
             url: "/pages/cabinet/index"
@@ -160,5 +196,8 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

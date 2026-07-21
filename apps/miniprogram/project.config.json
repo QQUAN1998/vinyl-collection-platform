@@ -21,6 +21,7 @@
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "condition": false,
+    "ignoreDevUnusedFiles": false,
     "swc": false,
     "disableSWC": true,
     "babelSetting": {

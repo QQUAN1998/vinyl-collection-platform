@@ -1,4 +1,4 @@
-<view class="screen edit-screen">
+<view class="screen edit-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">编辑收藏</view>
     <view class="screen-kicker">PRIVATE</view>
@@ -38,6 +38,7 @@
   </view>
 
   <view class="edit-actions">
+    <view class="danger-button" bindtap="confirmDeleteCollection" hover-class="danger-button-hover">删除</view>
     <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">取消</view>
     <view class="primary-button" bindtap="saveCollection" hover-class="button-hover">保存</view>
   </view>

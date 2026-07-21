@@ -1,16 +1,20 @@
 import {
   Controller,
   Get,
+  Headers,
   Inject,
   NotFoundException,
   Param,
   Query,
+  Res,
   UnprocessableEntityException,
 } from "@nestjs/common";
+import { Readable } from "node:stream";
 import type {
   CatalogAlbumCandidate,
   CatalogProvider,
   CatalogSearchResponse,
+  CatalogTrackPreviewResponse,
 } from "@vinyl/shared";
 
 import { CatalogService } from "./catalog.service.js";
@@ -39,6 +43,69 @@ export class CatalogController {
     });
   }
 
+  @Get("preview")
+  async preview(
+    @Query("track") track: string | undefined,
+    @Query("artist") artist: string | undefined,
+    @Query("album") album: string | undefined,
+    @Query("country") country: string | undefined,
+  ): Promise<CatalogTrackPreviewResponse> {
+    return this.catalog.findTrackPreview({
+      track: parseRequiredText(track, 200),
+      artist: parseOptionalText(artist, 160),
+      album: parseOptionalText(album, 200),
+      country: parseOptionalText(country, 2)?.toUpperCase() ?? "CN",
+    });
+  }
+
+  @Get("preview/stream")
+  async streamPreview(
+    @Query("track") track: string | undefined,
+    @Query("artist") artist: string | undefined,
+    @Query("album") album: string | undefined,
+    @Query("country") country: string | undefined,
+    @Headers("range") range: string | undefined,
+    @Res() response: PreviewStreamResponse,
+  ): Promise<void> {
+    const preview = await this.catalog.findTrackPreview({
+      track: parseRequiredText(track, 200),
+      artist: parseOptionalText(artist, 160),
+      album: parseOptionalText(album, 200),
+      country: parseOptionalText(country, 2)?.toUpperCase() ?? "CN",
+    });
+
+    if (!preview.ok || !preview.previewUrl) {
+      throw new NotFoundException();
+    }
+
+    const audioResponse = await fetch(preview.previewUrl, {
+      headers: {
+        Accept: "audio/*,*/*;q=0.8",
+        ...(range ? { Range: range } : {}),
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!audioResponse.ok || !audioResponse.body) {
+      throw new NotFoundException();
+    }
+
+    response.status(audioResponse.status === 206 ? 206 : 200);
+    copyAudioHeader(audioResponse, response, "content-type", "audio/mp4");
+    copyAudioHeader(audioResponse, response, "content-length");
+    copyAudioHeader(audioResponse, response, "content-range");
+    copyAudioHeader(audioResponse, response, "accept-ranges", "bytes");
+    response.setHeader("cache-control", "public, max-age=86400");
+
+    const body = Readable.fromWeb(audioResponse.body as Parameters<typeof Readable.fromWeb>[0]);
+    await new Promise<void>((resolve, reject) => {
+      body.on("error", reject);
+      response.on("finish", resolve);
+      response.on("error", reject);
+      body.pipe(response);
+    });
+  }
+
   @Get("albums/:provider/:providerId")
   async getAlbum(
     @Param("provider") provider: string,
@@ -58,6 +125,23 @@ export class CatalogController {
     }
 
     return album;
+  }
+}
+
+type PreviewStreamResponse = NodeJS.WritableStream & {
+  status(statusCode: number): PreviewStreamResponse;
+  setHeader(name: string, value: string): void;
+};
+
+function copyAudioHeader(
+  source: Response,
+  target: PreviewStreamResponse,
+  name: string,
+  fallback?: string,
+): void {
+  const value = source.headers.get(name) ?? fallback;
+  if (value) {
+    target.setHeader(name, value);
   }
 }
 

@@ -12,6 +12,9 @@ interface FakeUser {
   wechatOpenId: string;
   displayName: string;
   avatarUrl: string | null;
+  phoneNumber: string | null;
+  phoneCountryCode: string | null;
+  phoneAuthorizedAt: Date | null;
   registrationSequence: number;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +50,9 @@ class FakePrismaService {
         wechatOpenId: data.wechatOpenId,
         displayName: data.displayName,
         avatarUrl: data.avatarUrl ?? null,
+        phoneNumber: null,
+        phoneCountryCode: null,
+        phoneAuthorizedAt: null,
         registrationSequence: this.userSequence,
         createdAt: now,
         updatedAt: now,
@@ -58,7 +64,13 @@ class FakePrismaService {
       data,
       where,
     }: {
-      data: { displayName?: string; avatarUrl?: string | null };
+      data: {
+        displayName?: string;
+        avatarUrl?: string | null;
+        phoneNumber?: string | null;
+        phoneCountryCode?: string | null;
+        phoneAuthorizedAt?: Date | null;
+      };
       where: { id: string };
     }) => {
       const user = this.users.find((candidate) => candidate.id === where.id);
@@ -67,6 +79,9 @@ class FakePrismaService {
       }
       user.displayName = data.displayName ?? user.displayName;
       user.avatarUrl = data.avatarUrl ?? user.avatarUrl;
+      user.phoneNumber = data.phoneNumber ?? user.phoneNumber;
+      user.phoneCountryCode = data.phoneCountryCode ?? user.phoneCountryCode;
+      user.phoneAuthorizedAt = data.phoneAuthorizedAt ?? user.phoneAuthorizedAt;
       user.updatedAt = new Date("2026-07-11T12:00:00.000Z");
       return user;
     },
@@ -135,6 +150,10 @@ describe("Wechat auth API", () => {
         id: "user-1",
         displayName: "Alice",
         avatarUrl: null,
+        hasPhoneNumber: false,
+        phoneNumberMasked: null,
+        phoneCountryCode: null,
+        phoneAuthorizedAt: null,
         membership: {
           status: "VIP_ACTIVE",
           isVip: true,
@@ -179,7 +198,7 @@ describe("Wechat auth API", () => {
   it("rejects invalid WeChat login codes", async () => {
     const response = await request(app.getHttpServer())
       .post("/v1/auth/wechat-login")
-      .send({ code: "not-a-mock-code" })
+      .send({ code: "mock:bad openid!" })
       .expect(401);
 
     expect(response.body).toEqual({

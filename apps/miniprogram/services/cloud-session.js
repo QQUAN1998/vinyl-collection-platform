@@ -31,6 +31,17 @@ function ensureCloudSession(app, wxApi) {
   return false;
 }
 
+function requireCloudAccount(app) {
+  if (app && typeof app.isCloudAccountReady === "function" && app.isCloudAccountReady()) {
+    return Promise.resolve(app.globalData.auth?.me || true);
+  }
+  if (app && typeof app.requireWechatAccount === "function") {
+    return app.requireWechatAccount();
+  }
+
+  return Promise.resolve(ensureCloudSession(app) ? true : null);
+}
+
 function showCloudSaveFailed(wxApi) {
   showToast(SAVE_FAILED_TITLE, wxApi);
 }
@@ -45,6 +56,7 @@ module.exports = {
   SESSION_REQUIRED_TITLE,
   ensureCloudSession,
   isCloudSessionReady,
+  requireCloudAccount,
   showCloudDeleteFailed,
   showCloudSaveFailed
 };

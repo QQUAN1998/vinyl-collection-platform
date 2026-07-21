@@ -4,6 +4,8 @@ import type {
   CatalogAlbumTrack,
   CatalogProvider,
   CatalogSearchResponse,
+  CatalogTrackPreviewProvider,
+  CatalogTrackPreviewResponse,
 } from "@vinyl/shared";
 
 interface CatalogSearchInput {
@@ -19,6 +21,13 @@ interface CatalogAlbumInput {
   providerId: string;
   country: string;
   includeUnofficial: boolean;
+}
+
+interface CatalogPreviewInput {
+  track: string;
+  artist: string | null;
+  album: string | null;
+  country: string;
 }
 
 interface ProviderContext {
@@ -49,10 +58,24 @@ interface CacheEntry<T> {
   value: T;
 }
 
+interface PreviewCandidate {
+  provider: CatalogTrackPreviewProvider;
+  previewUrl: string;
+  track: string;
+  artist: string;
+  album: string | null;
+  durationMs: number | null;
+  sourceTrackId: string | null;
+  confidence: number;
+}
+
 const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
 const ALBUM_CACHE_TTL_MS = 30 * 60 * 1000;
+const PREVIEW_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const PREVIEW_MISS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PROVIDER_TIMEOUT_MS = 4000;
 const SECONDARY_PROVIDER_LIMIT_THRESHOLD = 20;
+const PREVIEW_MATCH_THRESHOLD = 72;
 
 @Injectable()
 export class CatalogService {
@@ -65,6 +88,7 @@ export class CatalogService {
   ];
   private readonly searchCache = new Map<string, CacheEntry<CatalogSearchResponse>>();
   private readonly albumCache = new Map<string, CacheEntry<CatalogAlbumCandidate | null>>();
+  private readonly previewCache = new Map<string, CacheEntry<CatalogTrackPreviewResponse>>();
 
   async search(input: CatalogSearchInput): Promise<CatalogSearchResponse> {
     const context = createProviderContext();
@@ -120,6 +144,38 @@ export class CatalogService {
     const album = await provider.getAlbum(input, context);
     writeCache(this.albumCache, cacheKey, album, ALBUM_CACHE_TTL_MS);
     return album;
+  }
+
+  async findTrackPreview(input: CatalogPreviewInput): Promise<CatalogTrackPreviewResponse> {
+    const normalizedInput = normalizePreviewInput(input);
+    const context = createProviderContext();
+    const cacheKey = previewCacheKey(normalizedInput);
+    const cached = readCache(this.previewCache, cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const candidates: PreviewCandidate[] = [];
+    candidates.push(...await searchITunesTrackPreviews(normalizedInput).catch(() => []));
+
+    if (!hasConfidentPreview(candidates)) {
+      candidates.push(...await searchDeezerTrackPreviews(normalizedInput, context).catch(() => []));
+    }
+
+    const best = candidates
+      .filter((candidate) => isTrustedPreviewUrl(candidate.previewUrl))
+      .sort((left, right) => right.confidence - left.confidence)[0];
+
+    const response = best && best.confidence >= PREVIEW_MATCH_THRESHOLD
+      ? buildPreviewResponse(normalizedInput, best)
+      : buildMissingPreviewResponse(normalizedInput);
+    writeCache(
+      this.previewCache,
+      cacheKey,
+      response,
+      response.ok ? PREVIEW_CACHE_TTL_MS : PREVIEW_MISS_CACHE_TTL_MS,
+    );
+    return response;
   }
 
   private async searchProviders(
@@ -196,6 +252,73 @@ function albumCacheKey(input: CatalogAlbumInput, context: ProviderContext): stri
     includeUnofficial: input.includeUnofficial,
     discogs: Boolean(context.discogsToken),
   });
+}
+
+function previewCacheKey(input: CatalogPreviewInput): string {
+  return JSON.stringify({
+    track: normalizePreviewText(input.track),
+    artist: normalizePreviewText(input.artist ?? ""),
+    album: normalizePreviewText(input.album ?? ""),
+    country: input.country,
+  });
+}
+
+function normalizePreviewInput(input: CatalogPreviewInput): CatalogPreviewInput {
+  return {
+    track: input.track.trim(),
+    artist: input.artist?.trim() || null,
+    album: input.album?.trim() || null,
+    country: (input.country || "CN").trim().toUpperCase() || "CN",
+  };
+}
+
+function buildPreviewResponse(
+  input: CatalogPreviewInput,
+  candidate: PreviewCandidate,
+): CatalogTrackPreviewResponse {
+  return {
+    ok: true,
+    provider: candidate.provider,
+    previewUrl: candidate.previewUrl,
+    streamPath: `/api/catalog/preview/stream?${buildPreviewQueryString(input)}`,
+    durationMs: candidate.durationMs,
+    confidence: candidate.confidence,
+    matched: {
+      track: candidate.track,
+      artist: candidate.artist,
+      album: candidate.album,
+    },
+  };
+}
+
+function buildMissingPreviewResponse(input: CatalogPreviewInput): CatalogTrackPreviewResponse {
+  return {
+    ok: false,
+    provider: null,
+    previewUrl: null,
+    streamPath: `/api/catalog/preview/stream?${buildPreviewQueryString(input)}`,
+    durationMs: null,
+    confidence: 0,
+    matched: null,
+    reason: "NO_PREVIEW",
+  };
+}
+
+function buildPreviewQueryString(input: CatalogPreviewInput): string {
+  const params: Record<string, string | null> = {
+    track: input.track,
+    artist: input.artist,
+    album: input.album,
+    country: input.country,
+  };
+  return Object.entries(params)
+    .filter((entry): entry is [string, string] => Boolean(entry[1]))
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join("&");
+}
+
+function hasConfidentPreview(candidates: PreviewCandidate[]): boolean {
+  return candidates.some((candidate) => candidate.confidence >= PREVIEW_MATCH_THRESHOLD);
 }
 
 function readCache<T>(cache: Map<string, CacheEntry<T>>, key: string): T | undefined {
@@ -322,6 +445,101 @@ async function searchITunesArtistIds(input: CatalogSearchInput): Promise<string[
     .map((artist) => String(readNumber(artist["artistId"]) ?? readString(artist["artistId"]) ?? ""))
     .filter(Boolean)
     .slice(0, 2);
+}
+
+async function searchITunesTrackPreviews(input: CatalogPreviewInput): Promise<PreviewCandidate[]> {
+  const countries = previewCountries(input.country);
+  const batches: PreviewCandidate[][] = [];
+  for (const country of countries) {
+    const url = new URL("https://itunes.apple.com/search");
+    url.searchParams.set("term", previewSearchTerm(input));
+    url.searchParams.set("media", "music");
+    url.searchParams.set("entity", "song");
+    url.searchParams.set("country", country);
+    url.searchParams.set("limit", "8");
+
+    const payload = await fetchJson(url);
+    const results = asArray(readRecord(payload)["results"]);
+    const candidates = results
+      .map((result, index) => mapITunesPreviewTrack(result, input, index))
+      .filter(isDefined);
+    batches.push(candidates);
+    if (hasConfidentPreview(candidates)) {
+      break;
+    }
+  }
+  return batches.flat();
+}
+
+async function searchDeezerTrackPreviews(
+  input: CatalogPreviewInput,
+  context: ProviderContext,
+): Promise<PreviewCandidate[]> {
+  const url = new URL("https://api.deezer.com/search");
+  url.searchParams.set("q", previewSearchTerm(input));
+  url.searchParams.set("limit", "8");
+
+  const payload = await fetchJson(url, { userAgent: context.userAgent });
+  const results = asArray(readRecord(payload)["data"]);
+  return results.map((result, index) => mapDeezerPreviewTrack(result, input, index)).filter(isDefined);
+}
+
+function mapITunesPreviewTrack(
+  value: unknown,
+  input: CatalogPreviewInput,
+  index: number,
+): PreviewCandidate | null {
+  const track = readRecord(value);
+  const previewUrl = readString(track["previewUrl"]);
+  const title = readString(track["trackName"]);
+  const artist = readString(track["artistName"]);
+  if (!previewUrl || !title || !artist) {
+    return null;
+  }
+
+  return {
+    provider: "ITUNES",
+    previewUrl,
+    track: title,
+    artist,
+    album: readString(track["collectionName"]),
+    durationMs: 30000,
+    sourceTrackId: String(readNumber(track["trackId"]) ?? readString(track["trackId"]) ?? ""),
+    confidence: clampPreviewScore(scorePreviewMatch({
+      track: title,
+      artist,
+      album: readString(track["collectionName"]),
+    }, input) - index * 2),
+  };
+}
+
+function mapDeezerPreviewTrack(
+  value: unknown,
+  input: CatalogPreviewInput,
+  index: number,
+): PreviewCandidate | null {
+  const track = readRecord(value);
+  const previewUrl = readString(track["preview"]);
+  const title = readString(track["title"]);
+  const artist = readString(readRecord(track["artist"])["name"]);
+  if (!previewUrl || !title || !artist) {
+    return null;
+  }
+
+  return {
+    provider: "DEEZER",
+    previewUrl,
+    track: title,
+    artist,
+    album: readString(readRecord(track["album"])["title"]),
+    durationMs: 30000,
+    sourceTrackId: String(readNumber(track["id"]) ?? readString(track["id"]) ?? ""),
+    confidence: clampPreviewScore(scorePreviewMatch({
+      track: title,
+      artist,
+      album: readString(readRecord(track["album"])["title"]),
+    }, input) - index * 2),
+  };
 }
 
 const neteaseProvider: ProviderClient = {
@@ -804,6 +1022,88 @@ function mapDiscogsRelease(value: unknown, index: number): CatalogAlbumCandidate
     score: clampScore(95, index),
     providerRefs: [{ provider: "DISCOGS", id, url: readString(release["uri"]) }],
   };
+}
+
+function previewCountries(country: string): string[] {
+  return Array.from(new Set([country, "CN", "HK", "TW", "US"].filter(Boolean)));
+}
+
+function previewSearchTerm(input: CatalogPreviewInput): string {
+  return [input.artist, input.track, input.album].filter(isDefined).join(" ");
+}
+
+function scorePreviewMatch(
+  candidate: { track: string; artist: string; album: string | null },
+  input: CatalogPreviewInput,
+): number {
+  const trackScore = scorePreviewText(candidate.track, input.track, 52, 36);
+  if (trackScore < 36) {
+    return trackScore;
+  }
+
+  const artistScore = input.artist
+    ? scorePreviewArtist(candidate.artist, input.artist)
+    : 12;
+  const albumScore = input.album
+    ? scorePreviewText(candidate.album ?? "", input.album, 10, 4)
+    : 6;
+
+  return trackScore + artistScore + albumScore + 4;
+}
+
+function scorePreviewText(value: string, wanted: string, exactScore: number, partialScore: number): number {
+  const normalized = normalizePreviewText(value);
+  const target = normalizePreviewText(wanted);
+  if (!normalized || !target) {
+    return 0;
+  }
+  if (normalized === target) {
+    return exactScore;
+  }
+  if (normalized.includes(target) || target.includes(normalized)) {
+    return partialScore;
+  }
+  return 0;
+}
+
+function scorePreviewArtist(value: string, wanted: string): number {
+  const artist = normalizePreviewText(value);
+  const target = normalizePreviewText(wanted);
+  if (!artist || !target) {
+    return 0;
+  }
+  if (artist === target) {
+    return 34;
+  }
+  if (splitArtistTokens(value).some((token) => token === target)) {
+    return 32;
+  }
+  if (artist.includes(target) || target.includes(artist)) {
+    return 22;
+  }
+  return 0;
+}
+
+function normalizePreviewText(value: string): string {
+  return normalizeDedupeText(value)
+    .replace(/\([^)]*\)|（[^）]*）/gu, "")
+    .replace(/version|remaster(ed)?|single|ep|album/giu, "");
+}
+
+function clampPreviewScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function isTrustedPreviewUrl(url: string): boolean {
+  if (!/^https:\/\//iu.test(url)) {
+    return false;
+  }
+  try {
+    const parsed = new URL(url);
+    return Boolean(parsed.hostname);
+  } catch {
+    return false;
+  }
 }
 
 function createProviderContext(): ProviderContext {

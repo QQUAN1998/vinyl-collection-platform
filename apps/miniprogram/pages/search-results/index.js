@@ -5,12 +5,18 @@ const {
   normalizeCatalogQuery,
   searchCatalogAlbums
 } = require("../../services/catalog-api.js");
-const { toggleSelected } = require("../../services/import-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const {
+  createManualAlbumCandidate,
+  getDefaultSelectedAlbumIds,
+  rankBatchCatalogCandidates,
+  toggleSelected
+} = require("../../services/import-service.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 
 const INITIAL_CATALOG_LIMIT = 20;
 const CATALOG_LIMIT_STEP = 40;
 const MAX_CATALOG_LIMIT = 300;
+const BATCH_SEARCH_CONCURRENCY = 4;
 
 function toAlbumView(album) {
   return {
@@ -76,12 +82,27 @@ Page({
     providerNotice: ""
   },
   onLoad(options = {}) {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadCandidates(options.query || "");
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   loadCandidates(query) {
     const normalizedQuery = normalizeCatalogQuery(query);
     const app = getApp();
     const draft = app.globalData.importDraft;
+    if (draft && draft.source === "batch" && draft.parsed && draft.parsed.entries) {
+      this.loadBatchCatalogResults(draft);
+      return;
+    }
+
     const draftCandidates = draft && draft.matches
       ? draft.matches.flatMap((match) => match.candidates)
       : [];
@@ -99,6 +120,131 @@ Page({
       draft,
       reset: true
     });
+  },
+  loadBatchCatalogResults(draft = {}) {
+    const app = getApp();
+    const entries = draft.parsed && draft.parsed.entries ? draft.parsed.entries : [];
+    if (!entries.length) {
+      this.applyCandidates("", [], {
+        draft,
+        selectedLimit: 0,
+        source: "batch",
+        errorMessage: "批量输入为空"
+      });
+      return;
+    }
+
+    this.setData({
+      query: "批量匹配",
+      candidates: [],
+      selectedIds: [],
+      selectedCount: 0,
+      loading: true,
+      loadingMore: false,
+      searchLimit: entries.length,
+      hasMoreResults: false,
+      resultNotice: "",
+      errorMessage: "",
+      providerNotice: ""
+    });
+
+    this.runBatchCatalogSearches(entries, draft)
+      .then((matches) => {
+        const candidates = uniqueAlbums(matches.flatMap((match) => match.candidates));
+        const candidateIds = new Set(candidates.map((album) => album.id));
+        const selectedIds = getDefaultSelectedAlbumIds(matches)
+          .filter((albumId) => candidateIds.has(albumId));
+        const manualCount = matches.filter((match) => match.manualFallback).length;
+
+        this.applyCandidates("批量匹配", candidates, {
+          draft: {
+            ...draft,
+            matches
+          },
+          selectedIds,
+          selectedLimit: 0,
+          source: "batch",
+          hasMoreResults: false,
+          searchLimit: entries.length,
+          resultNotice: manualCount
+            ? `有 ${manualCount} 行没有找到在线资料，已自动生成待补全唱片`
+            : "已完成批量在线匹配"
+        });
+      })
+      .catch(() => {
+        const fallbackMatches = entries.map((entry, index) =>
+          buildBatchFallbackMatch(entry, index, draft.matches && draft.matches[index])
+        );
+        const candidates = uniqueAlbums(fallbackMatches.flatMap((match) => match.candidates));
+        this.applyCandidates("批量匹配", candidates, {
+          draft: {
+            ...draft,
+            matches: fallbackMatches
+          },
+          selectedIds: getDefaultSelectedAlbumIds(fallbackMatches),
+          selectedLimit: 0,
+          source: "batch",
+          hasMoreResults: false,
+          searchLimit: entries.length,
+          errorMessage: "在线批量搜索暂时失败，已按输入生成待补全唱片"
+        });
+      });
+  },
+  runBatchCatalogSearches(entries, draft = {}) {
+    const matches = new Array(entries.length);
+    let nextIndex = 0;
+    const workerCount = Math.min(BATCH_SEARCH_CONCURRENCY, entries.length);
+
+    const runNext = () => {
+      if (nextIndex >= entries.length) {
+        return Promise.resolve();
+      }
+
+      const index = nextIndex;
+      nextIndex += 1;
+      return this.searchBatchEntry(entryAt(entries, index), index, draft.matches && draft.matches[index])
+        .then((match) => {
+          matches[index] = match;
+        })
+        .then(runNext);
+    };
+
+    return Promise.all(Array.from({ length: workerCount }, runNext))
+      .then(() => matches);
+  },
+  searchBatchEntry(entry, index, localMatch) {
+    const app = getApp();
+    const primaryQuery = entry.query || entry.inputLine || entry.title;
+    const relaxedQuery = entry.title && entry.title !== primaryQuery ? entry.title : "";
+    const searchOptions = { limit: 10, country: "CN", artistFallback: "always" };
+
+    const requests = [
+      searchCatalogAlbums(primaryQuery, searchOptions, app.globalData.cloud)
+    ];
+    if (relaxedQuery) {
+      requests.push(searchCatalogAlbums(relaxedQuery, searchOptions, app.globalData.cloud));
+    }
+
+    return Promise.allSettled(requests)
+      .then((results) => {
+        const remoteCandidates = rankBatchCatalogCandidates(
+          entry,
+          uniqueAlbums(results.flatMap((result) =>
+            result.status === "fulfilled" ? (result.value.albums || []) : []
+          ))
+        );
+        if (remoteCandidates.length) {
+          return {
+            inputLine: entry.inputLine,
+            candidates: remoteCandidates,
+            selectedAlbumId: remoteCandidates[0].id,
+            alreadyCollected: Boolean(localMatch && localMatch.alreadyCollected),
+            manualFallback: false
+          };
+        }
+        return buildBatchFallbackMatch(entry, index, localMatch);
+      })
+      .catch(() => buildBatchFallbackMatch(entry, index, localMatch));
   },
   loadCatalogResults(query, limit, options = {}) {
     const app = getApp();
@@ -297,5 +443,26 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });
+
+function buildBatchFallbackMatch(entry, index, localMatch = {}) {
+  const nonManualCandidates = (localMatch.candidates || []).filter((album) => !album.manualDraft);
+  const candidates = nonManualCandidates.length
+    ? nonManualCandidates
+    : [createManualAlbumCandidate(entry, index)];
+  return {
+    inputLine: entry.inputLine,
+    candidates,
+    selectedAlbumId: candidates[0] ? candidates[0].id : undefined,
+    alreadyCollected: Boolean(localMatch.alreadyCollected),
+    manualFallback: !nonManualCandidates.length
+  };
+}
+
+function entryAt(entries, index) {
+  return entries[index] || {};
+}

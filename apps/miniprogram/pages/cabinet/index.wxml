@@ -1,4 +1,4 @@
-<view class="screen cabinet-screen">
+<view class="screen cabinet-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">我的唱片柜</view>
     <view class="screen-kicker">{{userLabel}}</view>
@@ -32,6 +32,56 @@
         </view>
       </view>
     </view>
+  </view>
+
+  <view class="preview-player-section">
+    <block wx:if="{{previewPlayer.visible}}">
+      <view class="preview-player-kicker">NOW PLAYING</view>
+      <view
+        class="preview-player-card"
+        bindtap="openPreviewPlayerDetail"
+        aria-role="button"
+        aria-label="打开正在试听的专辑"
+      >
+        <image class="preview-player-cover" src="{{previewPlayer.albumCover}}" mode="aspectFill" />
+        <view class="preview-player-copy">
+          <view class="preview-player-label">正在试听</view>
+          <view class="preview-player-title">{{previewPlayer.albumTitle}}</view>
+          <view class="preview-player-meta">{{previewPlayer.albumArtist}} · {{previewPlayer.trackTitle}}</view>
+        </view>
+        <view
+          class="preview-player-toggle"
+          catchtap="togglePreviewPlayer"
+          aria-role="button"
+          aria-label="{{previewPlayer.playStateLabel}}"
+        >
+          <image
+            class="preview-player-toggle-icon"
+            src="{{previewPlayer.isPlaying ? '/assets/icons/preview-pause.svg' : '/assets/icons/preview-play.svg'}}"
+            mode="aspectFit"
+          />
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="preview-player-kicker">DAILY PICK</view>
+      <view
+        class="preview-player-card daily-recommend-card {{dailyRecommendation.loading ? 'is-loading' : ''}}"
+        bindtap="openDailyRecommendation"
+        aria-role="button"
+        aria-label="打开今日推荐"
+      >
+        <image wx:if="{{dailyRecommendation.cover}}" class="preview-player-cover" src="{{dailyRecommendation.cover}}" mode="aspectFill" />
+        <view wx:else class="preview-player-cover daily-recommend-placeholder">荐</view>
+        <view class="preview-player-copy">
+          <view class="preview-player-label">{{dailyRecommendation.label || '今日推荐'}}</view>
+          <view class="preview-player-title">{{dailyRecommendation.title}}</view>
+          <view class="preview-player-meta">{{dailyRecommendation.meta}}</view>
+        </view>
+        <view class="daily-recommend-action" wx:if="{{dailyRecommendation.actionLabel}}">{{dailyRecommendation.actionLabel}}</view>
+        <view class="daily-recommend-action is-loading" wx:else>今日</view>
+      </view>
+    </block>
   </view>
 
   <view class="divider"></view>
@@ -98,8 +148,8 @@
   <view class="album-card-modal" wx:if="{{albumCard}}" catchtouchmove="noop">
     <view class="album-card-scrim" bindtap="closeAlbumCard"></view>
     <view class="album-modal-card {{albumCard.rarityClass}}" catchtap="noop" aria-role="dialog" aria-label="{{albumCard.title}} 展示卡片">
-      <view class="modal-favorite-star {{albumCard.isCollected ? 'is-collected' : ''}}" bindtap="handleCardStarAction" aria-role="button" aria-label="{{albumCard.collectionStatus}}">
-        <image class="favorite-star-icon" src="{{albumCard.isCollected ? '/assets/icons/star-filled-gold.png' : '/assets/icons/star-action.png'}}" mode="aspectFit" />
+      <view class="modal-delete-entry" bindtap="handleCardDeleteAction" aria-role="button" aria-label="删除收藏">
+        <image class="modal-delete-icon" src="/assets/icons/delete-action.svg" mode="aspectFit" />
       </view>
       <view class="modal-close" bindtap="closeAlbumCard" aria-role="button" aria-label="关闭">×</view>
       <view class="modal-cover-wrap">

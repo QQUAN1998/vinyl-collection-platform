@@ -20,7 +20,7 @@ function enableFriendShare() {
 
   wx.showShareMenu({
     withShareTicket: true,
-    menus: ["shareAppMessage"],
+    menus: ["shareAppMessage", "shareTimeline"],
   });
 }
 
@@ -32,7 +32,38 @@ function createShareMessage(options = {}) {
   };
 }
 
+function pathToTimelineQuery(path) {
+  if (typeof path !== "string") {
+    return "";
+  }
+
+  const queryStart = path.indexOf("?");
+  if (queryStart === -1 || queryStart === path.length - 1) {
+    return "";
+  }
+
+  return path.slice(queryStart + 1);
+}
+
+function createShareTimeline(options = {}) {
+  const message = createShareMessage(options);
+  const query = options.query || pathToTimelineQuery(message.path);
+  const timeline = {
+    title: message.title || DEFAULT_SHARE.title,
+  };
+
+  if (query) {
+    timeline.query = query;
+  }
+  if (message.imageUrl) {
+    timeline.imageUrl = message.imageUrl;
+  }
+
+  return timeline;
+}
+
 module.exports = {
   createShareMessage,
+  createShareTimeline,
   enableFriendShare,
 };

@@ -1,4 +1,4 @@
-<view class="screen results-screen">
+<view class="screen results-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">搜索结果</view>
     <view class="screen-kicker">{{candidates.length}} 个结果</view>

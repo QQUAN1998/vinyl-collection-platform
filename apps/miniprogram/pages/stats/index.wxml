@@ -1,11 +1,6 @@
-<view class="screen stats-screen">
+<view class="screen stats-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
-    <view class="stats-title-row">
-      <view class="screen-title">收藏统计</view>
-      <view class="poster-icon-button" bindtap="openPoster" hover-class="poster-icon-hover" aria-role="button" aria-label="生成分享海报">
-        <image src="/assets/icons/poster-share-action.png" mode="aspectFit" />
-      </view>
-    </view>
+    <view class="screen-title">收藏统计</view>
     <view class="screen-kicker">DATA</view>
   </view>
 
@@ -114,30 +109,5 @@
     </view>
   </view>
 
-  <view class="poster-modal" wx:if="{{posterVisible}}">
-    <view class="poster-scrim" bindtap="closePoster" />
-    <view class="poster-sheet" catchtap="noop">
-      <view class="poster-sheet-header">
-        <view>
-          <view class="poster-sheet-title">分享海报</view>
-          <view class="caption">固定模板，生成后可保存或分享给微信好友。</view>
-        </view>
-        <view class="poster-close" bindtap="closePoster" aria-role="button">×</view>
-      </view>
-      <view class="poster-preview-frame">
-        <image wx:if="{{posterImage}}" class="poster-preview-image" src="{{posterImage}}" mode="widthFix" bindtap="previewPoster" />
-        <view wx:else class="poster-loading">
-          <image src="/assets/icons/poster-share-action.png" mode="aspectFit" />
-          <text>{{posterGenerating ? '正在生成海报' : '海报准备中'}}</text>
-        </view>
-      </view>
-      <view class="poster-sheet-actions">
-        <view class="poster-secondary-action" bindtap="savePoster" hover-class="poster-action-hover" aria-role="button">保存图片</view>
-        <view class="poster-primary-action" bindtap="sharePosterImage" hover-class="poster-action-hover" aria-role="button">分享给好友</view>
-      </view>
-    </view>
-  </view>
-
   <bottom-nav active="stats" />
-  <canvas canvas-id="statsPosterCanvas" class="poster-canvas"></canvas>
 </view>

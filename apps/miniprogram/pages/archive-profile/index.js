@@ -1,32 +1,6 @@
 const { albums } = require("../../data/seed.js");
-const { getMediaFormat } = require("../../services/media-format-service.js");
-const { getAlbumRarity } = require("../../services/rarity-service.js");
-const { createShareMessage } = require("../../services/share.js");
-const { normalizeTrackDisplayList } = require("../../services/track-display-service.js");
-
-function decadeOf(year) {
-  return `${Math.floor(Number(year || 0) / 10) * 10}s`;
-}
-
-function toAlbumView(album, collectionItem = {}) {
-  const price = collectionItem.price || 0;
-  const rarity = getAlbumRarity(price);
-  const medium = getMediaFormat(collectionItem.mediumKey);
-  return {
-    ...album,
-    price,
-    collectionDate: collectionItem.collectionDate || "未记录",
-    mediumLabel: medium.label,
-    rarityCode: rarity.code,
-    rarityLabel: rarity.label,
-    rarityName: rarity.name,
-    rarityClass: `rarity-${rarity.code.toLowerCase()}`,
-    decade: decadeOf(album.year),
-    cover: `/${album.coverUrl}`,
-    styles: album.style,
-    tracks: normalizeTrackDisplayList(album.tracks || [])
-  };
-}
+const { buildArchiveProfile } = require("../../services/archive-profile-service.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 
 Page({
   data: {
@@ -44,43 +18,31 @@ Page({
     previewIndex: 0
   },
   onLoad(options = {}) {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadProfile(options);
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   loadProfile(options = {}) {
     const app = getApp();
     const profileType = options.type || "artist";
     const profileTitle = decodeURIComponent(options.name || "");
-    const collectionItems = app.globalData.collectionItems || [];
-    const collectedIds = new Set(collectionItems.map((item) => item.albumId));
-    const collectionByAlbumId = new Map(collectionItems.map((item) => [item.albumId, item]));
-    const profileAlbums = albums
-      .filter((album) => collectedIds.has(album.id))
-      .filter((album) => {
-        if (profileType === "all") {
-          return true;
-        }
-        if (profileType === "style") {
-          return album.style === profileTitle;
-        }
-        return album.artist === profileTitle;
-      })
-      .map((album) => toAlbumView(album, collectionByAlbumId.get(album.id)));
-    const artistFilters = [...new Set(profileAlbums.map((album) => album.artist))];
-    const styleFilters = [...new Set(profileAlbums.map((album) => album.style))];
-    const decadeFilters = [...new Set(profileAlbums.map((album) => album.decade))].sort((a, b) => b.localeCompare(a));
-
-    this.setData({
+    const profile = buildArchiveProfile({
+      seedAlbums: albums,
+      manualAlbums: app.globalData.manualAlbums || [],
+      collectionItems: app.globalData.collectionItems || [],
       profileType,
-      profileTitle,
-      profileAlbums,
-      visibleAlbums: profileAlbums,
-      artistFilters,
-      styleFilters,
-      decadeFilters,
-      selectedArtist: "all",
-      selectedStyle: "all",
-      selectedDecade: "all"
+      profileTitle
     });
+
+    this.setData(profile);
   },
   applyFilters() {
     const visibleAlbums = this.data.profileAlbums.filter((album) => {
@@ -166,5 +128,8 @@ Page({
       path: `/pages/album-detail/index?albumId=${album.id}`,
       imageUrl: album.cover
     });
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

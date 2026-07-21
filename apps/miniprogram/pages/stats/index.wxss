@@ -50,156 +50,6 @@
   font-weight: 900;
 }
 
-.stats-title-row {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.poster-icon-button {
-  flex: none;
-  width: 58rpx;
-  height: 58rpx;
-  display: grid;
-  place-items: center;
-  border-radius: 999rpx;
-  background: rgba(101, 118, 77, 0.12);
-}
-
-.poster-icon-button image {
-  width: 31rpx;
-  height: 31rpx;
-}
-
-.poster-icon-hover,
-.poster-action-hover {
-  opacity: 0.82;
-}
-
-.poster-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 44rpx 34rpx calc(44rpx + var(--safe-bottom));
-}
-
-.poster-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(17, 20, 24, 0.46);
-}
-
-.poster-sheet {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 620rpx);
-  max-height: 92vh;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 22rpx;
-  padding: 28rpx;
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  box-shadow: 0 26rpx 90rpx rgba(17, 20, 24, 0.28);
-}
-
-.poster-sheet-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18rpx;
-}
-
-.poster-sheet-title {
-  color: var(--color-ink);
-  font-size: 34rpx;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.poster-close {
-  flex: none;
-  width: 58rpx;
-  height: 58rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999rpx;
-  background: var(--color-soft);
-  color: var(--color-ink);
-  font-size: 40rpx;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.poster-preview-frame {
-  min-height: 0;
-  overflow-y: auto;
-  border-radius: var(--radius-card);
-  background: linear-gradient(145deg, #ffffff, #f4fffb);
-}
-
-.poster-preview-image {
-  width: 100%;
-  display: block;
-}
-
-.poster-loading {
-  min-height: 560rpx;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 20rpx;
-  color: var(--color-muted);
-  font-size: 24rpx;
-  font-weight: 850;
-}
-
-.poster-loading image {
-  width: 58rpx;
-  height: 58rpx;
-}
-
-.poster-sheet-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18rpx;
-}
-
-.poster-primary-action,
-.poster-secondary-action {
-  min-height: 82rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-card);
-  font-size: 26rpx;
-  font-weight: 900;
-}
-
-.poster-primary-action {
-  background: var(--color-ink);
-  color: #ffffff;
-}
-
-.poster-secondary-action {
-  background: rgba(101, 118, 77, 0.12);
-  color: var(--color-action);
-}
-
-.poster-canvas {
-  position: fixed;
-  left: -9999px;
-  top: 0;
-  width: 750px;
-  height: 1500px;
-  pointer-events: none;
-}
-
 .bar-list,
 .profile-list {
   display: grid;
@@ -309,7 +159,7 @@
   gap: 8rpx;
   padding: 16rpx 8rpx;
   border-radius: var(--radius-card);
-  background: #f0efef;
+  background: var(--color-soft);
   color: var(--color-ink);
 }
 
@@ -476,9 +326,9 @@
 
 .rank-list {
   overflow: hidden;
-  border: 1rpx solid rgba(216, 213, 204, 0.95);
+  border: 1rpx solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .rank-row {
@@ -488,9 +338,9 @@
   gap: 18rpx;
   align-items: center;
   padding: 0 16rpx 0 12rpx;
-  border-bottom: 1rpx solid rgba(216, 213, 204, 0.9);
+  border-bottom: 1rpx solid var(--color-line);
   border-radius: 0;
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .rank-row:last-child {
@@ -511,7 +361,7 @@
 }
 
 .rank-row.medal-1 {
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .rank-row.medal-1 .rank-index {
@@ -524,7 +374,7 @@
 }
 
 .rank-row.medal-2 {
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .rank-row.medal-2 .rank-index {
@@ -533,11 +383,11 @@
 }
 
 .rank-row.medal-2 .rank-value {
-  color: #9a7520;
+  color: var(--color-warning);
 }
 
 .rank-row.medal-3 {
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .rank-row.medal-3 .rank-index {

@@ -19,6 +19,21 @@ page {
   --palette-red-strong: #b62d2b;
   --palette-red-soft: #ead0ca;
   --palette-black: #1a1a1a;
+  --theme-nav-surface: rgba(239, 237, 230, 0.96);
+  --theme-nav-border: rgba(216, 213, 204, 0.9);
+  --theme-nav-muted: #898b84;
+  --theme-nav-hover: rgba(255, 255, 255, 0.72);
+  --theme-panel-tint: rgba(101, 118, 77, 0.07);
+  --theme-panel-border: rgba(101, 118, 77, 0.1);
+  --theme-card-surface: rgba(255, 255, 255, 0.88);
+  --theme-input-surface: #ffffff;
+  --theme-primary-button-bg: #1a1a1a;
+  --theme-primary-button-text: #ffffff;
+  --theme-profile-card-bg: #1a1a1a;
+  --theme-profile-card-text: #ffffff;
+  --theme-profile-card-muted: #e5ece5;
+  --theme-profile-card-faint: #d7dee6;
+  --theme-icon-filter: none;
   --radius-card: 32rpx;
   --radius-panel: 32rpx;
   --radius-cover: 12rpx;
@@ -191,8 +206,8 @@ page {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-card);
-  background: var(--color-ink);
-  color: #ffffff;
+  background: var(--theme-primary-button-bg);
+  color: var(--theme-primary-button-text);
   font-size: 30rpx;
   font-weight: 900;
 }

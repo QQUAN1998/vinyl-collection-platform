@@ -1,4 +1,4 @@
-<view class="screen all-collection-screen">
+<view class="screen all-collection-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">全部唱片</view>
     <view class="screen-kicker">COLLECTION</view>
@@ -53,17 +53,38 @@
       <view class="section-title">收藏列表</view>
       <view class="row-meta">{{visibleAlbums.length}} / {{collectedAlbums.length}} 张</view>
     </view>
+    <view wx:if="{{canManageCollection && collectedAlbums.length}}" class="batch-toolbar">
+      <view class="batch-toolbar-copy">{{batchDeleteMode ? '点击唱片选择要删除的收藏' : '可一次选择多张唱片删除'}}</view>
+      <view class="batch-toolbar-actions">
+        <view
+          wx:if="{{batchDeleteMode}}"
+          class="batch-toggle is-secondary {{allVisibleSelected ? 'is-active' : ''}}"
+          bindtap="toggleSelectAllVisible"
+          aria-role="button"
+          aria-label="{{allVisibleSelected ? '取消全选当前唱片' : '全选当前唱片'}}"
+        >{{allVisibleSelected ? '取消全选' : '全选'}}</view>
+        <view
+          class="batch-toggle {{batchDeleteMode ? 'is-active' : ''}}"
+          bindtap="toggleBatchDeleteMode"
+          aria-role="button"
+          aria-label="{{batchDeleteMode ? '完成批量删除' : '批量删除唱片'}}"
+        >{{batchDeleteMode ? '完成' : '批量删除'}}</view>
+      </view>
+    </view>
 
     <view class="all-album-list" wx:if="{{visibleAlbums.length}}">
       <view
         wx:for="{{visibleAlbums}}"
         wx:key="id"
-        class="all-album-row"
+        class="all-album-row {{batchDeleteMode ? 'is-batch-mode' : ''}} {{item.batchSelected ? 'is-selected' : ''}}"
         data-album-id="{{item.id}}"
-        bindtap="openAlbumCard"
+        bindtap="handleAlbumRowTap"
         hover-class="all-album-row-hover"
         aria-role="button"
       >
+        <view wx:if="{{batchDeleteMode}}" class="batch-select-mark {{item.batchSelected ? 'is-selected' : ''}}" aria-hidden="true">
+          <text wx:if="{{item.batchSelected}}">✓</text>
+        </view>
         <image class="all-album-cover" src="{{item.cover}}" mode="aspectFill" />
         <view class="all-album-copy">
           <view class="all-album-title">{{item.title}}</view>
@@ -78,9 +99,21 @@
         </view>
       </view>
     </view>
+    <view wx:if="{{batchDeleteMode}}" class="batch-delete-bar">
+      <view class="batch-delete-copy">
+        <view class="batch-delete-title">已选择 {{selectedCount}} 张</view>
+        <view class="batch-delete-desc">只会删除你自己的收藏</view>
+      </view>
+      <view
+        class="batch-delete-button {{selectedCount ? '' : 'is-disabled'}}"
+        bindtap="confirmBatchDelete"
+        aria-role="button"
+        aria-label="删除已选唱片"
+      >删除</view>
+    </view>
 
     <state-view
-      wx:else
+      wx:if="{{!visibleAlbums.length}}"
       tone="warning"
       title="{{collectedAlbums.length ? '没有匹配结果' : '暂无收藏'}}"
       description="{{collectedAlbums.length ? '换个关键词或筛选范围再试试。' : '添加唱片后会在这里生成可分享清单。'}}"

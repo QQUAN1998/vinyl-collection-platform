@@ -1,6 +1,6 @@
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
-const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
-const { createShareMessage } = require("../../services/share.js");
+const { requireCloudAccount, showCloudSaveFailed } = require("../../services/cloud-session.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS } = require("../../services/media-format-service.js");
 
 function todayText() {
@@ -24,6 +24,12 @@ Page({
       notes: ""
     },
     mediaFormats: MEDIA_FORMATS
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   handleFieldChange(event) {
     const { key } = event.currentTarget.dataset;
@@ -68,7 +74,7 @@ Page({
       }
     });
   },
-  saveManualAlbum() {
+  async saveManualAlbum() {
     const app = getApp();
     const form = this.data.manualForm;
     const title = form.title.trim();
@@ -82,7 +88,8 @@ Page({
       return;
     }
 
-    if (!ensureCloudSession(app)) {
+    const me = await requireCloudAccount(app);
+    if (!me) {
       return;
     }
 
@@ -139,5 +146,8 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

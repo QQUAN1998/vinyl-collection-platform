@@ -4,7 +4,7 @@
   hover-class="album-row-hover"
   aria-role="button"
 >
-  <image class="album-row-cover" src="{{album.cover}}" mode="aspectFill" />
+  <image class="album-row-cover" src="{{album.cover}}" mode="aspectFill" lazy-load="{{true}}" />
   <view class="album-row-copy">
     <view class="album-row-title">{{album.title}}</view>
     <view class="album-row-subtitle">{{album.artist}}<text wx:if="{{album.year}}"> · {{album.year}}</text></view>

@@ -1,6 +1,10 @@
 const { albums } = require("../../data/seed.js");
-const { parseBatchInput, matchAlbumCandidates } = require("../../services/import-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const {
+  getDefaultSelectedAlbumIds,
+  parseBatchInput,
+  matchAlbumCandidates
+} = require("../../services/import-service.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 
 const sampleBatchText = "伍佰 & China Blue - 浪人情歌\n伍佰 & China Blue - 白鸽\n伍佰 & China Blue - 双面人";
 
@@ -9,6 +13,12 @@ Page({
     batchText: sampleBatchText,
     duplicateLines: [],
     errorMessage: ""
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   handleBatchText(event) {
     const batchText = event.detail.value;
@@ -28,7 +38,9 @@ Page({
         source: "batch",
         batchText: this.data.batchText,
         parsed,
-        matches
+        matches,
+        selectedAlbumIds: getDefaultSelectedAlbumIds(matches),
+        candidates: matches.flatMap((match) => match.candidates)
       };
 
       this.setData({
@@ -47,5 +59,8 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

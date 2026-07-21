@@ -13,6 +13,10 @@ export interface UserProfile {
   id: string;
   displayName: string;
   avatarUrl: string | null;
+  hasPhoneNumber: boolean;
+  phoneNumberMasked: string | null;
+  phoneCountryCode: string | null;
+  phoneAuthorizedAt: IsoDateTime | null;
   createdAt: IsoDateTime;
   membership: MembershipSummary;
 }
@@ -116,6 +120,10 @@ export interface UpsertCloudCollectionInput {
   >;
 }
 
+export interface BatchUpsertCloudCollectionInput {
+  items: UpsertCloudCollectionInput[];
+}
+
 export type CatalogProvider =
   | "MUSICBRAINZ"
   | "ITUNES"
@@ -133,6 +141,25 @@ export interface CatalogAlbumTrack {
   position: number;
   title: string;
   durationMs: number | null;
+}
+
+export type CatalogTrackPreviewProvider = "ITUNES" | "DEEZER";
+
+export interface CatalogTrackPreviewMatch {
+  track: string;
+  artist: string;
+  album: string | null;
+}
+
+export interface CatalogTrackPreviewResponse {
+  ok: boolean;
+  provider: CatalogTrackPreviewProvider | null;
+  previewUrl: string | null;
+  streamPath: string | null;
+  durationMs: number | null;
+  confidence: number;
+  matched: CatalogTrackPreviewMatch | null;
+  reason?: string;
 }
 
 export interface CatalogAlbumCandidate {

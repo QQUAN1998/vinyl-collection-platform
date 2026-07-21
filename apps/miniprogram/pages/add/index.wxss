@@ -14,7 +14,7 @@
   padding: 14rpx 18rpx 14rpx 28rpx;
   border: 3rpx solid var(--color-action);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--theme-input-surface);
   box-shadow: 0 20rpx 48rpx rgba(101, 118, 77, 0.08);
 }
 
@@ -79,7 +79,7 @@
   justify-content: center;
   border-radius: var(--radius-card);
   background: var(--color-mustard);
-  color: var(--color-ink);
+  color: #1a1a1a;
   font-size: 28rpx;
   font-weight: 950;
 }
@@ -227,9 +227,9 @@
 .notice {
   margin-top: 14rpx;
   padding: 34rpx;
-  border: 1rpx solid rgba(101, 118, 77, 0.24);
+  border: 1rpx solid var(--theme-panel-border);
   border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--palette-green-soft), #ffffff);
+  background: var(--theme-panel-tint);
 }
 
 .notice-title {

@@ -1,11 +1,11 @@
-const { albums, recentAlbumIds } = require("../../data/seed.js");
+const { albums } = require("../../data/seed.js");
 const {
   coverToImageSrc,
   fetchCatalogAlbumDetail,
   searchCatalogAlbums
 } = require("../../services/catalog-api.js");
 const { calculateCollectionStats } = require("../../services/stats-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 
 function toAlbumView(album) {
   return {
@@ -45,11 +45,28 @@ function uniqueAlbums(items) {
   return result;
 }
 
-function recentAlbumsFrom(sourceAlbums) {
-  return recentAlbumIds
-    .map((albumId) => sourceAlbums.find((album) => album.id === albumId))
+function recentAlbumsFrom(sourceAlbums, collectionItems = [], limit = 3) {
+  const albumById = new Map((sourceAlbums || []).map((album) => [album.id, album]));
+  const seen = new Set();
+  return (collectionItems || [])
+    .slice()
+    .sort((left, right) => getCollectionTime(right) - getCollectionTime(left))
+    .map((item) => {
+      if (!item || !item.albumId || seen.has(item.albumId)) {
+        return null;
+      }
+      seen.add(item.albumId);
+      return albumById.get(item.albumId) || null;
+    })
     .filter(Boolean)
+    .slice(0, limit)
     .map(toAlbumView);
+}
+
+function getCollectionTime(item = {}) {
+  const value = item.createdAt || item.collectionDate || item.updatedAt || "";
+  const time = Date.parse(value);
+  return Number.isNaN(time) ? 0 : time;
 }
 
 Page({
@@ -63,20 +80,29 @@ Page({
     results: []
   },
   onLoad() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadAddPage();
   },
   onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadAddPage();
   },
   loadAddPage() {
     const app = getApp();
     const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
-    const stats = calculateCollectionStats(sourceAlbums, app.globalData.collectionItems || []);
+    const collectionItems = app.globalData.collectionItems || [];
+    const stats = calculateCollectionStats(sourceAlbums, collectionItems);
     const query = this.data.query;
     const hasSearch = Boolean(normalize(query));
     this.setData({
       collectionCount: stats.albumCount,
-      recentAlbums: recentAlbumsFrom(sourceAlbums),
+      recentAlbums: recentAlbumsFrom(sourceAlbums, collectionItems),
       results: hasSearch ? this.data.results : [],
       hasSearch
     });
@@ -265,5 +291,8 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

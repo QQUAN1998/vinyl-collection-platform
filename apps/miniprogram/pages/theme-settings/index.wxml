@@ -1,0 +1,72 @@
+<view class="screen theme-settings-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">主题设置</view>
+    <view class="screen-kicker">{{themeLabel}}</view>
+  </view>
+
+  <view class="theme-status-row" style="{{previewStyle}}">
+    <view class="theme-status-icon">
+      <image class="theme-status-symbol" src="/assets/icons/theme-palette.svg" mode="aspectFit" />
+    </view>
+    <view class="theme-status-copy">
+      <view class="theme-status-title">{{themeLabel}}</view>
+      <view class="theme-status-meta">背景 {{backgroundColor}}</view>
+    </view>
+    <view class="theme-status-swatch" style="background: {{backgroundColor}}"></view>
+  </view>
+
+  <view class="theme-section">
+    <view class="head-row theme-section-head">
+      <view class="section-title">显示模式</view>
+    </view>
+    <view class="theme-option-list">
+      <view
+        wx:for="{{themeOptions}}"
+        wx:key="mode"
+        class="theme-option {{item.active ? 'is-active' : ''}}"
+        data-mode="{{item.mode}}"
+        bindtap="selectTheme"
+        hover-class="theme-option-hover"
+        aria-role="button"
+      >
+        <view class="theme-option-icon">
+          <view class="theme-option-swatch" style="background: {{item.swatch}}"></view>
+        </view>
+        <view class="theme-option-copy">
+          <view class="theme-option-title">{{item.label}}</view>
+          <view class="theme-option-desc">{{item.description}}</view>
+        </view>
+        <view class="theme-option-mark">{{item.active ? '已选' : '选择'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="theme-section custom-theme-section">
+    <view class="head-row theme-section-head">
+      <view class="section-title">自定义底色</view>
+    </view>
+    <view class="swatch-grid">
+      <view
+        wx:for="{{customSwatches}}"
+        wx:key="*this"
+        class="custom-swatch {{item === customColor ? 'is-active' : ''}}"
+        style="background: {{item}}"
+        data-color="{{item}}"
+        bindtap="selectCustomSwatch"
+        hover-class="custom-swatch-hover"
+        aria-role="button"
+      ></view>
+    </view>
+    <view class="custom-color-row">
+      <input
+        class="custom-color-input"
+        value="{{customColorInput}}"
+        placeholder="#ddeedd"
+        bindinput="handleCustomColorInput"
+        bindconfirm="saveCustomColor"
+        confirm-type="done"
+      />
+      <view class="primary-button custom-color-button" bindtap="saveCustomColor" hover-class="button-hover">应用</view>
+    </view>
+  </view>
+</view>

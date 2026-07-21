@@ -22,12 +22,21 @@ MYSQL_USERNAME=root
 MYSQL_PASSWORD=<existing-cloud-hosting-password>
 MYSQL_DATABASE=vinyl_cabinet
 AUTH_TOKEN_SECRET=<at-least-32-random-characters>
+WECHAT_APP_ID=<mini-program-appid>
+WECHAT_APP_SECRET=<mini-program-appsecret>
 ```
 
 `DATABASE_URL` is still supported, but it is optional when the WeChat Cloud
 Hosting `MYSQL_*` variables are present. If both are set, `DATABASE_URL` wins.
 
-Do not commit the real MySQL password or auth secret.
+Do not commit the real MySQL password, auth secret, AppID secret, or any other
+production credential.
+
+`WECHAT_APP_ID` and `WECHAT_APP_SECRET` are required by phone number
+authorization. The mini program receives a one-time `code` from
+`open-type="getPhoneNumber"`, and the API exchanges it with WeChat before
+storing the phone number on the current cloud openid user. API responses only
+return a masked phone number to the mini program.
 
 ## Mini Program Cloud Config
 
@@ -53,6 +62,8 @@ The service name and environment are defined in `apps/miniprogram/app.js` under
 
 ```text
 GET    /api/me
+POST   /api/auth/cloud-login
+POST   /api/auth/phone
 GET    /api/collections/me
 POST   /api/collections
 PATCH  /api/collections/:id

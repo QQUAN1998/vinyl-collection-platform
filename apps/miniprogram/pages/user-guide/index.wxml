@@ -1,12 +1,33 @@
-<view class="screen guide-screen">
+<view class="screen guide-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">小程序操作手册</view>
     <view class="screen-kicker">GUIDE</view>
   </view>
 
-  <view class="guide-lead">
+  <view wx:if="{{mode === 'onboarding'}}" class="guide-lead guide-lead-onboarding">
+    <view class="guide-lead-kicker">NEW USER</view>
+    <view class="guide-lead-title">从“刘德华”开始试一次</view>
+    <view class="guide-lead-copy">你可以先按下面 6 步熟悉完整流程。点按钮后会直接打开刘德华的在线搜索结果。</view>
+    <view class="guide-start-button" bindtap="startExampleSearch" hover-class="button-hover">搜索刘德华</view>
+  </view>
+
+  <view wx:else class="guide-lead">
     <view class="guide-lead-title">不会使用看这里</view>
-    <view class="guide-lead-copy">按板块查看常用操作，收藏、上墙、统计和微信分享都在这里。</view>
+    <view class="guide-lead-copy">按真实流程查看常用操作，搜索收藏、今日推荐、试听、主题、更多收藏和微信分享都在这里。</view>
+    <view class="guide-secondary-button" bindtap="openAddPage" hover-class="button-hover">去添加唱片</view>
+  </view>
+
+  <view wx:if="{{mode === 'onboarding'}}" class="guide-flow-card">
+    <view class="guide-flow-title">首次操作路线</view>
+    <view class="guide-flow-list">
+      <view class="guide-flow-step" wx:for="{{onboardingSteps}}" wx:key="title">
+        <view class="guide-flow-index">{{index + 1}}</view>
+        <view class="guide-flow-copy">
+          <view class="guide-flow-step-title">{{item.title}}</view>
+          <view class="guide-flow-step-desc">{{item.description}}</view>
+        </view>
+      </view>
+    </view>
   </view>
 
   <view class="guide-list">
@@ -26,5 +47,13 @@
         </view>
       </view>
     </view>
+  </view>
+
+  <view class="guide-more-card" bindtap="openEasterLibrary" hover-class="button-hover">
+    <view class="guide-more-copy">
+      <view class="guide-more-title">更多</view>
+      <view class="guide-more-desc">隐藏唱片库与批量收藏</view>
+    </view>
+    <view class="guide-more-arrow">→</view>
   </view>
 </view>

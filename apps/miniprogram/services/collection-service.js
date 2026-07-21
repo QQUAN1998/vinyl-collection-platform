@@ -93,8 +93,34 @@ function removeCollectionItem(input) {
   };
 }
 
+function removeCollectionItems(input) {
+  const { collectionItems, albumIds = [], collectionIds = [] } = input;
+  const albumIdSet = new Set((albumIds || []).filter(Boolean));
+  const collectionIdSet = new Set((collectionIds || []).filter(Boolean));
+  const removedItems = [];
+  const nextItems = (collectionItems || []).filter((item) => {
+    const shouldRemove = collectionIdSet.has(item.id) || albumIdSet.has(item.albumId);
+    if (!shouldRemove) {
+      return true;
+    }
+
+    removedItems.push(item);
+    return false;
+  });
+
+  if (!removedItems.length) {
+    throw new Error("No collection items matched for deletion.");
+  }
+
+  return {
+    collectionItems: nextItems,
+    removedItems
+  };
+}
+
 module.exports = {
   confirmSelectedAlbums,
   removeCollectionItem,
+  removeCollectionItems,
   updateCollectionItem
 };

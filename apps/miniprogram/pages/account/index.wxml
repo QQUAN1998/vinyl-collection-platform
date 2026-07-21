@@ -1,25 +1,40 @@
-<view class="screen account-screen">
+<view class="screen account-screen {{themeClass}}" style="{{themeStyle}}">
   <view class="screen-header">
     <view class="screen-title">我的</view>
     <view class="screen-kicker">{{userLabel}}</view>
   </view>
 
   <view class="profile">
-    <view class="profile-card profile-edit-card" bindtap="openUserProfile" hover-class="profile-card-hover" aria-role="button">
-      <view class="profile-identity">
+    <view class="profile-card profile-edit-card {{showProfileSyncInline ? 'profile-sync-card' : ''}}" bindtap="handleProfileCardTap" hover-class="profile-card-hover" aria-role="button">
+      <button wx:if="{{showProfileSyncInline}}" class="profile-identity profile-avatar-button" open-type="chooseAvatar" bindchooseavatar="handleProfileAvatarChosen" catchtap="stopTap">
+        <image wx:if="{{userProfile.avatar}}" class="profile-avatar" src="{{userProfile.avatar}}" mode="aspectFill" />
+        <view wx:else class="profile-avatar">{{avatarInitial}}</view>
+        <view class="profile-tier-badge">{{tierLabel}}</view>
+      </button>
+      <view wx:else class="profile-identity">
         <image wx:if="{{userProfile.avatar}}" class="profile-avatar" src="{{userProfile.avatar}}" mode="aspectFill" />
         <view wx:else class="profile-avatar">{{avatarInitial}}</view>
         <view class="profile-tier-badge">{{tierLabel}}</view>
       </view>
       <view class="profile-card-copy">
-        <view class="profile-user-title">{{userProfile.name}}</view>
+        <input
+          wx:if="{{showProfileSyncInline}}"
+          class="profile-name-input"
+          type="nickname"
+          value="{{profileDraftName}}"
+          placeholder="同步微信昵称"
+          bindinput="handleProfileNicknameInput"
+          catchtap="stopTap"
+        />
+        <view wx:else class="profile-user-title">{{displayProfileName}}</view>
         <view class="profile-collection-summary">
           <text class="profile-stat">唱片 {{summary.albumCount}}</text>
           <text class="profile-stat">艺人 {{summary.artistCount}}</text>
         </view>
-        <view class="profile-normal-limit">{{collectionLimitText}}</view>
+        <view class="profile-normal-limit">{{profileHintLabel}}</view>
       </view>
-      <view class="profile-arrow">›</view>
+      <button wx:if="{{showProfileSyncInline}}" class="profile-action-button" loading="{{authLoading}}" catchtap="saveWechatProfileDraft">{{profileActionLabel}}</button>
+      <view wx:else class="profile-action-text">{{profileActionLabel}}</view>
     </view>
 
     <view class="account-section account-device-section">
@@ -36,14 +51,18 @@
         </view>
         <view class="state-pill">{{tvStatusLabel}}</view>
       </view>
-      <view class="primary-button sync-button" bindtap="manualSync" hover-class="button-hover">手动同步</view>
+      <view class="device-actions {{tvCanUnbind ? 'device-actions-with-exit' : ''}}">
+        <view class="primary-button sync-button" bindtap="scanTvLogin" hover-class="button-hover">扫码绑定电视</view>
+        <view class="ghost-button sync-button" bindtap="manualSync" hover-class="button-hover">刷新同步状态</view>
+        <view wx:if="{{tvCanUnbind}}" class="ghost-button sync-button sync-exit-button" bindtap="unbindTvSync" hover-class="button-hover">退出同步</view>
+      </view>
     </view>
 
     <view class="account-section account-service-section">
       <view class="head-row account-section-head">
         <view class="section-title">平台服务</view>
       </view>
-      <view class="tool-row" data-title="导入收藏稍后接入" bindtap="showPlaceholder" hover-class="tool-row-hover">
+      <view class="tool-row" bindtap="openBatchImport" hover-class="tool-row-hover">
         <view class="tool-icon">
           <image class="tool-symbol" src="/assets/icons/import-action.png" mode="aspectFit" />
         </view>
@@ -53,13 +72,23 @@
         </view>
         <view class="tool-arrow">›</view>
       </view>
-      <view class="tool-row" data-title="已导出当前收藏" bindtap="showPlaceholder" hover-class="tool-row-hover">
+      <view class="tool-row" bindtap="exportCollectionMarkdown" hover-class="tool-row-hover">
         <view class="tool-icon">
           <image class="tool-symbol" src="/assets/icons/export-action.png" mode="aspectFit" />
         </view>
         <view class="tool-copy">
           <view class="tool-title">导出收藏</view>
-          <view class="row-meta">备份当前唱片柜资料</view>
+          <view class="row-meta">生成 Markdown 文件分享给微信好友</view>
+        </view>
+        <view class="tool-arrow">›</view>
+      </view>
+      <view class="tool-row" bindtap="openThemeSettings" hover-class="tool-row-hover" aria-role="button">
+        <view class="tool-icon theme-tool-icon">
+          <image class="tool-symbol theme-tool-symbol" src="/assets/icons/theme-palette.svg" mode="aspectFit" />
+        </view>
+        <view class="tool-copy">
+          <view class="tool-title">主题设置</view>
+          <view class="row-meta">{{themeSummary}} · 背景与顶部栏</view>
         </view>
         <view class="tool-arrow">›</view>
       </view>
@@ -77,4 +106,25 @@
   </view>
 
   <bottom-nav active="account" />
+
+  <view wx:if="{{showOnboardingGuide}}" class="onboarding-backdrop">
+    <view class="onboarding-panel" aria-role="dialog">
+      <view class="onboarding-kicker">首次登录引导</view>
+      <view class="onboarding-title">用“刘德华”试一次完整收藏</view>
+      <view class="onboarding-copy">跟着这 6 步走一遍，就能知道怎么搜索、添加、编辑、上墙、查看和删除唱片。</view>
+      <view class="onboarding-step-list">
+        <view class="onboarding-step" wx:for="{{onboardingSteps}}" wx:key="title">
+          <view class="onboarding-step-index">{{index + 1}}</view>
+          <view class="onboarding-step-copy">
+            <view class="onboarding-step-title">{{item.title}}</view>
+            <view class="onboarding-step-desc">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="onboarding-actions">
+        <view class="ghost-button onboarding-ghost" bindtap="dismissOnboardingGuide" hover-class="button-hover">稍后</view>
+        <view class="primary-button onboarding-primary" bindtap="startOnboardingGuide" hover-class="button-hover">开始引导</view>
+      </view>
+    </view>
+  </view>
 </view>

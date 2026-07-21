@@ -5,7 +5,22 @@ const {
   buildCollectedAlbumViews,
   filterCollectedAlbumViews
 } = require("../../services/collection-showcase-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const { removeCollectionItems } = require("../../services/collection-service.js");
+const { requireCloudAccount, showCloudDeleteFailed } = require("../../services/cloud-session.js");
+const { buildPhotoWallOrder } = require("../../services/photo-wall-service.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
+
+function getSourceAlbums(app) {
+  return [...albums, ...(app.globalData.manualAlbums || [])];
+}
+
+function decorateBatchSelection(albumList = [], selectedAlbumIds = []) {
+  const selectedAlbumIdSet = new Set(selectedAlbumIds || []);
+  return (albumList || []).map((album) => ({
+    ...album,
+    batchSelected: selectedAlbumIdSet.has(album.id)
+  }));
+}
 
 Page({
   data: {
@@ -23,17 +38,37 @@ Page({
     collectedAlbums: [],
     visibleAlbums: [],
     ownerId: "",
+    canManageCollection: true,
+    batchDeleteMode: false,
+    selectedAlbumIds: [],
+    selectedCount: 0,
+    allVisibleSelected: false,
+    isBatchDeleting: false,
     albumCard: null,
     cardIndex: 0,
     cardPositionLabel: "0 / 0"
   },
   onLoad(options = {}) {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
+    const ownerId = options.ownerId || "";
     this.setData({
-      ownerId: options.ownerId || ""
+      ownerId,
+      canManageCollection: !ownerId,
+      batchDeleteMode: false,
+      selectedAlbumIds: [],
+      selectedCount: 0,
+      allVisibleSelected: false
     });
     this.loadCollection();
   },
   onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadCollection();
   },
   loadCollection() {
@@ -54,7 +89,7 @@ Page({
   },
   loadLocalCollection() {
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = getSourceAlbums(app);
     const collectionItems = app.globalData.collectionItems || [];
     this.renderCollection(sourceAlbums, collectionItems, app.globalData.userProfile);
   },
@@ -78,18 +113,37 @@ Page({
   },
   renderCollection(sourceAlbums, collectionItems, userProfile) {
     const showcase = buildCollectionShowcase(sourceAlbums, collectionItems, userProfile);
+    const collectedAlbums = showcase.albums;
 
     this.setData({
       userName: showcase.userName,
       avatarInitial: showcase.avatarInitial,
       stats: showcase.stats,
-      collectedAlbums: showcase.albums,
-      visibleAlbums: filterCollectedAlbumViews(showcase.albums, this.data.query, this.data.searchScope)
+      collectedAlbums,
+      visibleAlbums: this.buildVisibleAlbums(collectedAlbums, this.data.query, this.data.searchScope)
     });
+  },
+  buildVisibleAlbums(collectedAlbums = this.data.collectedAlbums, query = this.data.query, scope = this.data.searchScope, selectedAlbumIds = this.data.selectedAlbumIds) {
+    return decorateBatchSelection(
+      filterCollectedAlbumViews(collectedAlbums, query, scope),
+      selectedAlbumIds
+    );
+  },
+  buildSelectionData(selectedAlbumIds = this.data.selectedAlbumIds, collectedAlbums = this.data.collectedAlbums, query = this.data.query, scope = this.data.searchScope) {
+    const normalizedSelectedAlbumIds = selectedAlbumIds || [];
+    const visibleAlbums = this.buildVisibleAlbums(collectedAlbums, query, scope, normalizedSelectedAlbumIds);
+    const selectedAlbumIdSet = new Set(normalizedSelectedAlbumIds);
+    const visibleAlbumIds = visibleAlbums.map((album) => album.id).filter(Boolean);
+    return {
+      selectedAlbumIds: normalizedSelectedAlbumIds,
+      selectedCount: normalizedSelectedAlbumIds.length,
+      allVisibleSelected: Boolean(visibleAlbumIds.length) && visibleAlbumIds.every((albumId) => selectedAlbumIdSet.has(albumId)),
+      visibleAlbums
+    };
   },
   applySearch() {
     this.setData({
-      visibleAlbums: filterCollectedAlbumViews(this.data.collectedAlbums, this.data.query, this.data.searchScope),
+      ...this.buildSelectionData(),
       searchScopes: COLLECTION_SEARCH_SCOPES.map((item) => ({
         ...item,
         active: item.key === this.data.searchScope
@@ -116,6 +170,196 @@ Page({
     }, () => {
       this.applySearch();
     });
+  },
+  toggleBatchDeleteMode() {
+    if (!this.data.canManageCollection) {
+      wx.showToast({
+        title: "分享页面不能删除",
+        icon: "none"
+      });
+      return;
+    }
+    if (!this.data.collectedAlbums.length) {
+      wx.showToast({
+        title: "还没有可删除的唱片",
+        icon: "none"
+      });
+      return;
+    }
+
+    const batchDeleteMode = !this.data.batchDeleteMode;
+    this.setData({
+      batchDeleteMode,
+      selectedAlbumIds: [],
+      selectedCount: 0,
+      allVisibleSelected: false,
+      albumCard: null
+    }, () => {
+      this.applySearch();
+    });
+  },
+  handleAlbumRowTap(event) {
+    if (this.data.batchDeleteMode) {
+      this.toggleBatchSelection(event);
+      return;
+    }
+
+    this.openAlbumCard(event);
+  },
+  toggleBatchSelection(event) {
+    if (!this.data.canManageCollection || !this.data.batchDeleteMode) {
+      return;
+    }
+
+    const { albumId } = event.currentTarget.dataset;
+    if (!albumId) {
+      return;
+    }
+
+    const selectedAlbumIdSet = new Set(this.data.selectedAlbumIds || []);
+    if (selectedAlbumIdSet.has(albumId)) {
+      selectedAlbumIdSet.delete(albumId);
+    } else {
+      selectedAlbumIdSet.add(albumId);
+    }
+
+    const selectedAlbumIds = Array.from(selectedAlbumIdSet);
+    this.setData({
+      ...this.buildSelectionData(selectedAlbumIds)
+    });
+  },
+  toggleSelectAllVisible() {
+    if (!this.data.canManageCollection || !this.data.batchDeleteMode) {
+      return;
+    }
+
+    const visibleAlbumIds = this.data.visibleAlbums.map((album) => album.id).filter(Boolean);
+    if (!visibleAlbumIds.length) {
+      wx.showToast({
+        title: "当前没有可选择的唱片",
+        icon: "none"
+      });
+      return;
+    }
+
+    const selectedAlbumIdSet = new Set(this.data.selectedAlbumIds || []);
+    if (this.data.allVisibleSelected) {
+      visibleAlbumIds.forEach((albumId) => selectedAlbumIdSet.delete(albumId));
+    } else {
+      visibleAlbumIds.forEach((albumId) => selectedAlbumIdSet.add(albumId));
+    }
+
+    this.setData({
+      ...this.buildSelectionData(Array.from(selectedAlbumIdSet))
+    });
+  },
+  clearBatchSelection() {
+    this.setData({
+      ...this.buildSelectionData([])
+    });
+  },
+  confirmBatchDelete() {
+    if (!this.data.canManageCollection) {
+      wx.showToast({
+        title: "分享页面不能删除",
+        icon: "none"
+      });
+      return;
+    }
+    if (!this.data.selectedCount) {
+      wx.showToast({
+        title: "先选择要删除的唱片",
+        icon: "none"
+      });
+      return;
+    }
+
+    wx.showModal({
+      title: "批量删除唱片",
+      content: `确定从收藏中删除已选择的 ${this.data.selectedCount} 张唱片吗？`,
+      confirmText: "删除",
+      confirmColor: "#b96d5b",
+      success: (result) => {
+        if (result.confirm) {
+          this.deleteSelectedCollections();
+        }
+      }
+    });
+  },
+  async deleteSelectedCollections() {
+    if (this.data.isBatchDeleting || !this.data.canManageCollection) {
+      return;
+    }
+
+    const app = getApp();
+    const me = await requireCloudAccount(app);
+    if (!me) {
+      return;
+    }
+
+    let deleteResult;
+    try {
+      deleteResult = removeCollectionItems({
+        collectionItems: app.globalData.collectionItems || [],
+        albumIds: this.data.selectedAlbumIds
+      });
+    } catch (error) {
+      wx.showToast({
+        title: "这些唱片已不在收藏中",
+        icon: "none"
+      });
+      this.clearBatchSelection();
+      return;
+    }
+
+    const removedAlbumIds = new Set(deleteResult.removedItems.map((item) => item.albumId));
+    const removedCollectionIds = deleteResult.removedItems.map((item) => item.id).filter(Boolean);
+    const sourceAlbums = getSourceAlbums(app);
+    app.globalData.collectionItems = (app.globalData.collectionItems || deleteResult.collectionItems)
+      .filter((item) => !removedAlbumIds.has(item.albumId));
+    app.globalData.photoWallOrder = buildPhotoWallOrder(
+      sourceAlbums,
+      app.globalData.collectionItems,
+      app.globalData.photoWallOrder || []
+    );
+    if (typeof app.refreshUserLabel === "function") {
+      app.refreshUserLabel();
+    }
+
+    this.setData({
+      batchDeleteMode: false,
+      selectedAlbumIds: [],
+      selectedCount: 0,
+      allVisibleSelected: false,
+      albumCard: null
+    }, () => {
+      this.loadLocalCollection();
+    });
+    wx.showToast({
+      title: `已删除${deleteResult.removedItems.length}张`,
+      icon: "success"
+    });
+
+    this.syncBatchDeleteToCloud(removedCollectionIds);
+  },
+  syncBatchDeleteToCloud(collectionIds) {
+    const app = getApp();
+    if (!collectionIds.length || typeof app.deleteCollectionsFromCloud !== "function") {
+      return;
+    }
+
+    this.setData({ isBatchDeleting: true });
+    app.deleteCollectionsFromCloud(collectionIds)
+      .then((payload) => {
+        if (!payload) {
+          showCloudDeleteFailed();
+          return;
+        }
+        this.loadLocalCollection();
+      })
+      .finally(() => {
+        this.setData({ isBatchDeleting: false });
+      });
   },
   openAlbumCard(event) {
     const { albumId } = event.currentTarget.dataset;
@@ -171,5 +415,8 @@ Page({
       title: `${this.data.userName}的全部唱片收藏`,
       path: ownerId ? `/pages/all-collection/index?ownerId=${ownerId}` : "/pages/all-collection/index"
     });
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

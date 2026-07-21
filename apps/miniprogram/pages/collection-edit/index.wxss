@@ -66,6 +66,23 @@
   bottom: calc(24rpx + var(--safe-bottom));
   z-index: 20;
   display: grid;
-  grid-template-columns: 180rpx 1fr;
+  grid-template-columns: 150rpx 150rpx 1fr;
   gap: 18rpx;
+}
+
+.danger-button {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid rgba(185, 109, 91, 0.32);
+  border-radius: var(--radius-card);
+  background: rgba(185, 109, 91, 0.12);
+  color: var(--palette-red);
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.danger-button-hover {
+  background: rgba(185, 109, 91, 0.18);
 }

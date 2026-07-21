@@ -71,6 +71,32 @@ function fetchCatalogAlbumDetail(album, options = {}, config = {}, wxApi) {
     .then((candidate) => catalogCandidateToAlbum(candidate, album));
 }
 
+function fetchTrackPreview(input = {}, config = {}, wxApi) {
+  const params = {
+    track: input.track,
+    artist: input.artist,
+    album: input.album,
+    country: input.country || "CN"
+  };
+  const path = `/api/catalog/preview?${buildQueryString(params)}`;
+
+  return retryCatalogEndpoint(path, { method: "GET" }, config, wxApi)
+    .then((response) => normalizeTrackPreviewResponse(response, params, config));
+}
+
+function retryCatalogEndpoint(path, options = {}, config = {}, wxApi, retries = 1) {
+  const retryDelayMs = Math.max(0, Number(config.previewRetryDelayMs ?? 420) || 0);
+  return callCatalogEndpoint(path, options, config, wxApi)
+    .catch((error) => {
+      if (!retries) {
+        throw error;
+      }
+      return delay(retryDelayMs).then(() =>
+        retryCatalogEndpoint(path, options, config, wxApi, retries - 1)
+      );
+    });
+}
+
 function callCatalogEndpoint(path, options = {}, config = {}, wxApi) {
   return callCloudContainer(path, options, config, wxApi)
     .catch((cloudError) =>
@@ -82,6 +108,38 @@ function callCatalogEndpoint(path, options = {}, config = {}, wxApi) {
           throw error;
         })
     );
+}
+
+function delay(ms) {
+  if (!ms || typeof setTimeout !== "function") {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildTrackPreviewStreamUrl(input = {}, config = {}) {
+  const baseUrl = String(config.publicBaseUrl || config.catalogBaseUrl || DEFAULT_PUBLIC_CATALOG_BASE_URL).replace(/\/+$/, "");
+  const path = `/api/catalog/preview/stream?${buildQueryString({
+    track: input.track,
+    artist: input.artist,
+    album: input.album,
+    country: input.country || "CN"
+  })}`;
+  return `${baseUrl}${path}`;
+}
+
+function normalizeTrackPreviewResponse(response = {}, input = {}, config = {}) {
+  const ok = Boolean(response.ok && response.previewUrl);
+  return {
+    ok,
+    provider: response.provider || null,
+    previewUrl: response.previewUrl || "",
+    streamUrl: ok ? buildTrackPreviewStreamUrl(input, config) : "",
+    durationMs: Number(response.durationMs || 0) || null,
+    confidence: Number(response.confidence || 0),
+    matched: response.matched || null,
+    reason: response.reason || ""
+  };
 }
 
 function requestPublicCatalog(path, options = {}, config = {}, wxApi) {
@@ -261,11 +319,14 @@ module.exports = {
   DEFAULT_PUBLIC_CATALOG_BASE_URL,
   buildCatalogSearchPath,
   buildCatalogSearchParams,
+  buildTrackPreviewStreamUrl,
   catalogCandidateToAlbum,
   coverToImageSrc,
   fetchCatalogAlbumDetail,
+  fetchTrackPreview,
   mergeAlbums,
   normalizeCatalogQuery,
+  normalizeTrackPreviewResponse,
   normalizeCatalogSearchResponse,
   parseSearchQuery,
   providerLabel,

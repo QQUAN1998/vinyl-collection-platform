@@ -56,12 +56,12 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--theme-card-surface);
   color: var(--color-ink);
   font-size: 24rpx;
   font-weight: 900;
 }
 
 .state-view-action-hover {
-  background: #ffffff;
+  background: var(--theme-input-surface);
 }

@@ -1,17 +1,13 @@
 const { albums, featuredAlbumId } = require("../../data/seed.js");
-const { updateCollectionItem } = require("../../services/collection-service.js");
-const { ensureCloudSession, showCloudSaveFailed } = require("../../services/cloud-session.js");
+const { removeCollectionItem, updateCollectionItem } = require("../../services/collection-service.js");
+const {
+  findAlbumInLibrary,
+  toAlbumView
+} = require("../../services/album-library-service.js");
+const { requireCloudAccount, showCloudDeleteFailed, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS, normalizeMediumKey } = require("../../services/media-format-service.js");
-
-function toAlbumView(album) {
-  return {
-    ...album,
-    cover: `/${album.coverUrl}`,
-    styles: album.style
-  };
-}
 
 Page({
   data: {
@@ -29,11 +25,21 @@ Page({
     errorMessage: ""
   },
   onLoad(options = {}) {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
     this.loadCollectionForm(options.albumId || featuredAlbumId);
+  },
+  onShow() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
   },
   loadCollectionForm(albumId) {
     const app = getApp();
-    const album = albums.find((item) => item.id === albumId);
+    const album = findAlbumInLibrary(albumId, albums, app.globalData.manualAlbums || []);
     const collectionItem = (app.globalData.collectionItems || []).find((item) => item.albumId === albumId);
 
     if (!album || !collectionItem) {
@@ -108,13 +114,14 @@ Page({
       }
     });
   },
-  saveCollection() {
+  async saveCollection() {
     if (!this.data.album) {
       return;
     }
 
     const app = getApp();
-    if (!ensureCloudSession(app)) {
+    const me = await requireCloudAccount(app);
+    if (!me) {
       return;
     }
 
@@ -150,10 +157,64 @@ Page({
       });
     return;
   },
+  confirmDeleteCollection() {
+    if (!this.data.album) {
+      return;
+    }
+
+    wx.showModal({
+      title: "删除唱片",
+      content: `确认从收藏中删除《${this.data.album.title}》吗？`,
+      confirmText: "删除",
+      confirmColor: "#b96d5b",
+      success: (result) => {
+        if (result.confirm) {
+          this.deleteCollection();
+        }
+      }
+    });
+  },
+  async deleteCollection() {
+    if (!this.data.album) {
+      return;
+    }
+
+    const app = getApp();
+    const me = await requireCloudAccount(app);
+    if (!me) {
+      return;
+    }
+
+    const result = removeCollectionItem({
+      collectionItems: app.globalData.collectionItems || [],
+      albumId: this.data.album.id
+    });
+
+    wx.showLoading({ title: "\u5220\u9664\u4e2d" });
+    app.deleteCollectionFromCloud(result.removedItem.id)
+      .then((payload) => {
+        if (!payload) {
+          showCloudDeleteFailed();
+          return;
+        }
+
+        wx.showToast({
+          title: "\u5df2\u5220\u9664",
+          icon: "success"
+        });
+        wx.navigateBack();
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
+  },
   cancelEdit() {
     wx.navigateBack();
   },
   onShareAppMessage() {
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

@@ -1,6 +1,7 @@
 const { getMediaFormat } = require("./media-format-service.js");
 const { getAlbumRarity } = require("./rarity-service.js");
 const { calculateCollectionStats } = require("./stats-service.js");
+const { toAlbumImageSrc } = require("./album-library-service.js");
 const { normalizeTrackDisplayList } = require("./track-display-service.js");
 
 function formatMoney(value) {
@@ -8,10 +9,7 @@ function formatMoney(value) {
 }
 
 function coverOf(album) {
-  if (album.cover) {
-    return album.cover;
-  }
-  return album.coverUrl ? `/${album.coverUrl}` : "";
+  return toAlbumImageSrc(album);
 }
 
 const COLLECTION_SEARCH_SCOPES = [

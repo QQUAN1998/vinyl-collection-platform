@@ -460,6 +460,120 @@ describe("CatalogService", () => {
     ]);
   });
 
+  it("finds iTunes track previews for matched artist and track", async () => {
+    globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.origin === "https://itunes.apple.com" && url.searchParams.get("entity") === "song") {
+        return jsonResponse({
+          resultCount: 1,
+          results: [
+            {
+              wrapperType: "track",
+              trackId: 123,
+              trackName: "\u7ec3\u4e60",
+              artistName: "\u5218\u5fb7\u534e",
+              collectionName: "\u7ec3\u4e60 - Single",
+              previewUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/preview.m4a",
+            },
+          ],
+        });
+      }
+      throw new Error(`Unexpected URL: ${url.href}`);
+    }) as unknown as typeof fetch;
+
+    const service = new CatalogService();
+    const preview = await service.findTrackPreview({
+      track: "\u7ec3\u4e60",
+      artist: "\u5218\u5fb7\u534e",
+      album: "\u7ec3\u4e60",
+      country: "CN",
+    });
+
+    expect(preview).toEqual(expect.objectContaining({
+      ok: true,
+      provider: "ITUNES",
+      previewUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/preview.m4a",
+      confidence: expect.any(Number),
+    }));
+    expect(preview.streamPath).toContain("/api/catalog/preview/stream?");
+    expect(preview.matched).toEqual(expect.objectContaining({
+      track: "\u7ec3\u4e60",
+      artist: "\u5218\u5fb7\u534e",
+    }));
+  });
+
+  it("falls back to Deezer when iTunes has no preview match", async () => {
+    globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.origin === "https://itunes.apple.com") {
+        return jsonResponse({ resultCount: 0, results: [] });
+      }
+      if (url.origin === "https://api.deezer.com") {
+        return jsonResponse({
+          data: [
+            {
+              id: 456,
+              title: "Seven",
+              artist: { name: "Artist A" },
+              album: { title: "Seven" },
+              preview: "https://cdns-preview.dzcdn.net/stream/c-preview.mp3",
+            },
+          ],
+        });
+      }
+      throw new Error(`Unexpected URL: ${url.href}`);
+    }) as unknown as typeof fetch;
+
+    const service = new CatalogService();
+    const preview = await service.findTrackPreview({
+      track: "Seven",
+      artist: "Artist A",
+      album: "Seven",
+      country: "CN",
+    });
+
+    expect(preview.ok).toBe(true);
+    expect(preview.provider).toBe("DEEZER");
+    expect(preview.previewUrl).toBe("https://cdns-preview.dzcdn.net/stream/c-preview.mp3");
+  });
+
+  it("does not return a preview when the match confidence is too low", async () => {
+    globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.origin === "https://itunes.apple.com") {
+        return jsonResponse({
+          resultCount: 1,
+          results: [
+            {
+              wrapperType: "track",
+              trackId: 999,
+              trackName: "Wrong Song",
+              artistName: "Other Artist",
+              collectionName: "Other Album",
+              previewUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/wrong.m4a",
+            },
+          ],
+        });
+      }
+      if (url.origin === "https://api.deezer.com") {
+        return jsonResponse({ data: [] });
+      }
+      throw new Error(`Unexpected URL: ${url.href}`);
+    }) as unknown as typeof fetch;
+
+    const service = new CatalogService();
+    const preview = await service.findTrackPreview({
+      track: "\u7ec3\u4e60",
+      artist: "\u5218\u5fb7\u534e",
+      album: "\u7ec3\u4e60",
+      country: "CN",
+    });
+
+    expect(preview.ok).toBe(false);
+    expect(preview.previewUrl).toBeNull();
+    expect(preview.reason).toBe("NO_PREVIEW");
+  });
+
   it("skips Discogs unless a token is configured", async () => {
     globalThis.fetch = vi.fn() as unknown as typeof fetch;
 

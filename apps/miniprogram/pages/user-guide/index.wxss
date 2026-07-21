@@ -11,11 +11,26 @@
   background: var(--palette-green-soft);
 }
 
+.guide-lead-onboarding {
+  background: var(--palette-black);
+}
+
+.guide-lead-kicker {
+  color: var(--color-mustard);
+  font-size: 22rpx;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
 .guide-lead-title {
   color: var(--color-ink);
   font-size: 32rpx;
   font-weight: 950;
   line-height: 1.16;
+}
+
+.guide-lead-onboarding .guide-lead-title {
+  color: #ffffff;
 }
 
 .guide-lead-copy {
@@ -24,6 +39,97 @@
   font-size: 24rpx;
   font-weight: 800;
   line-height: 1.45;
+}
+
+.guide-lead-onboarding .guide-lead-copy {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.guide-start-button,
+.guide-secondary-button {
+  min-height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24rpx;
+  border-radius: 999rpx;
+  font-size: 27rpx;
+  font-weight: 950;
+}
+
+.guide-start-button {
+  background: var(--theme-input-surface);
+  color: var(--color-ink);
+}
+
+.guide-secondary-button {
+  border: 1rpx solid rgba(101, 118, 77, 0.22);
+  background: var(--theme-input-surface);
+  color: var(--color-action);
+}
+
+.guide-flow-card {
+  padding: 30rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--theme-card-surface);
+}
+
+.guide-flow-title {
+  color: var(--color-ink);
+  font-size: 32rpx;
+  font-weight: 950;
+}
+
+.guide-flow-list {
+  display: grid;
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.guide-flow-step {
+  display: grid;
+  grid-template-columns: 54rpx 1fr;
+  gap: 18rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 1rpx solid var(--color-line);
+}
+
+.guide-flow-step:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.guide-flow-index {
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--palette-green-soft);
+  color: var(--color-action);
+  font-size: 23rpx;
+  font-weight: 950;
+}
+
+.guide-flow-copy {
+  min-width: 0;
+}
+
+.guide-flow-step-title {
+  color: var(--color-ink);
+  font-size: 28rpx;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.guide-flow-step-desc {
+  margin-top: 6rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 780;
+  line-height: 1.42;
 }
 
 .guide-list {
@@ -35,7 +141,7 @@
   padding: 30rpx;
   border: 1rpx solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--theme-card-surface);
 }
 
 .guide-card:nth-child(2) .guide-index {
@@ -116,4 +222,43 @@
   margin-top: 12rpx;
   border-radius: 50%;
   background: var(--color-action);
+}
+
+.guide-more-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70rpx;
+  align-items: center;
+  gap: 20rpx;
+  padding: 34rpx;
+  border: 2rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--palette-black);
+  color: #fff;
+}
+
+.guide-more-title {
+  font-size: 36rpx;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.guide-more-desc {
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.guide-more-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-action);
+  font-size: 34rpx;
+  font-weight: 950;
 }

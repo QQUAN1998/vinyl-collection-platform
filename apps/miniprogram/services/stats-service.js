@@ -25,6 +25,11 @@ function getCollectionQuantity(item) {
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 }
 
+function getCollectionAmount(item) {
+  const price = Number(item && item.price);
+  return (Number.isFinite(price) ? price : 0) * getCollectionQuantity(item);
+}
+
 function calculateCollectionStats(albums, collectionItems) {
   const albumById = new Map(albums.map((album) => [album.id, album]));
   const artists = new Set();
@@ -37,7 +42,7 @@ function calculateCollectionStats(albums, collectionItems) {
     if (!album) continue;
     artists.add(album.artist);
     trackCount += Array.isArray(album.tracks) ? album.tracks.length : 0;
-    totalPrice += Number(item.price || 0);
+    totalPrice += getCollectionAmount(item);
     const decade = decadeOf(album.year);
     decadeDistribution[decade] = (decadeDistribution[decade] || 0) + 1;
   }
@@ -166,5 +171,7 @@ module.exports = {
   buildMediaFormatDistribution,
   buildMonthlyCollectionEntries,
   buildMonthlyCollectionDistribution,
-  calculateCollectionStats
+  calculateCollectionStats,
+  getCollectionAmount,
+  getCollectionQuantity
 };

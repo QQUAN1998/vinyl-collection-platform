@@ -6,16 +6,33 @@ const {
   recentAlbumIds
 } = require("../../data/seed.js");
 const { confirmSelectedAlbums, removeCollectionItem } = require("../../services/collection-service.js");
+const {
+  buildCollectedAlbumLibrary,
+  mergeAlbumLibraries,
+  toAlbumView
+} = require("../../services/album-library-service.js");
 const { DEFAULT_MEDIUM_KEY, getMediaFormat } = require("../../services/media-format-service.js");
 const {
   addAlbumToPhotoWall,
   buildPhotoWallAlbums,
   removeAlbumFromPhotoWall
 } = require("../../services/photo-wall-service.js");
-const { ensureCloudSession, showCloudDeleteFailed, showCloudSaveFailed } = require("../../services/cloud-session.js");
+const { requireCloudAccount, showCloudDeleteFailed, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { getAlbumRarity } = require("../../services/rarity-service.js");
-const { createShareMessage } = require("../../services/share.js");
+const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const { normalizeTrackDisplayList } = require("../../services/track-display-service.js");
+const {
+  getPreviewPlayerState,
+  subscribePreviewPlayer,
+  togglePreviewPlayback
+} = require("../../services/preview-player-service.js");
+const { fetchCatalogAlbumDetail } = require("../../services/catalog-api.js");
+const {
+  buildDailyRecommendationFallback,
+  getRecommendationDateKey,
+  loadDailyRecommendation,
+  readFastStoredDailyRecommendation
+} = require("../../services/daily-recommendation-service.js");
 
 const CATALOG_SCOPES = [
   { key: "all", label: "全部" },
@@ -39,14 +56,6 @@ function formatCollectionDate(collectionItem) {
   }
 
   return `收藏于 ${collectionItem.collectionDate.slice(0, 7)}`;
-}
-
-function toAlbumView(album) {
-  return {
-    ...album,
-    cover: album.cover || `/${album.coverUrl}`,
-    styles: album.style
-  };
 }
 
 function buildAlbumCard(album, collectionItem, photoWallOrder = []) {
@@ -125,6 +134,26 @@ function buildCatalogState(sourceAlbums, query, scope, collectionCount) {
   };
 }
 
+function buildRecommendationLoadKey(sourceAlbums = [], collectionItems = []) {
+  const albumIds = (collectionItems || [])
+    .map((item) => item && item.albumId)
+    .filter(Boolean)
+    .sort()
+    .join("|");
+  return `${getRecommendationDateKey()}:${sourceAlbums.length}:${albumIds}`;
+}
+
+function formatPreviewPlayerState(state = {}) {
+  if (!state.visible || !state.albumId) {
+    return null;
+  }
+
+  return {
+    ...state,
+    playStateLabel: state.isPlaying ? "\u6682\u505c\u8bd5\u542c" : "\u7ee7\u7eed\u8bd5\u542c"
+  };
+}
+
 Page({
   data: {
     userLabel: "\u5531\u7247\u67dc\u7528\u6237 / \u00a50",
@@ -142,14 +171,27 @@ Page({
     cardAlbumIds: [],
     cardIndex: 0,
     cardContext: "catalog",
-    cardPositionLabel: ""
+    cardPositionLabel: "",
+    previewPlayer: null,
+    dailyRecommendation: buildDailyRecommendationFallback("loading")
   },
   onLoad() {
+    const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
+    this.unsubscribePreviewPlayer = subscribePreviewPlayer((state) => {
+      this.syncPreviewPlayerState(state);
+    });
     this.loadCabinet();
   },
   onShow() {
-    this.loadCabinet();
     const app = getApp();
+    if (typeof app.applyThemeToPage === "function") {
+      app.applyThemeToPage(this);
+    }
+    this.loadCabinet();
+    this.syncPreviewPlayerState();
     if (typeof app.loadCloudCollection === "function") {
       app.loadCloudCollection().then((payload) => {
         if (payload) {
@@ -158,10 +200,17 @@ Page({
       });
     }
   },
+  onUnload() {
+    if (this.unsubscribePreviewPlayer) {
+      this.unsubscribePreviewPlayer();
+      this.unsubscribePreviewPlayer = null;
+    }
+  },
   loadCabinet() {
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
     const collectionByAlbumId = collectionMapByAlbumId(liveCollectionItems);
     const collectedAlbumIds = new Set(liveCollectionItems.map((item) => item.albumId));
     const recentAlbums = recentAlbumIds
@@ -170,7 +219,7 @@ Page({
       .filter(Boolean);
 
     const catalogState = buildCatalogState(
-      sourceAlbums,
+      collectedAlbums,
       this.data.catalogSearch,
       this.data.catalogScope,
       liveCollectionItems.length
@@ -197,37 +246,154 @@ Page({
       albumCard,
       ...catalogState
     });
+    this.refreshDailyRecommendation(sourceAlbums, liveCollectionItems);
+  },
+  refreshDailyRecommendation(sourceAlbums, liveCollectionItems) {
+    const loadKey = buildRecommendationLoadKey(sourceAlbums, liveCollectionItems);
+    const current = this.data.dailyRecommendation;
+    if (this.dailyRecommendationLoadKey === loadKey && current && !current.loading) {
+      return;
+    }
+    if (this.dailyRecommendationRequestKey === loadKey) {
+      return;
+    }
+
+    const app = getApp();
+    const dateKey = getRecommendationDateKey();
+    const fastRecommendation = readFastStoredDailyRecommendation({
+      sourceAlbums,
+      collectionItems: liveCollectionItems,
+      wxApi: wx,
+      now: new Date()
+    });
+    this.dailyRecommendationRequestKey = loadKey;
+    if (!current || current.dateKey !== dateKey) {
+      this.setData({
+        dailyRecommendation: fastRecommendation || buildDailyRecommendationFallback("loading", dateKey)
+      });
+    }
+
+    loadDailyRecommendation({
+      sourceAlbums,
+      collectionItems: liveCollectionItems,
+      cloudConfig: app.globalData.cloud || {},
+      wxApi: wx
+    })
+      .then((dailyRecommendation) => {
+        if (this.dailyRecommendationRequestKey !== loadKey) {
+          return;
+        }
+        this.dailyRecommendationLoadKey = loadKey;
+        this.dailyRecommendationRequestKey = "";
+        this.setData({
+          dailyRecommendation: dailyRecommendation.action === "recommendation"
+            ? dailyRecommendation
+            : (fastRecommendation || dailyRecommendation)
+        });
+      })
+      .catch(() => {
+        if (this.dailyRecommendationRequestKey !== loadKey) {
+          return;
+        }
+        this.dailyRecommendationLoadKey = loadKey;
+        this.dailyRecommendationRequestKey = "";
+        this.setData({
+          dailyRecommendation: fastRecommendation || buildDailyRecommendationFallback("unavailable", dateKey)
+        });
+      });
+  },
+  syncPreviewPlayerState(state = getPreviewPlayerState()) {
+    this.setData({
+      previewPlayer: formatPreviewPlayerState(state)
+    });
+  },
+  openPreviewPlayerDetail() {
+    const previewPlayer = this.data.previewPlayer;
+    if (!previewPlayer || !previewPlayer.albumId) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/album-detail/index?albumId=${previewPlayer.albumId}`
+    });
+  },
+  togglePreviewPlayer() {
+    togglePreviewPlayback();
+    this.syncPreviewPlayerState();
+  },
+  openDailyRecommendation() {
+    const dailyRecommendation = this.data.dailyRecommendation;
+    if (!dailyRecommendation || dailyRecommendation.loading) {
+      return;
+    }
+    if (!dailyRecommendation.album || dailyRecommendation.action !== "recommendation") {
+      wx.navigateTo({
+        url: "/pages/add/index"
+      });
+      return;
+    }
+
+    const app = getApp();
+    const album = dailyRecommendation.album;
+    const openRecommendationDetail = (selectedAlbum = album) => {
+      const albumView = toAlbumView(selectedAlbum);
+      const recommendationAlbums = app.globalData.recommendationAlbums || [];
+      app.globalData.recommendationAlbums = [
+        albumView,
+        ...recommendationAlbums.filter((item) => item && item.id !== albumView.id)
+      ].slice(0, 12);
+
+      wx.navigateTo({
+        url: `/pages/album-detail/index?albumId=${albumView.id}`
+      });
+    };
+
+    if (!album.catalogProvider || !album.catalogProviderId) {
+      openRecommendationDetail(album);
+      return;
+    }
+
+    wx.showLoading({ title: "补全专辑信息" });
+    fetchCatalogAlbumDetail(album, { country: "CN" }, app.globalData.cloud || {}, wx)
+      .then(openRecommendationDetail)
+      .catch(() => openRecommendationDetail(album))
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
   handleCatalogSearch(event) {
     const catalogSearch = event.detail.value;
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
 
     this.setData({
       catalogSearch,
-      ...buildCatalogState(sourceAlbums, catalogSearch, this.data.catalogScope, liveCollectionItems.length)
+      ...buildCatalogState(collectedAlbums, catalogSearch, this.data.catalogScope, liveCollectionItems.length)
     });
   },
   clearCatalogSearch() {
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
 
     this.setData({
       catalogSearch: "",
-      ...buildCatalogState(sourceAlbums, "", this.data.catalogScope, liveCollectionItems.length)
+      ...buildCatalogState(collectedAlbums, "", this.data.catalogScope, liveCollectionItems.length)
     });
   },
   selectCatalogScope(event) {
     const catalogScope = event.currentTarget.dataset.scope || "all";
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
 
     this.setData({
       catalogScope,
-      ...buildCatalogState(sourceAlbums, this.data.catalogSearch, catalogScope, liveCollectionItems.length)
+      ...buildCatalogState(collectedAlbums, this.data.catalogSearch, catalogScope, liveCollectionItems.length)
     });
   },
   openAdd() {
@@ -252,8 +418,9 @@ Page({
   },
   openAlbumCard(albumId, context = "catalog") {
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
     const collectionByAlbumId = collectionMapByAlbumId(liveCollectionItems);
     const contextAlbums = context === "wall" ? this.data.photoWallAlbums : this.data.visibleAlbums;
     let cardAlbumIds = (contextAlbums || [])
@@ -261,7 +428,7 @@ Page({
       .map((item) => item.id);
 
     if (!cardAlbumIds.includes(albumId)) {
-      cardAlbumIds = sourceAlbums.map((item) => item.id);
+      cardAlbumIds = collectedAlbums.map((item) => item.id);
     }
 
     const cardIndex = Math.max(0, cardAlbumIds.indexOf(albumId));
@@ -295,7 +462,7 @@ Page({
     const cardIndex = (this.data.cardIndex + direction + total) % total;
     const albumId = this.data.cardAlbumIds[cardIndex];
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
     const collectionByAlbumId = collectionMapByAlbumId(liveCollectionItems);
     const albumCard = buildAlbumCard(
@@ -342,76 +509,91 @@ Page({
     }
 
     const app = getApp();
-    if (!ensureCloudSession(app)) {
-      return;
-    }
+    requireCloudAccount(app).then((me) => {
+      if (!me) {
+        return;
+      }
 
-    const now = new Date().toISOString();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
-    const result = confirmSelectedAlbums({
-      selectedAlbumIds: [albumCard.id],
-      albums: sourceAlbums,
-      existingCollectionItems: app.globalData.collectionItems || [],
-      defaults: {
-        userId: app.globalData.userId || "",
-        collectionDate: now.slice(0, 10),
-        source: "资料库添加",
-        quantity: 1,
-        condition: "NM",
-        mediumKey: DEFAULT_MEDIUM_KEY,
-        notes: ""
-      },
-      pricesByAlbumId: demoPricesByAlbumId,
-      now
-    });
-
-    if (!result.createdItems.length) {
-      this.loadCabinet();
-      this.openAlbumCard(albumCard.id, this.data.cardContext);
-      wx.showToast({
-        title: "\u5df2\u5728\u6536\u85cf",
-        icon: "success"
+      const now = new Date().toISOString();
+      const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
+      const result = confirmSelectedAlbums({
+        selectedAlbumIds: [albumCard.id],
+        albums: sourceAlbums,
+        existingCollectionItems: app.globalData.collectionItems || [],
+        defaults: {
+          userId: app.globalData.userId || "",
+          collectionDate: now.slice(0, 10),
+          source: "资料库添加",
+          quantity: 1,
+          condition: "NM",
+          mediumKey: DEFAULT_MEDIUM_KEY,
+          notes: ""
+        },
+        pricesByAlbumId: demoPricesByAlbumId,
+        now
       });
-      return;
-    }
 
-    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
-    app.saveCollectionToCloud(result.createdItems[0], albumCard)
-      .then((payload) => {
-        if (!payload) {
-          showCloudSaveFailed();
-          return;
-        }
-
+      if (!result.createdItems.length) {
         this.loadCabinet();
         this.openAlbumCard(albumCard.id, this.data.cardContext);
         wx.showToast({
-          title: "\u5df2\u52a0\u5165\u6536\u85cf",
+          title: "\u5df2\u5728\u6536\u85cf",
           icon: "success"
         });
-      })
-      .finally(() => {
-        wx.hideLoading();
-      });
+        return;
+      }
+
+      wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+      app.saveCollectionToCloud(result.createdItems[0], albumCard)
+        .then((payload) => {
+          if (!payload) {
+            showCloudSaveFailed();
+            return;
+          }
+
+          this.loadCabinet();
+          this.openAlbumCard(albumCard.id, this.data.cardContext);
+          wx.showToast({
+            title: "\u5df2\u52a0\u5165\u6536\u85cf",
+            icon: "success"
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
+        });
+    });
     return;
   },
-  handleCardStarAction() {
+  handleCardDeleteAction() {
     const albumCard = this.data.albumCard;
-    if (!albumCard) {
+    if (!albumCard || !albumCard.isCollected) {
       return;
     }
 
-    if (albumCard.isCollected) {
-      const app = getApp();
-      if (!ensureCloudSession(app)) {
+    wx.showModal({
+      title: "删除唱片",
+      content: `确认从收藏中删除《${albumCard.title}》吗？`,
+      confirmText: "删除",
+      confirmColor: "#b96d5b",
+      success: (result) => {
+        if (result.confirm) {
+          this.deleteCollectedAlbum(albumCard.id);
+        }
+      }
+    });
+  },
+  deleteCollectedAlbum(albumId) {
+    const app = getApp();
+    requireCloudAccount(app).then((me) => {
+      if (!me) {
         return;
       }
 
       const result = removeCollectionItem({
         collectionItems: app.globalData.collectionItems || [],
-        albumId: albumCard.id
+        albumId
       });
-      wx.showLoading({ title: "\u53d6\u6d88\u4e2d" });
+      wx.showLoading({ title: "\u5220\u9664\u4e2d" });
       app.deleteCollectionFromCloud(result.removedItem.id)
         .then((payload) => {
           if (!payload) {
@@ -420,20 +602,16 @@ Page({
           }
 
           this.loadCabinet();
-          this.openAlbumCard(albumCard.id, this.data.cardContext);
+          this.setData({ albumCard: null });
           wx.showToast({
-            title: "\u5df2\u53d6\u6d88\u6536\u85cf",
+            title: "\u5df2\u5220\u9664",
             icon: "success"
           });
         })
         .finally(() => {
           wx.hideLoading();
         });
-      return;
-      return;
-    }
-
-    this.handleCardCollectionAction();
+    });
   },
   handleWallAction() {
     const albumCard = this.data.albumCard;
@@ -442,7 +620,7 @@ Page({
     }
 
     const app = getApp();
-    const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
 
     if (!albumCard.isCollected) {
@@ -489,5 +667,8 @@ Page({
     }
 
     return createShareMessage();
+  },
+  onShareTimeline() {
+    return createShareTimeline(this.onShareAppMessage());
   }
 });

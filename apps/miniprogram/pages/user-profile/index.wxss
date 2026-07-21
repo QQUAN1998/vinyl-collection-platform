@@ -6,7 +6,17 @@
   display: grid;
   justify-items: center;
   gap: 16rpx;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
   padding: 32rpx 0 8rpx;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+.avatar-editor::after {
+  border: 0;
 }
 
 .profile-avatar-large {

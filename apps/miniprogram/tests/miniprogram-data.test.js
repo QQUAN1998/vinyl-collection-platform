@@ -130,6 +130,53 @@ const {
   readStoredThemeSetting,
   writeStoredThemeSetting,
 } = require("../services/theme-service.js");
+const {
+  TV_APK_FILE_NAME,
+  TV_APK_PUBLIC_URL,
+  downloadAndShareTvApk,
+} = require("../services/tv-apk-service.js");
+
+test("TV APK download keeps the installer suffix and shares it to WeChat", async () => {
+  const calls = [];
+  const wxApi = {
+    env: { USER_DATA_PATH: "wxfile://user" },
+    downloadFile(options) {
+      calls.push({ type: "download", options });
+      options.success({ statusCode: 200, filePath: options.filePath, tempFilePath: "" });
+      return { onProgressUpdate() {} };
+    },
+    shareFileMessage(options) {
+      calls.push({ type: "share", options });
+      options.success({});
+    },
+  };
+
+  const result = await downloadAndShareTvApk({}, wxApi);
+
+  assert.equal(calls[0].options.url, TV_APK_PUBLIC_URL);
+  assert.equal(calls[0].options.filePath, `wxfile://user/${TV_APK_FILE_NAME}`);
+  assert.equal(calls[1].options.filePath, `wxfile://user/${TV_APK_FILE_NAME}`);
+  assert.equal(calls[1].options.fileName, TV_APK_FILE_NAME);
+  assert.equal(result.fileName, "唱片柜-TV.apk");
+});
+
+test("TV APK download rejects an unavailable installer instead of sharing an error page", async () => {
+  const wxApi = {
+    env: { USER_DATA_PATH: "wxfile://user" },
+    downloadFile(options) {
+      options.success({ statusCode: 404, tempFilePath: "wxfile://temp/error" });
+      return { onProgressUpdate() {} };
+    },
+    shareFileMessage() {
+      assert.fail("shareFileMessage must not run for a failed APK download");
+    },
+  };
+
+  await assert.rejects(
+    downloadAndShareTvApk({}, wxApi),
+    /APK download failed with status 404/,
+  );
+});
 
 function createFakePreviewAudio() {
   const handlers = {};

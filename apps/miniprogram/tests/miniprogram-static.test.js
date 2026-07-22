@@ -34,6 +34,7 @@ test("mini program registers the prototype pages and required assets", () => {
     "pages/stats/index",
     "pages/archive-profile/index",
     "pages/account/index",
+    "pages/tv-download/index",
     "pages/theme-settings/index",
     "pages/user-guide/index",
     "pages/easter-library/index",
@@ -157,6 +158,13 @@ test("official WeChat share menu is wired globally without visible page-wide but
     assert.ok(cabinetMarkup.includes(text), `cabinet keeps prototype album card structure ${text}`);
   }
   assert.doesNotMatch(cabinetMarkup + addMarkup + statsMarkup + accountMarkup + allCollectionMarkup, /open-type="share"/);
+});
+
+test("cloud hosting packages the latest TV APK download", () => {
+  const apkPath = path.resolve(root, "..", "api", "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.apk");
+
+  assert.ok(fs.existsSync(apkPath), "versioned TV APK exists in the cloud-hosting public directory");
+  assert.ok(fs.statSync(apkPath).size > 300_000, "TV APK contains the complete installer");
 });
 
 test("primary mini-program pages keep the prototype interaction structure", () => {
@@ -406,6 +414,8 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(readText("pages/account/index.js").includes("shouldShowNewUserOnboarding"), "account page only shows onboarding to new first-login users");
   assert.doesNotMatch(readText("pages/account/index.js"), /phoneNumberMasked|phoneLoading|canAuthorizePhone/, "account page keeps registration to WeChat account only");
   assert.ok(accountMarkup.includes("平台服务"), "account page keeps service section");
+  assert.ok(accountMarkup.includes("电视版 APK"), "account page links to the TV APK service");
+  assert.ok(accountMarkup.includes("openTvDownload"), "account page opens the TV APK download page");
   assert.ok(accountMarkup.includes("tv-action.png"), "account device row uses the downloaded TV icon");
   assert.ok(accountMarkup.includes("scanTvLogin"), "account page can scan and bind the TV app login QR code");
   assert.ok(accountMarkup.includes("openBatchImport"), "account import row opens batch album import");
@@ -418,6 +428,14 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(accountMarkup.includes("theme-palette.svg"), "account theme settings row uses the provided palette icon");
   assert.doesNotMatch(accountStyles, /\.theme-tool-icon\s*\{[^}]*background:\s*var\(--color-soft\)/s, "theme palette row uses the same icon background as neighboring rows");
   assert.ok(readText("pages/account/index.js").includes("themeSummary"), "account page shows the current theme name");
+  const tvDownloadMarkup = readText("pages/tv-download/index.wxml");
+  const tvDownloadScript = readText("pages/tv-download/index.js");
+  assert.ok(tvDownloadMarkup.includes("安装指引"), "TV APK page includes installation guidance");
+  assert.ok(tvDownloadMarkup.includes("下载并分享 APK"), "TV APK page exposes the download action");
+  assert.ok(tvDownloadMarkup.includes(".apk(1)"), "TV APK page warns about invalid duplicate suffixes");
+  assert.ok(tvDownloadMarkup.includes("新建文件夹"), "TV APK page explains the reliable USB folder flow");
+  assert.ok(tvDownloadMarkup.includes("扫码同步"), "TV APK page explains collection synchronization");
+  assert.ok(tvDownloadScript.includes("downloadAndShareTvApk"), "TV APK page downloads and shares the installer");
   assert.ok(themeSettingsMarkup.includes("显示模式"), "theme settings page exposes preset theme modes");
   assert.ok(themeSettingsMarkup.includes("自定义底色"), "theme settings page exposes custom background color");
   assert.ok(themeSettingsMarkup.includes("customSwatches"), "theme settings page exposes custom color swatches");

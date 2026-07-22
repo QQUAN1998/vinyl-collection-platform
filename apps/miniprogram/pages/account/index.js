@@ -472,6 +472,11 @@ Page({
       url: "/pages/user-guide/index"
     });
   },
+  openTvDownload() {
+    wx.navigateTo({
+      url: "/pages/tv-download/index"
+    });
+  },
   openThemeSettings() {
     wx.navigateTo({
       url: "/pages/theme-settings/index"

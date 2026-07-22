@@ -1,0 +1,177 @@
+.tv-download-screen {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(86rpx + var(--safe-bottom));
+}
+
+.apk-status-row {
+  min-height: 150rpx;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 72rpx minmax(0, 1fr) auto;
+  gap: 22rpx;
+  align-items: center;
+  padding: 24rpx;
+  border: 1rpx solid var(--theme-panel-border);
+  border-radius: var(--radius-card);
+  background: var(--theme-panel-tint);
+}
+
+.apk-status-icon {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  background: var(--theme-input-surface);
+}
+
+.apk-status-symbol {
+  width: 42rpx;
+  height: 42rpx;
+}
+
+.apk-status-copy {
+  min-width: 0;
+}
+
+.apk-status-title {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 31rpx;
+  font-weight: 950;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apk-status-meta {
+  margin-top: 8rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 780;
+  line-height: 1.35;
+}
+
+.apk-status-badge {
+  min-width: 72rpx;
+  min-height: 54rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: var(--color-action);
+  color: var(--theme-primary-button-text);
+  font-size: 22rpx;
+  font-weight: 950;
+}
+
+.guide-section,
+.download-section {
+  margin-top: 54rpx;
+}
+
+.guide-list {
+  display: grid;
+}
+
+.guide-step {
+  min-height: 128rpx;
+  display: grid;
+  grid-template-columns: 54rpx minmax(0, 1fr);
+  gap: 18rpx;
+  align-items: start;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--color-line);
+}
+
+.guide-step-index {
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--palette-green-soft);
+  color: var(--color-action);
+  font-size: 23rpx;
+  font-weight: 950;
+}
+
+.guide-step-copy {
+  min-width: 0;
+}
+
+.guide-step-title {
+  color: var(--color-ink);
+  font-size: 28rpx;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.guide-step-desc {
+  margin-top: 7rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 750;
+  line-height: 1.48;
+  word-break: break-all;
+}
+
+.download-panel {
+  padding: 30rpx;
+  border: 1rpx solid var(--theme-panel-border);
+  border-radius: var(--radius-card);
+  background: var(--theme-card-surface);
+}
+
+.download-panel-kicker {
+  color: var(--color-action);
+  font-size: 20rpx;
+  font-weight: 950;
+  letter-spacing: 2rpx;
+}
+
+.download-panel-title {
+  margin-top: 8rpx;
+  color: var(--color-ink);
+  font-size: 34rpx;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.download-panel-meta,
+.download-note {
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 750;
+  line-height: 1.48;
+}
+
+.download-panel-meta {
+  margin-top: 10rpx;
+}
+
+.download-button {
+  width: 100%;
+  min-height: 92rpx;
+  box-sizing: border-box;
+  margin-top: 26rpx;
+  border: 0;
+  line-height: 92rpx;
+}
+
+.download-button::after {
+  border: 0;
+}
+
+.download-button[disabled] {
+  opacity: 0.72;
+}
+
+.download-note {
+  margin-top: 18rpx;
+}

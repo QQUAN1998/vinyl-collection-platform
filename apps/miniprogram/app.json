@@ -13,6 +13,7 @@
     "pages/stats/index",
     "pages/archive-profile/index",
     "pages/account/index",
+    "pages/tv-download/index",
     "pages/theme-settings/index",
     "pages/user-guide/index",
     "pages/easter-library/index"

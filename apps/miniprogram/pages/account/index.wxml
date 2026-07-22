@@ -82,6 +82,16 @@
         </view>
         <view class="tool-arrow">›</view>
       </view>
+      <view class="tool-row" bindtap="openTvDownload" hover-class="tool-row-hover" aria-role="button">
+        <view class="tool-icon">
+          <image class="tool-symbol" src="/assets/icons/tv-action.png" mode="aspectFit" />
+        </view>
+        <view class="tool-copy">
+          <view class="tool-title">电视版 APK</view>
+          <view class="row-meta">下载安装到电视并同步当前收藏</view>
+        </view>
+        <view class="tool-arrow">›</view>
+      </view>
       <view class="tool-row" bindtap="openThemeSettings" hover-class="tool-row-hover" aria-role="button">
         <view class="tool-icon theme-tool-icon">
           <image class="tool-symbol theme-tool-symbol" src="/assets/icons/theme-palette.svg" mode="aspectFit" />

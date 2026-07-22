@@ -30,6 +30,14 @@ function formatTvApkDownloadError(error) {
       detail,
     };
   }
+  if (normalized.includes("user tap gesture")) {
+    return {
+      cancelled: false,
+      title: "请重新点击按钮",
+      message: "文件已准备好，请再次点击下载分享按钮。",
+      detail,
+    };
+  }
   if (normalized.includes("sharefilemessage") || normalized.includes("不支持文件分享")) {
     return {
       cancelled: false,
@@ -115,19 +123,33 @@ function downloadAndShareTvApk(options = {}, wxApi) {
 
     const userPath = api.env && api.env.USER_DATA_PATH ? api.env.USER_DATA_PATH : "";
     const fs = typeof api.getFileSystemManager === "function" ? api.getFileSystemManager() : null;
-    if (userPath && fs && typeof fs.writeFile === "function") {
+    if (userPath && fs) {
       const filePath = `${userPath}/${fileName}`;
-      fs.writeFile({
-        filePath,
-        data: TV_PACKAGE_BASE64,
-        encoding: "base64",
-        success() {
-          if (typeof options.onProgress === "function") options.onProgress(100);
-          sharePackage(filePath, "bundled");
-        },
-        fail: downloadRemotePackage,
-      });
-      return;
+      if (typeof fs.writeFileSync === "function") {
+        try {
+          fs.writeFileSync(filePath, TV_PACKAGE_BASE64, "base64");
+          sharePackage(filePath, "bundled-sync");
+          return;
+        } catch (error) {
+          if (typeof fs.writeFile !== "function") {
+            downloadRemotePackage();
+            return;
+          }
+        }
+      }
+      if (typeof fs.writeFile === "function") {
+        fs.writeFile({
+          filePath,
+          data: TV_PACKAGE_BASE64,
+          encoding: "base64",
+          success() {
+            if (typeof options.onProgress === "function") options.onProgress(100);
+            sharePackage(filePath, "bundled-async");
+          },
+          fail: downloadRemotePackage,
+        });
+        return;
+      }
     }
 
     downloadRemotePackage();

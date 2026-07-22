@@ -176,6 +176,35 @@ test("TV package uses its bundled ZIP without making a network request", async (
   assert.equal(calls[1].options.filePath, "wxfile://user/唱片柜-TV.zip");
 });
 
+test("TV package opens file sharing inside the original user tap gesture", async () => {
+  let tapGestureActive = true;
+  const calls = [];
+  const wxApi = {
+    env: { USER_DATA_PATH: "wxfile://user" },
+    getFileSystemManager() {
+      return {
+        writeFileSync(filePath, data, encoding) {
+          calls.push({ type: "write-sync", filePath, data, encoding });
+        },
+      };
+    },
+    shareFileMessage(options) {
+      assert.equal(tapGestureActive, true, "shareFileMessage must run before the tap handler returns");
+      calls.push({ type: "share", options });
+      options.success({});
+    },
+  };
+
+  const resultPromise = downloadAndShareTvApk({}, wxApi);
+  tapGestureActive = false;
+  await resultPromise;
+
+  assert.equal(calls[0].type, "write-sync");
+  assert.equal(calls[0].filePath, "wxfile://user/唱片柜-TV.zip");
+  assert.equal(calls[0].encoding, "base64");
+  assert.equal(calls[1].type, "share");
+});
+
 test("TV package download prefers WeChat cloud storage and bypasses domain whitelists", async () => {
   const calls = [];
   const wxApi = {
@@ -231,6 +260,15 @@ test("TV APK download formats domain failures as visible diagnostics", () => {
   assert.equal(failure.title, "下载通道未启用");
   assert.match(failure.message, /下载域名/);
   assert.match(failure.detail, /domain list/);
+});
+
+test("TV package identifies an expired user tap gesture without blaming the WeChat version", () => {
+  const failure = formatTvApkDownloadError({
+    errMsg: "shareFileMessage:fail can only be invoked by user TAP gesture.",
+  });
+
+  assert.equal(failure.title, "请重新点击按钮");
+  assert.match(failure.message, /文件已准备好/);
 });
 
 test("TV package download keeps the ZIP suffix and shares it to WeChat", async () => {

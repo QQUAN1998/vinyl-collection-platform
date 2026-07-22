@@ -2,18 +2,8 @@ const { createShareMessage, createShareTimeline } = require("../../services/shar
 const {
   TV_APK_FILE_NAME,
   downloadAndShareTvApk,
+  formatTvApkDownloadError,
 } = require("../../services/tv-apk-service.js");
-
-function formatDownloadError(error) {
-  const message = error && (error.errMsg || error.message) ? (error.errMsg || error.message) : "APK 下载失败";
-  if (message.includes("domain list")) {
-    return "下载域名暂未启用，请稍后再试";
-  }
-  if (message.includes("cancel")) {
-    return "";
-  }
-  return Array.from(message).slice(0, 24).join("");
-}
 
 Page({
   data: {
@@ -21,6 +11,7 @@ Page({
     fileSize: "约 336 KB",
     downloading: false,
     downloadProgress: 0,
+    downloadError: "",
   },
   onShow() {
     const app = getApp();
@@ -31,7 +22,7 @@ Page({
   handleDownloadShare() {
     if (this.data.downloading) return;
 
-    this.setData({ downloading: true, downloadProgress: 0 });
+    this.setData({ downloading: true, downloadProgress: 0, downloadError: "" });
     wx.showLoading({ title: "准备安装包" });
     downloadAndShareTvApk({
       onProgress: (downloadProgress) => {
@@ -42,16 +33,23 @@ Page({
       },
     })
       .then(() => {
-        wx.showToast({ title: "请选择微信好友", icon: "success" });
+        wx.hideLoading();
+        wx.showToast({ title: "安装包已分享", icon: "success" });
       })
       .catch((error) => {
-        const title = formatDownloadError(error);
-        if (title) {
-          wx.showToast({ title, icon: "none" });
+        wx.hideLoading();
+        const failure = formatTvApkDownloadError(error);
+        if (!failure.cancelled) {
+          this.setData({ downloadError: failure.message });
+          wx.showModal({
+            title: failure.title,
+            content: `${failure.message}\n诊断：${failure.detail}`,
+            showCancel: false,
+            confirmText: "知道了",
+          });
         }
       })
       .finally(() => {
-        wx.hideLoading();
         this.setData({ downloading: false });
       });
   },

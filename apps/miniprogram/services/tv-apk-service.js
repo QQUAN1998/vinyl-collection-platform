@@ -7,6 +7,42 @@ function getWxApi(wxApi) {
   return wx;
 }
 
+function readErrorMessage(error) {
+  if (!error) return "APK 下载失败";
+  return String(error.errMsg || error.message || error);
+}
+
+function formatTvApkDownloadError(error) {
+  const detail = Array.from(readErrorMessage(error)).slice(0, 120).join("");
+  const normalized = detail.toLowerCase();
+
+  if (normalized.includes("cancel")) {
+    return { cancelled: true, title: "", message: "", detail };
+  }
+  if (normalized.includes("domain list")) {
+    return {
+      cancelled: false,
+      title: "下载通道未启用",
+      message: "APK 下载域名暂未启用，请稍后再试。",
+      detail,
+    };
+  }
+  if (normalized.includes("sharefilemessage") || normalized.includes("不支持文件分享")) {
+    return {
+      cancelled: false,
+      title: "微信版本不支持",
+      message: "请升级微信后再下载并分享 APK。",
+      detail,
+    };
+  }
+  return {
+    cancelled: false,
+    title: "下载失败",
+    message: "安装包未能下载或分享，请检查网络后重试。",
+    detail,
+  };
+}
+
 function downloadAndShareTvApk(options = {}, wxApi) {
   const api = getWxApi(wxApi);
   if (!api || typeof api.downloadFile !== "function") {
@@ -16,59 +52,47 @@ function downloadAndShareTvApk(options = {}, wxApi) {
     return Promise.reject(new Error("当前微信版本不支持文件分享"));
   }
 
-  const userPath = api.env && api.env.USER_DATA_PATH ? api.env.USER_DATA_PATH : "";
-  if (!userPath) {
-    return Promise.reject(new Error("无法访问微信文件目录"));
-  }
-
   const fileName = options.fileName || TV_APK_FILE_NAME;
-  const filePath = `${userPath}/${fileName}`;
   const url = options.url || TV_APK_PUBLIC_URL;
 
   return new Promise((resolve, reject) => {
-    const startDownload = () => {
-      let task;
-      try {
-        task = api.downloadFile({
-          url,
-          filePath,
-          success(response = {}) {
-            const statusCode = Number(response.statusCode || 0);
-            if (statusCode < 200 || statusCode >= 300) {
-              reject(new Error(`APK download failed with status ${statusCode || "unknown"}.`));
-              return;
-            }
+    let task;
+    try {
+      task = api.downloadFile({
+        url,
+        success(response = {}) {
+          const statusCode = Number(response.statusCode || 0);
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(new Error(`APK download failed with status ${statusCode || "unknown"}.`));
+            return;
+          }
 
-            const downloadedPath = response.filePath || response.tempFilePath || filePath;
-            api.shareFileMessage({
-              filePath: downloadedPath,
-              fileName,
-              success() {
-                resolve({ filePath: downloadedPath, fileName, url });
-              },
-              fail: reject,
-            });
-          },
-          fail: reject,
-        });
-      } catch (error) {
-        reject(error);
-        return;
-      }
-
-      if (task && typeof task.onProgressUpdate === "function" && typeof options.onProgress === "function") {
-        task.onProgressUpdate((progress = {}) => {
-          options.onProgress(Number(progress.progress || 0));
-        });
-      }
-    };
-
-    const fs = typeof api.getFileSystemManager === "function" ? api.getFileSystemManager() : null;
-    if (fs && typeof fs.unlink === "function") {
-      fs.unlink({ filePath, complete: startDownload });
+          const downloadedPath = response.tempFilePath || response.filePath || "";
+          if (!downloadedPath) {
+            reject(new Error("APK download completed without a temporary file."));
+            return;
+          }
+          api.shareFileMessage({
+            filePath: downloadedPath,
+            fileName,
+            success() {
+              resolve({ filePath: downloadedPath, fileName, url });
+            },
+            fail: reject,
+          });
+        },
+        fail: reject,
+      });
+    } catch (error) {
+      reject(error);
       return;
     }
-    startDownload();
+
+    if (task && typeof task.onProgressUpdate === "function" && typeof options.onProgress === "function") {
+      task.onProgressUpdate((progress = {}) => {
+        options.onProgress(Number(progress.progress || 0));
+      });
+    }
   });
 }
 
@@ -76,4 +100,5 @@ module.exports = {
   TV_APK_FILE_NAME,
   TV_APK_PUBLIC_URL,
   downloadAndShareTvApk,
+  formatTvApkDownloadError,
 };

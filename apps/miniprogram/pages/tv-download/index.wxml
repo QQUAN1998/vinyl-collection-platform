@@ -69,6 +69,7 @@
         bindtap="handleDownloadShare"
         hover-class="button-hover"
       >{{downloading ? (downloadProgress ? '下载 ' + downloadProgress + '%' : '准备下载') : '下载并分享 APK'}}</button>
+      <view wx:if="{{downloadError}}" class="download-error">{{downloadError}}</view>
     </view>
     <view class="download-note">请只安装本页提供的最新版文件。电视安装完成后，APK 可继续保存在 U 盘中备用。</view>
   </view>

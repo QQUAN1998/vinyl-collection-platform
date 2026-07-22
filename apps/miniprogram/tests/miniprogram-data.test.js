@@ -134,7 +134,39 @@ const {
   TV_APK_FILE_NAME,
   TV_APK_PUBLIC_URL,
   downloadAndShareTvApk,
+  formatTvApkDownloadError,
 } = require("../services/tv-apk-service.js");
+
+test("TV APK download can share a temporary file without requiring the user data directory", async () => {
+  const calls = [];
+  const wxApi = {
+    downloadFile(options) {
+      calls.push({ type: "download", options });
+      options.success({ statusCode: 200, tempFilePath: "wxfile://temp/tv-apk" });
+      return { onProgressUpdate() {} };
+    },
+    shareFileMessage(options) {
+      calls.push({ type: "share", options });
+      options.success({});
+    },
+  };
+
+  await downloadAndShareTvApk({}, wxApi);
+
+  assert.equal(calls[0].options.filePath, undefined);
+  assert.equal(calls[1].options.filePath, "wxfile://temp/tv-apk");
+  assert.equal(calls[1].options.fileName, TV_APK_FILE_NAME);
+});
+
+test("TV APK download formats domain failures as visible diagnostics", () => {
+  const failure = formatTvApkDownloadError({
+    errMsg: "downloadFile:fail url not in domain list",
+  });
+
+  assert.equal(failure.title, "下载通道未启用");
+  assert.match(failure.message, /下载域名/);
+  assert.match(failure.detail, /domain list/);
+});
 
 test("TV APK download keeps the installer suffix and shares it to WeChat", async () => {
   const calls = [];
@@ -142,7 +174,7 @@ test("TV APK download keeps the installer suffix and shares it to WeChat", async
     env: { USER_DATA_PATH: "wxfile://user" },
     downloadFile(options) {
       calls.push({ type: "download", options });
-      options.success({ statusCode: 200, filePath: options.filePath, tempFilePath: "" });
+      options.success({ statusCode: 200, tempFilePath: "wxfile://temp/tv-apk" });
       return { onProgressUpdate() {} };
     },
     shareFileMessage(options) {
@@ -154,8 +186,8 @@ test("TV APK download keeps the installer suffix and shares it to WeChat", async
   const result = await downloadAndShareTvApk({}, wxApi);
 
   assert.equal(calls[0].options.url, TV_APK_PUBLIC_URL);
-  assert.equal(calls[0].options.filePath, `wxfile://user/${TV_APK_FILE_NAME}`);
-  assert.equal(calls[1].options.filePath, `wxfile://user/${TV_APK_FILE_NAME}`);
+  assert.equal(calls[0].options.filePath, undefined);
+  assert.equal(calls[1].options.filePath, "wxfile://temp/tv-apk");
   assert.equal(calls[1].options.fileName, TV_APK_FILE_NAME);
   assert.equal(result.fileName, "唱片柜-TV.apk");
 });

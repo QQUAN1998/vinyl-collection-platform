@@ -436,6 +436,8 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(tvDownloadMarkup.includes("新建文件夹"), "TV APK page explains the reliable USB folder flow");
   assert.ok(tvDownloadMarkup.includes("扫码同步"), "TV APK page explains collection synchronization");
   assert.ok(tvDownloadScript.includes("downloadAndShareTvApk"), "TV APK page downloads and shares the installer");
+  assert.ok(tvDownloadScript.includes("wx.showModal"), "TV APK failures remain visible after the loading state closes");
+  assert.ok(tvDownloadMarkup.includes("downloadError"), "TV APK page keeps an inline failure status for diagnosis");
   assert.ok(themeSettingsMarkup.includes("显示模式"), "theme settings page exposes preset theme modes");
   assert.ok(themeSettingsMarkup.includes("自定义底色"), "theme settings page exposes custom background color");
   assert.ok(themeSettingsMarkup.includes("customSwatches"), "theme settings page exposes custom color swatches");

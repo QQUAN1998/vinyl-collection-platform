@@ -1,5 +1,5 @@
-const TV_APK_FILE_NAME = "唱片柜-TV.apk";
-const TV_APK_PUBLIC_URL = "https://vinyl-prod-d0g8u61k95ee7a1e6-1314675814.tcloudbaseapp.com/downloads/vinyl-cabinet-tv-1.0.66.7.apk";
+const TV_PACKAGE_FILE_NAME = "唱片柜-TV.zip";
+const TV_PACKAGE_PUBLIC_URL = "https://vinyl-prod-d0g8u61k95ee7a1e6-1314675814.tcloudbaseapp.com/downloads/vinyl-cabinet-tv-1.0.66.7.zip";
 
 function getWxApi(wxApi) {
   if (wxApi) return wxApi;
@@ -31,7 +31,7 @@ function formatTvApkDownloadError(error) {
     return {
       cancelled: false,
       title: "微信版本不支持",
-      message: "请升级微信后再下载并分享 APK。",
+      message: "请升级微信后再下载并分享电视版安装包。",
       detail,
     };
   }
@@ -52,8 +52,8 @@ function downloadAndShareTvApk(options = {}, wxApi) {
     return Promise.reject(new Error("当前微信版本不支持文件分享"));
   }
 
-  const fileName = options.fileName || TV_APK_FILE_NAME;
-  const url = options.url || TV_APK_PUBLIC_URL;
+  const fileName = options.fileName || TV_PACKAGE_FILE_NAME;
+  const url = options.url || TV_PACKAGE_PUBLIC_URL;
 
   return new Promise((resolve, reject) => {
     let task;
@@ -63,13 +63,13 @@ function downloadAndShareTvApk(options = {}, wxApi) {
         success(response = {}) {
           const statusCode = Number(response.statusCode || 0);
           if (statusCode < 200 || statusCode >= 300) {
-            reject(new Error(`APK download failed with status ${statusCode || "unknown"}.`));
+            reject(new Error(`TV package download failed with status ${statusCode || "unknown"}.`));
             return;
           }
 
           const downloadedPath = response.tempFilePath || response.filePath || "";
           if (!downloadedPath) {
-            reject(new Error("APK download completed without a temporary file."));
+            reject(new Error("TV package download completed without a temporary file."));
             return;
           }
           api.shareFileMessage({
@@ -97,8 +97,8 @@ function downloadAndShareTvApk(options = {}, wxApi) {
 }
 
 module.exports = {
-  TV_APK_FILE_NAME,
-  TV_APK_PUBLIC_URL,
+  TV_PACKAGE_FILE_NAME,
+  TV_PACKAGE_PUBLIC_URL,
   downloadAndShareTvApk,
   formatTvApkDownloadError,
 };

@@ -160,11 +160,14 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.doesNotMatch(cabinetMarkup + addMarkup + statsMarkup + accountMarkup + allCollectionMarkup, /open-type="share"/);
 });
 
-test("cloud hosting packages the latest TV APK download", () => {
+test("cloud hosting packages the latest TV APK inside a ZIP download", () => {
   const apkPath = path.resolve(root, "..", "api", "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.apk");
+  const zipPath = path.resolve(root, "..", "api", "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.zip");
 
   assert.ok(fs.existsSync(apkPath), "versioned TV APK exists in the cloud-hosting public directory");
   assert.ok(fs.statSync(apkPath).size > 300_000, "TV APK contains the complete installer");
+  assert.ok(fs.existsSync(zipPath), "versioned TV ZIP exists in the cloud-hosting public directory");
+  assert.ok(fs.statSync(zipPath).size > 300_000, "TV ZIP contains the complete installer folder");
 });
 
 test("primary mini-program pages keep the prototype interaction structure", () => {
@@ -431,9 +434,10 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   const tvDownloadMarkup = readText("pages/tv-download/index.wxml");
   const tvDownloadScript = readText("pages/tv-download/index.js");
   assert.ok(tvDownloadMarkup.includes("安装指引"), "TV APK page includes installation guidance");
-  assert.ok(tvDownloadMarkup.includes("下载并分享 APK"), "TV APK page exposes the download action");
+  assert.ok(tvDownloadMarkup.includes("下载并分享 ZIP"), "TV APK page exposes the ZIP download action");
+  assert.ok(tvDownloadMarkup.includes("解压"), "TV APK page explains how to unpack the installer folder");
   assert.ok(tvDownloadMarkup.includes(".apk(1)"), "TV APK page warns about invalid duplicate suffixes");
-  assert.ok(tvDownloadMarkup.includes("新建文件夹"), "TV APK page explains the reliable USB folder flow");
+  assert.ok(tvDownloadMarkup.includes("整个“唱片柜-TV”文件夹"), "TV APK page explains the reliable USB folder flow");
   assert.ok(tvDownloadMarkup.includes("扫码同步"), "TV APK page explains collection synchronization");
   assert.ok(tvDownloadScript.includes("downloadAndShareTvApk"), "TV APK page downloads and shares the installer");
   assert.ok(tvDownloadScript.includes("wx.showModal"), "TV APK failures remain visible after the loading state closes");

@@ -131,8 +131,8 @@ const {
   writeStoredThemeSetting,
 } = require("../services/theme-service.js");
 const {
-  TV_APK_FILE_NAME,
-  TV_APK_PUBLIC_URL,
+  TV_PACKAGE_FILE_NAME,
+  TV_PACKAGE_PUBLIC_URL,
   downloadAndShareTvApk,
   formatTvApkDownloadError,
 } = require("../services/tv-apk-service.js");
@@ -155,7 +155,7 @@ test("TV APK download can share a temporary file without requiring the user data
 
   assert.equal(calls[0].options.filePath, undefined);
   assert.equal(calls[1].options.filePath, "wxfile://temp/tv-apk");
-  assert.equal(calls[1].options.fileName, TV_APK_FILE_NAME);
+  assert.equal(calls[1].options.fileName, TV_PACKAGE_FILE_NAME);
 });
 
 test("TV APK download formats domain failures as visible diagnostics", () => {
@@ -168,7 +168,7 @@ test("TV APK download formats domain failures as visible diagnostics", () => {
   assert.match(failure.detail, /domain list/);
 });
 
-test("TV APK download keeps the installer suffix and shares it to WeChat", async () => {
+test("TV package download keeps the ZIP suffix and shares it to WeChat", async () => {
   const calls = [];
   const wxApi = {
     env: { USER_DATA_PATH: "wxfile://user" },
@@ -185,11 +185,11 @@ test("TV APK download keeps the installer suffix and shares it to WeChat", async
 
   const result = await downloadAndShareTvApk({}, wxApi);
 
-  assert.equal(calls[0].options.url, TV_APK_PUBLIC_URL);
+  assert.equal(calls[0].options.url, TV_PACKAGE_PUBLIC_URL);
   assert.equal(calls[0].options.filePath, undefined);
   assert.equal(calls[1].options.filePath, "wxfile://temp/tv-apk");
-  assert.equal(calls[1].options.fileName, TV_APK_FILE_NAME);
-  assert.equal(result.fileName, "唱片柜-TV.apk");
+  assert.equal(calls[1].options.fileName, TV_PACKAGE_FILE_NAME);
+  assert.equal(result.fileName, "唱片柜-TV.zip");
 });
 
 test("TV APK download rejects an unavailable installer instead of sharing an error page", async () => {
@@ -206,7 +206,7 @@ test("TV APK download rejects an unavailable installer instead of sharing an err
 
   await assert.rejects(
     downloadAndShareTvApk({}, wxApi),
-    /APK download failed with status 404/,
+    /TV package download failed with status 404/,
   );
 });
 

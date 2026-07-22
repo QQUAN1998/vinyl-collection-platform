@@ -1,14 +1,14 @@
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const {
-  TV_APK_FILE_NAME,
+  TV_PACKAGE_FILE_NAME,
   downloadAndShareTvApk,
   formatTvApkDownloadError,
 } = require("../../services/tv-apk-service.js");
 
 Page({
   data: {
-    fileName: TV_APK_FILE_NAME,
-    fileSize: "约 336 KB",
+    fileName: TV_PACKAGE_FILE_NAME,
+    fileSize: "约 330 KB",
     downloading: false,
     downloadProgress: 0,
     downloadError: "",
@@ -34,7 +34,7 @@ Page({
     })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: "安装包已分享", icon: "success" });
+        wx.showToast({ title: "压缩包已分享", icon: "success" });
       })
       .catch((error) => {
         wx.hideLoading();

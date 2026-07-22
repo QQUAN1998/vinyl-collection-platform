@@ -1,5 +1,5 @@
 const TV_APK_FILE_NAME = "唱片柜-TV.apk";
-const TV_APK_PUBLIC_URL = "https://express-i2ts-281225-8-1453155745.sh.run.tcloudbase.com/static/downloads/vinyl-cabinet-tv-1.0.66.7.apk";
+const TV_APK_PUBLIC_URL = "https://vinyl-prod-d0g8u61k95ee7a1e6-1314675814.tcloudbaseapp.com/downloads/vinyl-cabinet-tv-1.0.66.7.apk";
 
 function getWxApi(wxApi) {
   if (wxApi) return wxApi;

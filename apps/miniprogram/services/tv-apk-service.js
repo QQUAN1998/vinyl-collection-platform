@@ -1,4 +1,7 @@
+const { TV_PACKAGE_BASE64 } = require("./tv-package-data.js");
+
 const TV_PACKAGE_FILE_NAME = "唱片柜-TV.zip";
+const TV_PACKAGE_CLOUD_FILE_ID = "cloud://vinyl-prod-d0g8u61k95ee7a1e6.7669-vinyl-prod-d0g8u61k95ee7a1e6-1314675814/downloads/vinyl-cabinet-tv-1.0.66.7.zip";
 const TV_PACKAGE_PUBLIC_URL = "https://vinyl-prod-d0g8u61k95ee7a1e6-1314675814.tcloudbaseapp.com/downloads/vinyl-cabinet-tv-1.0.66.7.zip";
 
 function getWxApi(wxApi) {
@@ -45,24 +48,46 @@ function formatTvApkDownloadError(error) {
 
 function downloadAndShareTvApk(options = {}, wxApi) {
   const api = getWxApi(wxApi);
-  if (!api || typeof api.downloadFile !== "function") {
-    return Promise.reject(new Error("当前微信版本不支持下载文件"));
-  }
-  if (typeof api.shareFileMessage !== "function") {
+  if (!api || typeof api.shareFileMessage !== "function") {
     return Promise.reject(new Error("当前微信版本不支持文件分享"));
   }
 
   const fileName = options.fileName || TV_PACKAGE_FILE_NAME;
+  const cloudFileId = options.cloudFileId || TV_PACKAGE_CLOUD_FILE_ID;
   const url = options.url || TV_PACKAGE_PUBLIC_URL;
 
   return new Promise((resolve, reject) => {
-    let task;
-    try {
-      task = api.downloadFile({
-        url,
+    const sharePackage = (filePath, source) => {
+      api.shareFileMessage({
+        filePath,
+        fileName,
+        success() {
+          resolve({ filePath, fileName, source, url });
+        },
+        fail: reject,
+      });
+    };
+
+    const downloadRemotePackage = () => {
+      const cloudDownload = api.cloud && typeof api.cloud.downloadFile === "function"
+        ? api.cloud.downloadFile.bind(api.cloud)
+        : null;
+      const publicDownload = typeof api.downloadFile === "function"
+        ? api.downloadFile.bind(api)
+        : null;
+      const download = cloudDownload || publicDownload;
+      if (!download) {
+        reject(new Error("当前微信版本不支持下载文件"));
+        return;
+      }
+
+      let task;
+      try {
+        task = download({
+          ...(cloudDownload ? { fileID: cloudFileId } : { url }),
         success(response = {}) {
           const statusCode = Number(response.statusCode || 0);
-          if (statusCode < 200 || statusCode >= 300) {
+          if (statusCode && (statusCode < 200 || statusCode >= 300)) {
             reject(new Error(`TV package download failed with status ${statusCode || "unknown"}.`));
             return;
           }
@@ -72,32 +97,46 @@ function downloadAndShareTvApk(options = {}, wxApi) {
             reject(new Error("TV package download completed without a temporary file."));
             return;
           }
-          api.shareFileMessage({
-            filePath: downloadedPath,
-            fileName,
-            success() {
-              resolve({ filePath: downloadedPath, fileName, url });
-            },
-            fail: reject,
-          });
+          sharePackage(downloadedPath, cloudDownload ? "cloud" : "public");
         },
         fail: reject,
       });
-    } catch (error) {
-      reject(error);
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      if (task && typeof task.onProgressUpdate === "function" && typeof options.onProgress === "function") {
+        task.onProgressUpdate((progress = {}) => {
+          options.onProgress(Number(progress.progress || 0));
+        });
+      }
+    };
+
+    const userPath = api.env && api.env.USER_DATA_PATH ? api.env.USER_DATA_PATH : "";
+    const fs = typeof api.getFileSystemManager === "function" ? api.getFileSystemManager() : null;
+    if (userPath && fs && typeof fs.writeFile === "function") {
+      const filePath = `${userPath}/${fileName}`;
+      fs.writeFile({
+        filePath,
+        data: TV_PACKAGE_BASE64,
+        encoding: "base64",
+        success() {
+          if (typeof options.onProgress === "function") options.onProgress(100);
+          sharePackage(filePath, "bundled");
+        },
+        fail: downloadRemotePackage,
+      });
       return;
     }
 
-    if (task && typeof task.onProgressUpdate === "function" && typeof options.onProgress === "function") {
-      task.onProgressUpdate((progress = {}) => {
-        options.onProgress(Number(progress.progress || 0));
-      });
-    }
+    downloadRemotePackage();
   });
 }
 
 module.exports = {
   TV_PACKAGE_FILE_NAME,
+  TV_PACKAGE_CLOUD_FILE_ID,
   TV_PACKAGE_PUBLIC_URL,
   downloadAndShareTvApk,
   formatTvApkDownloadError,

@@ -132,10 +132,75 @@ const {
 } = require("../services/theme-service.js");
 const {
   TV_PACKAGE_FILE_NAME,
+  TV_PACKAGE_CLOUD_FILE_ID,
   TV_PACKAGE_PUBLIC_URL,
   downloadAndShareTvApk,
   formatTvApkDownloadError,
 } = require("../services/tv-apk-service.js");
+const { TV_PACKAGE_BASE64 } = require("../services/tv-package-data.js");
+
+test("bundled TV package matches the verified ZIP artifact", () => {
+  const bytes = Buffer.from(TV_PACKAGE_BASE64, "base64");
+  const hash = require("node:crypto").createHash("sha256").update(bytes).digest("hex").toUpperCase();
+
+  assert.equal(bytes.length, 337_570);
+  assert.equal(hash, "E56B535A31103BD5AA68DCDE72E9BF031B75A87C09160964037E861CAE24A06C");
+});
+
+test("TV package uses its bundled ZIP without making a network request", async () => {
+  const calls = [];
+  const wxApi = {
+    env: { USER_DATA_PATH: "wxfile://user" },
+    getFileSystemManager() {
+      return {
+        writeFile(options) {
+          calls.push({ type: "write", options });
+          options.success({});
+        },
+      };
+    },
+    downloadFile() {
+      assert.fail("public download must not run for the bundled ZIP");
+    },
+    shareFileMessage(options) {
+      calls.push({ type: "share", options });
+      options.success({});
+    },
+  };
+
+  await downloadAndShareTvApk({}, wxApi);
+
+  assert.equal(calls[0].options.filePath, "wxfile://user/唱片柜-TV.zip");
+  assert.equal(calls[0].options.encoding, "base64");
+  assert.equal(calls[0].options.data, TV_PACKAGE_BASE64);
+  assert.equal(calls[1].options.filePath, "wxfile://user/唱片柜-TV.zip");
+});
+
+test("TV package download prefers WeChat cloud storage and bypasses domain whitelists", async () => {
+  const calls = [];
+  const wxApi = {
+    cloud: {
+      downloadFile(options) {
+        calls.push({ type: "cloud-download", options });
+        options.success({ tempFilePath: "wxfile://temp/cloud-tv-zip" });
+        return { onProgressUpdate() {} };
+      },
+    },
+    downloadFile() {
+      assert.fail("public download must not run when WeChat cloud storage is available");
+    },
+    shareFileMessage(options) {
+      calls.push({ type: "share", options });
+      options.success({});
+    },
+  };
+
+  await downloadAndShareTvApk({}, wxApi);
+
+  assert.equal(calls[0].options.fileID, TV_PACKAGE_CLOUD_FILE_ID);
+  assert.equal(calls[0].options.url, undefined);
+  assert.equal(calls[1].options.filePath, "wxfile://temp/cloud-tv-zip");
+});
 
 test("TV APK download can share a temporary file without requiring the user data directory", async () => {
   const calls = [];

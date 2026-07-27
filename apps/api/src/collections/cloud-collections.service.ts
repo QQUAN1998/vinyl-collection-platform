@@ -14,9 +14,13 @@ import type {
 
 import { PrismaService } from "../database/prisma.service.js";
 import { AlbumSource } from "../generated/prisma/enums.js";
-import type { Album, AlbumTrack, Collection, User } from "../generated/prisma/client.js";
+import type { User } from "../generated/prisma/client.js";
+import {
+  type CollectionWithAlbum,
+  resolveCollectionAlbum,
+  toAlbumOverrideJson,
+} from "./album-snapshot.js";
 
-type CollectionWithAlbum = Collection & { album: Album & { tracks?: AlbumTrack[] } };
 type CollectionPrismaClient = Pick<PrismaService, "album" | "collection">;
 
 const DEFAULT_MEDIUM_KEY = "vinyl";
@@ -132,15 +136,6 @@ export class CloudCollectionsService {
         tracks: { create: input.album.tracks },
       },
       update: {
-        title: input.album.title,
-        artist: input.album.artist,
-        releaseYear: input.album.year,
-        genre: input.album.style,
-        coverUrl: input.album.coverUrl,
-        tracks: {
-          deleteMany: {},
-          create: input.album.tracks,
-        },
       },
     });
 
@@ -149,9 +144,13 @@ export class CloudCollectionsService {
       create: {
         userId: user.id,
         albumId: input.album.id,
+        albumOverride: toAlbumOverrideJson(input.album),
         ...toCollectionData(input.collection),
       },
-      update: toCollectionData(input.collection),
+      update: {
+        albumOverride: toAlbumOverrideJson(input.album),
+        ...toCollectionData(input.collection),
+      },
       include: collectionAlbumInclude,
     });
   }
@@ -341,7 +340,7 @@ function toCollectionPayload(
 ): CloudCollectionPayload {
   const albumsById = new Map<string, CloudAlbum>();
   const collectionItems: CloudCollectionItem[] = records.map((record) => {
-    albumsById.set(record.albumId, toCloudAlbum(record.album));
+    albumsById.set(record.albumId, resolveCollectionAlbum(record.album, record.albumOverride));
     return toCloudCollectionItem(record);
   });
 
@@ -353,22 +352,6 @@ function toCollectionPayload(
     },
     albums: [...albumsById.values()],
     collectionItems,
-  };
-}
-
-function toCloudAlbum(album: Album & { tracks?: AlbumTrack[] }): CloudAlbum {
-  return {
-    id: album.id,
-    title: album.title,
-    artist: album.artist,
-    year: album.releaseYear,
-    region: null,
-    style: album.genre,
-    coverUrl: album.coverUrl,
-    tracks: (album.tracks ?? []).map((track) => ({
-      position: track.position,
-      title: track.title,
-    })),
   };
 }
 

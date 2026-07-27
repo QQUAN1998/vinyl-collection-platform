@@ -161,6 +161,7 @@ model Collection {
   condition          String?  @db.VarChar(32)
   mediumKey          String?  @map("medium_key") @db.VarChar(32)
   note               String?  @db.Text
+  albumOverride      Json?    @map("album_override")
   createdAt          DateTime @default(now()) @map("created_at") @db.DateTime(3)
   updatedAt          DateTime @updatedAt @map("updated_at") @db.DateTime(3)
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)

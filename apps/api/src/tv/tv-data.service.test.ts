@@ -40,10 +40,10 @@ describe("TvDataService", () => {
     expect(library.albums).toHaveLength(1);
     expect(library.albums[0]).toMatchObject({
       id: "album-1",
-      title: "Memories",
+      title: "My Memories",
       artist: "刘德华",
-      cover: "https://example.com/memories.jpg",
-      songCount: 2,
+      cover: "https://example.com/my-memories.jpg",
+      songCount: 1,
     });
     expect(library.summary).toMatchObject({
       albumCount: 1,
@@ -167,6 +167,16 @@ class FakePrismaService {
           condition: "NM",
           mediumKey: "vinyl",
           note: "",
+          albumOverride: {
+            id: "album-1",
+            title: "My Memories",
+            artist: "刘德华",
+            year: 2002,
+            region: null,
+            style: "粤语流行",
+            coverUrl: "https://example.com/my-memories.jpg",
+            tracks: [{ position: 1, title: "我的第一首" }],
+          },
           createdAt: new Date("2026-07-15T00:00:00.000Z"),
           updatedAt: new Date("2026-07-15T00:00:00.000Z"),
           album: {

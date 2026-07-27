@@ -298,6 +298,12 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(collectionEditMarkup.includes("confirmDeleteCollection"), "collection edit page can delete a collection item");
   assert.ok(readText("pages/collection-edit/index.js").includes("deleteCollectionFromCloud"), "collection edit delete flow syncs to cloud");
   assert.ok(readText("pages/collection-edit/index.js").includes("wx.showModal"), "collection edit delete flow confirms before deleting");
+  assert.ok(collectionEditMarkup.includes("addTrack"), "collection edit page lets users add missing tracks");
+  assert.ok(collectionEditMarkup.includes("handleTrackTitleInput"), "collection edit page lets users edit track titles");
+  assert.ok(collectionEditMarkup.includes("removeTrack"), "collection edit page lets users remove tracks");
+  assert.match(readText("pages/collection-edit/index.js"), /uploadAlbumCoverIfNeeded/);
+  assert.match(readText("pages/collection-edit/index.js"), /normalizeEditableTracks/);
+  assert.match(detailScript, /album\.year \|\| album\.releaseYear \|\| "未记录"/);
   assert.ok(archiveMarkup.includes("mediumLabel"), "archive preview displays the selected media format");
   assert.ok(addMarkup.includes("screen-header"), "add page uses the shared header architecture");
   assert.ok(addMarkup.includes(">ADD<"), "add page includes a right-side header badge");

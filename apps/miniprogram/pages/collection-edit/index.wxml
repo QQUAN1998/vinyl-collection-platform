@@ -8,7 +8,7 @@
     <image class="edit-cover" src="{{album.cover}}" mode="aspectFill" />
     <view class="edit-cover-copy">
       <view class="edit-album-title">{{album.title}}</view>
-      <view class="edit-album-meta">{{album.artist}} · {{album.year}}</view>
+      <view class="edit-album-meta">{{album.artist}} · {{album.yearLabel}}</view>
       <view class="ghost-button cover-button" bindtap="chooseAlbumCover" hover-class="button-hover">替换封面</view>
     </view>
   </view>
@@ -34,6 +34,37 @@
       />
       <form-field label="价格" type="number" value="{{collectionForm.price}}" data-key="price" bind:change="handleFieldChange" />
       <form-field label="备注" mode="textarea" value="{{collectionForm.notes}}" data-key="notes" bind:change="handleFieldChange" />
+    </view>
+  </view>
+
+  <view class="section track-edit-section" wx:if="{{album}}">
+    <view class="track-edit-header">
+      <view>
+        <view class="section-title track-edit-title">曲目</view>
+        <view class="track-edit-hint">资料不完整时可在这里补充</view>
+      </view>
+      <view class="track-add-button" bindtap="addTrack" hover-class="button-hover">
+        <image src="/assets/icons/add-muted.svg" mode="aspectFit" />
+        <text>添加曲目</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!album.tracks.length}}" class="track-empty">暂时没有曲目，点击“添加曲目”开始补充。</view>
+    <view class="track-edit-list" wx:else>
+      <view class="track-edit-row" wx:for="{{album.tracks}}" wx:key="position">
+        <view class="track-position">{{index + 1}}</view>
+        <input
+          class="track-title-input"
+          value="{{item.title}}"
+          maxlength="200"
+          placeholder="输入曲目名称"
+          data-index="{{index}}"
+          bindinput="handleTrackTitleInput"
+        />
+        <view class="track-remove-button" data-index="{{index}}" bindtap="removeTrack" hover-class="button-hover">
+          <image src="/assets/icons/close-muted.svg" mode="aspectFit" />
+        </view>
+      </view>
     </view>
   </view>
 

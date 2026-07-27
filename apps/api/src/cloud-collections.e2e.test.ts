@@ -45,6 +45,7 @@ interface FakeCollection {
   condition: string | null;
   mediumKey: string | null;
   note: string | null;
+  albumOverride: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -429,6 +430,68 @@ describe("WeChat cloud collection API", () => {
     expect(aliceMine.body.collectionItems[0]).toMatchObject({
       userId: alice.body.owner.id,
       notes: "Alice copy",
+    });
+  });
+
+  it("keeps edited cover and tracks isolated to the caller collection", async () => {
+    const originalAlbum = {
+      id: "sammi-first",
+      title: "Sammi初",
+      artist: "郑秀文",
+      year: 2026,
+      style: "黑胶",
+      coverUrl: "https://example.com/sammi-original.jpg",
+      tracks: [{ position: 1, title: "不来的季节" }],
+    };
+    const collection = {
+      collectionDate: "2026-07-27",
+      source: "Test",
+      quantity: 1,
+      condition: "NM",
+      mediumKey: "vinyl",
+      price: 413,
+      notes: "",
+    };
+
+    await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("x-wx-openid", "openid-alice")
+      .send({ album: originalAlbum, collection })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("x-wx-openid", "openid-bob")
+      .send({ album: originalAlbum, collection })
+      .expect(201);
+
+    const aliceEdited = await request(app.getHttpServer())
+      .post("/api/collections")
+      .set("x-wx-openid", "openid-alice")
+      .send({
+        album: {
+          ...originalAlbum,
+          coverUrl: "cloud://alice/sammi-custom.jpg",
+          tracks: [
+            { position: 1, title: "不来的季节" },
+            { position: 2, title: "Alice 补充曲目" },
+          ],
+        },
+        collection,
+      })
+      .expect(201);
+
+    const bobMine = await request(app.getHttpServer())
+      .get("/api/collections/me")
+      .set("x-wx-openid", "openid-bob")
+      .expect(200);
+
+    expect(aliceEdited.body.albums[0]).toMatchObject({
+      coverUrl: "cloud://alice/sammi-custom.jpg",
+      tracks: expect.arrayContaining([{ position: 2, title: "Alice 补充曲目" }]),
+    });
+    expect(bobMine.body.albums[0]).toMatchObject({
+      coverUrl: "https://example.com/sammi-original.jpg",
+      tracks: [{ position: 1, title: "不来的季节" }],
     });
   });
 

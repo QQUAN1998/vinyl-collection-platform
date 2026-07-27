@@ -10,13 +10,15 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { PrismaService } from "../database/prisma.service.js";
 import { AuditActorType, TvDeviceStatus } from "../generated/prisma/enums.js";
-import type { Album, AlbumTrack, Collection, User } from "../generated/prisma/client.js";
+import type { User } from "../generated/prisma/client.js";
+import {
+  type CollectionWithAlbum,
+  resolveCollectionAlbum,
+} from "../collections/album-snapshot.js";
 
 const TV_LOGIN_ACTION = "tv_login_session";
 const SESSION_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_EXTERNAL_TV_BASE_URL = "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54";
-
-type CollectionWithAlbum = Collection & { album: Album & { tracks?: AlbumTrack[] } };
 
 export interface TvLoginSessionResponse {
   code: string;
@@ -383,23 +385,24 @@ function normalizeRemoteStatus(value: unknown): "pending" | "confirmed" | "expir
 }
 
 function toTvAlbum(record: CollectionWithAlbum): TvAlbumResponse {
-  const year = record.album.releaseYear || 0;
-  const tracks = record.album.tracks || [];
+  const album = resolveCollectionAlbum(record.album, record.albumOverride);
+  const year = album.year || 0;
+  const tracks = album.tracks || [];
   const collectionDate = record.collectedAt.toISOString().slice(0, 10);
-  const style = record.album.genre || "未分类";
+  const style = album.style || "未分类";
   const price = record.purchasePriceCents === null
     ? 0
     : Number((record.purchasePriceCents / 100).toFixed(2));
 
   return {
-    id: record.album.id,
-    title: record.album.title,
-    artist: record.album.artist,
+    id: album.id,
+    title: album.title,
+    artist: album.artist,
     region: "未记录",
     style,
     source: record.source || "小程序同步",
     notes: record.note || "",
-    cover: normalizeCover(record.album.coverUrl),
+    cover: normalizeCover(album.coverUrl),
     year,
     decade: year ? `${Math.floor(year / 10) * 10}s` : "未知",
     collectionDate,
@@ -412,7 +415,7 @@ function toTvAlbum(record: CollectionWithAlbum): TvAlbumResponse {
     songStyles: [style],
     songs: tracks.map((track) => ({
       title: track.title,
-      artist: record.album.artist,
+      artist: album.artist,
       duration: 0,
       orderNumber: track.position,
     })),

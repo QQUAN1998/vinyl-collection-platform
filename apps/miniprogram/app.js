@@ -6,6 +6,7 @@ const {
   hasWechatProfileInfo
 } = require("./services/account-profile-service.js");
 const { SESSION_REQUIRED_TITLE } = require("./services/cloud-session.js");
+const { uploadAlbumCover } = require("./services/album-edit-service.js");
 const {
   hasStoredAuthAccount,
   readStoredAuthState,
@@ -224,6 +225,14 @@ App({
         success: (result) => resolve(result.fileID || avatar),
         fail: () => resolve(avatar)
       });
+    });
+  },
+  uploadAlbumCoverIfNeeded(cover, albumId) {
+    return uploadAlbumCover({
+      cover,
+      albumId,
+      userId: this.globalData.userId,
+      wxApi: typeof wx === "undefined" ? null : wx
     });
   },
   syncWechatProfile(userInfo = {}, options = {}) {

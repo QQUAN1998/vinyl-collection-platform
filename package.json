@@ -9,7 +9,7 @@
   "scripts": {
     "api:dev": "npm run build --workspace @vinyl/shared && npm run dev --workspace @vinyl/api",
     "build": "npm run build --workspace @vinyl/shared && npm run build --workspace @vinyl/api",
-    "miniprogram:test": "node --test apps/miniprogram/tests/miniprogram-static.test.js apps/miniprogram/tests/miniprogram-data.test.js",
+    "miniprogram:test": "node --test apps/miniprogram/tests/*.test.js",
     "prisma:deploy": "npm run prisma:deploy --workspace @vinyl/api",
     "prisma:migrate": "npm run prisma:migrate --workspace @vinyl/api",
     "prisma:validate": "npm run prisma:validate --workspace @vinyl/api",

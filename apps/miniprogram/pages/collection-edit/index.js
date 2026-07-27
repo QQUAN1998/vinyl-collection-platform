@@ -8,6 +8,12 @@ const { requireCloudAccount, showCloudDeleteFailed, showCloudSaveFailed } = requ
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const { DEFAULT_MEDIUM_KEY, MEDIA_FORMATS, normalizeMediumKey } = require("../../services/media-format-service.js");
+const {
+  addEditableTrack,
+  normalizeEditableTracks,
+  removeEditableTrack,
+  updateEditableTrack
+} = require("../../services/album-edit-service.js");
 
 Page({
   data: {
@@ -44,14 +50,22 @@ Page({
 
     if (!album || !collectionItem) {
       this.setData({
-        album: album ? toAlbumView(album) : null,
+        album: album ? {
+          ...toAlbumView(album),
+          yearLabel: album.year || album.releaseYear || "未记录",
+          tracks: normalizeEditableTracks(album.tracks || [])
+        } : null,
         errorMessage: "这张唱片还没有收藏记录。"
       });
       return;
     }
 
     this.setData({
-      album: toAlbumView(album),
+      album: {
+        ...toAlbumView(album),
+        yearLabel: album.year || album.releaseYear || "未记录",
+        tracks: normalizeEditableTracks(album.tracks || [])
+      },
       collectionForm: {
         collectionDate: collectionItem.collectionDate,
         source: collectionItem.source,
@@ -81,6 +95,26 @@ Page({
       }
     });
   },
+  addTrack() {
+    const tracks = addEditableTrack(this.data.album.tracks || []);
+    if (tracks === this.data.album.tracks) {
+      wx.showToast({ title: "最多添加 80 首曲目", icon: "none" });
+      return;
+    }
+    this.setData({ "album.tracks": tracks });
+  },
+  handleTrackTitleInput(event) {
+    const { index } = event.currentTarget.dataset;
+    this.setData({
+      "album.tracks": updateEditableTrack(this.data.album.tracks || [], index, event.detail.value)
+    });
+  },
+  removeTrack(event) {
+    const { index } = event.currentTarget.dataset;
+    this.setData({
+      "album.tracks": removeEditableTrack(this.data.album.tracks || [], index)
+    });
+  },
   chooseAlbumCover() {
     const applyCover = (cover) => {
       if (!cover) {
@@ -99,6 +133,7 @@ Page({
         count: 1,
         mediaType: ["image"],
         sourceType: ["album", "camera"],
+        sizeType: ["compressed"],
         success: (result) => {
           applyCover(result.tempFiles && result.tempFiles[0] && result.tempFiles[0].tempFilePath);
         }
@@ -109,6 +144,7 @@ Page({
     wx.chooseImage({
       count: 1,
       sourceType: ["album", "camera"],
+      sizeType: ["compressed"],
       success: (result) => {
         applyCover(result.tempFilePaths && result.tempFilePaths[0]);
       }
@@ -137,24 +173,32 @@ Page({
     });
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], app.globalData.userId);
 
-    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
-    app.saveCollectionToCloud(result.updatedItem, this.data.album)
-      .then((payload) => {
-        if (!payload) {
-          showCloudSaveFailed();
-          return;
-        }
+    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d", mask: true });
+    try {
+      const cover = await app.uploadAlbumCoverIfNeeded(this.data.album.cover, this.data.album.id);
+      const editedAlbum = {
+        ...this.data.album,
+        cover,
+        coverUrl: cover,
+        tracks: normalizeEditableTracks(this.data.album.tracks || [])
+      };
+      const payload = await app.saveCollectionToCloud(result.updatedItem, editedAlbum);
+      if (!payload) {
+        showCloudSaveFailed();
+        return;
+      }
 
-        app.globalData.tvBindings = syncResult.bindings;
-        wx.showToast({
-          title: "\u5df2\u4fdd\u5b58",
-          icon: "success"
-        });
-        wx.navigateBack();
-      })
-      .finally(() => {
-        wx.hideLoading();
+      app.globalData.tvBindings = syncResult.bindings;
+      wx.showToast({ title: "\u5df2\u4fdd\u5b58", icon: "success" });
+      wx.navigateBack();
+    } catch (error) {
+      wx.showToast({
+        title: error && error.message ? error.message : "保存失败，请稍后重试",
+        icon: "none"
       });
+    } finally {
+      wx.hideLoading();
+    }
     return;
   },
   confirmDeleteCollection() {

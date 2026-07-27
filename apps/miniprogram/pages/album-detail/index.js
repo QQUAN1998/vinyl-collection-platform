@@ -89,7 +89,7 @@ Page({
       album,
       collectionItem,
       detailFacts: [
-        { label: "发行年份", value: `${album.year}` },
+        { label: "发行年份", value: `${album.year || album.releaseYear || "未记录"}` },
         { label: "地区", value: album.region },
         { label: "风格", value: album.style },
         { label: "介质", value: collectionItem ? getMediaFormat(collectionItem.mediumKey).label : "未收藏" },

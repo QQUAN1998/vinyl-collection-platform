@@ -5,7 +5,7 @@ import { TvDataService } from "./tv-data.service.js";
 describe("TvDataService", () => {
   it("creates, confirms, polls, and serves a TV login library", async () => {
     const prisma = new FakePrismaService();
-    const service = new TvDataService(prisma as never);
+    const service = new TvDataService(prisma as never, emptyCloudStorageUrls());
 
     const session = await service.createLoginSession("https://example.com");
 
@@ -55,7 +55,7 @@ describe("TvDataService", () => {
 
   it("proxies APK login confirmation to the external TV session service", async () => {
     const prisma = new FakePrismaService();
-    const service = new TvDataService(prisma as never);
+    const service = new TvDataService(prisma as never, emptyCloudStorageUrls());
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -99,9 +99,30 @@ describe("TvDataService", () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it("resolves a user's cloud cover before serving the TV library", async () => {
+    const prisma = new FakePrismaService();
+    const cloudCover = "cloud://prod.bucket/album-covers/user-1/album-1.jpg";
+    const httpsCover = "https://cdn.example.com/album-covers/user-1/album-1.jpg";
+    prisma.collectionCoverUrl = cloudCover;
+    const storage = {
+      resolve: vi.fn().mockResolvedValue(new Map([[cloudCover, httpsCover]])),
+    };
+    const service = new TvDataService(prisma as never, storage as never);
+
+    const library = await service.getLibraryForUser("user-1");
+
+    expect(storage.resolve).toHaveBeenCalledWith([cloudCover]);
+    expect(library.albums[0]?.cover).toBe(httpsCover);
+  });
 });
 
+function emptyCloudStorageUrls() {
+  return { resolve: async () => new Map<string, string>() } as never;
+}
+
 class FakePrismaService {
+  collectionCoverUrl = "https://example.com/my-memories.jpg";
   private readonly auditLogs: FakeAuditLog[] = [];
   private readonly tvDevices: unknown[] = [];
   private readonly users = [
@@ -174,7 +195,7 @@ class FakePrismaService {
             year: 2002,
             region: null,
             style: "粤语流行",
-            coverUrl: "https://example.com/my-memories.jpg",
+            coverUrl: this.collectionCoverUrl,
             tracks: [{ position: 1, title: "我的第一首" }],
           },
           createdAt: new Date("2026-07-15T00:00:00.000Z"),

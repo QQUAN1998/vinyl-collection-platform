@@ -15,6 +15,10 @@ import {
   type CollectionWithAlbum,
   resolveCollectionAlbum,
 } from "../collections/album-snapshot.js";
+import {
+  type WechatCloudStorageUrlClient,
+  WECHAT_CLOUD_STORAGE_URL_CLIENT,
+} from "./wechat-cloud-storage-url.client.js";
 
 const TV_LOGIN_ACTION = "tv_login_session";
 const SESSION_TTL_MS = 10 * 60 * 1000;
@@ -88,6 +92,8 @@ export class TvDataService {
   constructor(
     @Inject(PrismaService)
     private readonly prisma: PrismaService,
+    @Inject(WECHAT_CLOUD_STORAGE_URL_CLIENT)
+    private readonly cloudStorageUrls: WechatCloudStorageUrlClient,
   ) {}
 
   async createLoginSession(baseUrl: string, now = new Date()): Promise<TvLoginSessionResponse> {
@@ -257,6 +263,7 @@ export class TvDataService {
     });
 
     const albums = records.map(toTvAlbum);
+    await resolveCloudAlbumCovers(albums, this.cloudStorageUrls);
     return {
       albums,
       summary: summarizeTvAlbums(albums),
@@ -298,6 +305,21 @@ export class TvDataService {
       throw new UnprocessableEntityException();
     }
     return user;
+  }
+}
+
+async function resolveCloudAlbumCovers(
+  albums: TvAlbumResponse[],
+  client: WechatCloudStorageUrlClient,
+): Promise<void> {
+  const fileIds = albums.map((album) => album.cover).filter((cover) => cover.startsWith("cloud://"));
+  if (!fileIds.length) {
+    return;
+  }
+
+  const resolved = await client.resolve(fileIds).catch(() => new Map<string, string>());
+  for (const album of albums) {
+    album.cover = resolved.get(album.cover) || album.cover;
   }
 }
 

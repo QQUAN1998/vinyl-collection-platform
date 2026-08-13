@@ -4,6 +4,7 @@ const { callCloudContainer, callPublicApi } = require("./cloud-api.js");
 const DEFAULT_TV_BASE_URL = "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54";
 const MAX_TV_LOGIN_TRACKS = 12;
 const MAX_TV_COMPACT_TRACKS = 8;
+const MAX_CLOUD_FILE_URL_BATCH = 50;
 
 function parseTvLoginQr(rawValue, options = {}) {
   const raw = String(rawValue || "").trim();
@@ -66,22 +67,59 @@ function buildTvLoginConfirmPayload(app, seedAlbums = []) {
 function confirmTvLoginWithQr(rawValue, app, seedAlbums = [], options = {}, wxApi) {
   const parsed = parseTvLoginQr(rawValue, options);
   const payload = buildTvLoginConfirmPayload(app, seedAlbums);
-  const directConfirm = () => postJson(parsed.confirmUrl, payload, wxApi);
-  const proxyConfirm = () => postTvLoginConfirmThroughCloud(parsed, payload, options, wxApi);
-  const confirmRequest = shouldUseCloudConfirmFirst(parsed.confirmUrl, options)
-    ? proxyConfirm().catch((proxyError) =>
-        directConfirm().catch((directError) => Promise.reject(combineTvLoginErrors(proxyError, directError)))
-      )
-    : directConfirm().catch((directError) =>
-        proxyConfirm().catch((proxyError) => Promise.reject(combineTvLoginErrors(proxyError, directError)))
-      );
 
-  return confirmRequest
-    .then((response) => ({
+  return resolveTvCloudCovers(payload, wxApi).then((resolvedPayload) => {
+    const directConfirm = () => postJson(parsed.confirmUrl, resolvedPayload, wxApi);
+    const proxyConfirm = () => postTvLoginConfirmThroughCloud(parsed, resolvedPayload, options, wxApi);
+    const confirmRequest = shouldUseCloudConfirmFirst(parsed.confirmUrl, options)
+      ? proxyConfirm().catch((proxyError) =>
+          directConfirm().catch((directError) => Promise.reject(combineTvLoginErrors(proxyError, directError)))
+        )
+      : directConfirm().catch((directError) =>
+          proxyConfirm().catch((proxyError) => Promise.reject(combineTvLoginErrors(proxyError, directError)))
+        );
+
+    return confirmRequest.then((response) => ({
       ...response,
       code: response && response.code ? response.code : parsed.code,
-      syncedAlbumCount: payload.albums.length
+      syncedAlbumCount: resolvedPayload.albums.length
     }));
+  });
+}
+
+function resolveTvCloudCovers(payload = {}, wxApi) {
+  const albums = Array.isArray(payload.albums) ? payload.albums : [];
+  const cloudCovers = [...new Set(albums
+    .map((album) => String(album.cover || "").trim())
+    .filter((cover) => cover.startsWith("cloud://")))];
+  if (!cloudCovers.length) {
+    return Promise.resolve(payload);
+  }
+
+  const api = wxApi || (typeof wx === "undefined" ? null : wx);
+  if (!api || !api.cloud || typeof api.cloud.getTempFileURL !== "function") {
+    return Promise.resolve(payload);
+  }
+
+  const batches = [];
+  for (let index = 0; index < cloudCovers.length; index += MAX_CLOUD_FILE_URL_BATCH) {
+    batches.push(cloudCovers.slice(index, index + MAX_CLOUD_FILE_URL_BATCH));
+  }
+
+  return Promise.all(batches.map((fileList) => api.cloud.getTempFileURL({ fileList })))
+    .then((results) => {
+      const resolved = new Map(results.flatMap((result) => result && result.fileList ? result.fileList : [])
+        .filter((file) => file && file.fileID && /^https?:\/\//.test(file.tempFileURL || ""))
+        .map((file) => [file.fileID, file.tempFileURL]));
+      return {
+        ...payload,
+        albums: albums.map((album) => ({
+          ...album,
+          cover: resolved.get(album.cover) || album.cover
+        }))
+      };
+    })
+    .catch(() => payload);
 }
 
 function postTvLoginConfirmThroughCloud(parsed, payload, options = {}, wxApi) {
@@ -338,6 +376,7 @@ module.exports = {
   measureTvLoginPayloadBytes,
   parseTvLoginQr,
   postTvLoginConfirmThroughCloud,
+  resolveTvCloudCovers,
   toTvAlbum,
   toTvCover
 };

@@ -1438,6 +1438,54 @@ test("TV login confirmation uses the cloud proxy for APK scan URLs", async () =>
   assert.equal(requests[0].data.albums.length, 1);
 });
 
+test("TV login confirmation resolves cloud covers to HTTPS before syncing", async () => {
+  const requests = [];
+  const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
+  const httpsCover = "https://cdn.example.com/album-covers/user-1/custom.jpg";
+  const wxApi = {
+    request(options) {
+      requests.push(options);
+      options.success({
+        statusCode: 200,
+        data: { code: "AB12CD", status: "confirmed" },
+      });
+    },
+    cloud: {
+      getTempFileURL({ fileList }) {
+        assert.deepEqual(fileList, [cloudCover]);
+        return Promise.resolve({
+          fileList: [{ fileID: cloudCover, tempFileURL: httpsCover, status: 0 }],
+        });
+      },
+    },
+  };
+  const app = {
+    globalData: {
+      userId: "user-1",
+      userProfile: { name: "Alice" },
+      manualAlbums: [{
+        id: "custom-album",
+        title: "Custom Album",
+        artist: "Alice",
+        coverUrl: cloudCover,
+        tracks: [],
+      }],
+      collectionItems: [{ albumId: "custom-album", quantity: 1 }],
+    },
+  };
+
+  await confirmTvLoginWithQr(
+    "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54/cloud/vinyl-data/tv-login/AB12CD/scan",
+    app,
+    albums,
+    { publicBaseUrl: "https://example.com", forceTvConfirmProxy: true },
+    wxApi,
+  );
+
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].data.albums[0].cover, httpsCover);
+});
+
 test("TV login confirmation prefers the public proxy even when cloud container is available", async () => {
   const publicRequests = [];
   const containerRequests = [];

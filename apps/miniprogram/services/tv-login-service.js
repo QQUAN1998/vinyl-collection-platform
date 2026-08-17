@@ -70,7 +70,9 @@ function confirmTvLoginWithQr(rawValue, app, seedAlbums = [], options = {}, wxAp
 
   return resolveTvCloudCovers(payload, wxApi).then((resolvedPayload) => {
     const directConfirm = () => postJson(parsed.confirmUrl, resolvedPayload, wxApi);
-    const proxyConfirm = () => postTvLoginConfirmThroughCloud(parsed, resolvedPayload, options, wxApi);
+    // The API needs the original cloud file ID to issue a stable cover URL.
+    // Direct TV requests still require the temporary HTTPS URL resolved above.
+    const proxyConfirm = () => postTvLoginConfirmThroughCloud(parsed, payload, options, wxApi);
     const confirmRequest = shouldUseCloudConfirmFirst(parsed.confirmUrl, options)
       ? proxyConfirm().catch((proxyError) =>
           directConfirm().catch((directError) => Promise.reject(combineTvLoginErrors(proxyError, directError)))
@@ -82,7 +84,7 @@ function confirmTvLoginWithQr(rawValue, app, seedAlbums = [], options = {}, wxAp
     return confirmRequest.then((response) => ({
       ...response,
       code: response && response.code ? response.code : parsed.code,
-      syncedAlbumCount: resolvedPayload.albums.length
+      syncedAlbumCount: payload.albums.length
     }));
   });
 }
@@ -241,6 +243,14 @@ function toCompactTvAlbum(album, index) {
     title: album.title || "",
     artist: album.artist || "",
     year: album.year || null,
+    decade: album.decade || "",
+    collectionDate: album.collectionDate || "",
+    collectionYear: Number(album.collectionYear || 0),
+    source: album.source || "",
+    condition: album.condition || "",
+    region: album.region || "",
+    style: album.style || "",
+    songStyles: Array.isArray(album.songStyles) ? album.songStyles.slice(0, 4) : [],
     cover: album.cover || "",
     price: Number(album.price || 0),
     quantity: Number(album.quantity || 1),

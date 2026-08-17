@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Query,
+  Res,
 } from "@nestjs/common";
 
 import {
@@ -27,6 +28,15 @@ export class TvDataController {
   @Get()
   async getLibrary(@Query("userId") userId = "") {
     return this.tvData.getLibraryForUser(userId);
+  }
+
+  @Get("tv-cover")
+  async redirectTvCover(
+    @Query("fileId") fileId = "",
+    @Res() response: TvCoverRedirectResponse,
+  ): Promise<void> {
+    const coverUrl = await this.tvData.resolveTvCoverUrl(fileId);
+    response.redirect(302, coverUrl);
   }
 
   @Post("tv-login/session")
@@ -63,6 +73,10 @@ export class TvDataController {
     const user = await this.identity.getCurrentUser(headers).catch(() => null);
     return this.tvData.proxyConfirmExternalSession(code, body, user || undefined);
   }
+}
+
+interface TvCoverRedirectResponse {
+  redirect(statusCode: number, url: string): void;
 }
 
 function resolveRequestBaseUrl(headers: RequestHeaders): string {

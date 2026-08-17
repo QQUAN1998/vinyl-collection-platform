@@ -23,6 +23,7 @@ import {
 const TV_LOGIN_ACTION = "tv_login_session";
 const SESSION_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_EXTERNAL_TV_BASE_URL = "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54";
+const DEFAULT_TV_COVER_PUBLIC_BASE_URL = "https://express-i2ts-281225-8-1453155745.sh.run.tcloudbase.com";
 
 export interface TvLoginSessionResponse {
   code: string;
@@ -209,6 +210,7 @@ export class TvDataService {
     }
     const userName = payload.userName || userFromIdentity?.displayName || "唱片柜用户";
     const confirmUrl = buildExternalConfirmUrl(normalizedCode);
+    const albums = preparePayloadCovers(payload.albums);
     const response = await fetch(confirmUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -216,7 +218,7 @@ export class TvDataService {
         userId,
         userName,
         ...(payload.deviceName ? { deviceName: payload.deviceName } : {}),
-        albums: payload.albums,
+        albums,
       }),
     }).catch(() => null);
 
@@ -237,6 +239,16 @@ export class TvDataService {
       expiresAt: typeof data["expiresAt"] === "string" ? data["expiresAt"] : "",
       syncedAlbumCount: payload.albumCount,
     };
+  }
+
+  async resolveTvCoverUrl(fileId: string): Promise<string> {
+    const normalizedFileId = normalizeTvCoverFileId(fileId);
+    const resolved = await this.cloudStorageUrls.resolve([normalizedFileId]);
+    const coverUrl = resolved.get(normalizedFileId);
+    if (!coverUrl) {
+      throw new NotFoundException();
+    }
+    return coverUrl;
   }
 
   async getLibraryForUser(userId: string): Promise<TvLibraryResponse> {
@@ -320,6 +332,58 @@ async function resolveCloudAlbumCovers(
   const resolved = await client.resolve(fileIds).catch(() => new Map<string, string>());
   for (const album of albums) {
     album.cover = resolved.get(album.cover) || album.cover;
+  }
+}
+
+function preparePayloadCovers(albums: unknown[]): unknown[] {
+  const baseUrl = String(
+    process.env["TV_COVER_PUBLIC_BASE_URL"] || DEFAULT_TV_COVER_PUBLIC_BASE_URL,
+  ).trim().replace(/\/+$/, "");
+  return albums.map((album) => {
+    if (!album || typeof album !== "object" || Array.isArray(album)) {
+      return album;
+    }
+    const cover = readPayloadCover(album);
+    if (!isAllowedTvCoverFileId(cover)) {
+      return album;
+    }
+    return {
+      ...album,
+      cover: `${baseUrl}/cloud/vinyl-data/tv-cover?fileId=${encodeURIComponent(cover)}`,
+    };
+  });
+}
+
+function readPayloadCover(album: unknown): string {
+  if (!album || typeof album !== "object" || Array.isArray(album)) {
+    return "";
+  }
+  const cover = (album as Record<string, unknown>)["cover"];
+  return typeof cover === "string" ? cover.trim() : "";
+}
+
+function normalizeTvCoverFileId(value: string): string {
+  const fileId = String(value || "").trim();
+  if (!isAllowedTvCoverFileId(fileId)) {
+    throw new UnprocessableEntityException();
+  }
+  return fileId;
+}
+
+function isAllowedTvCoverFileId(value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "cloud:" || !url.host) {
+      return false;
+    }
+    const segments = decodeURIComponent(url.pathname)
+      .split("/")
+      .filter(Boolean);
+    return segments.length >= 3
+      && segments[0] === "album-covers"
+      && !segments.some((segment) => segment === "." || segment === "..");
+  } catch {
+    return false;
   }
 }
 

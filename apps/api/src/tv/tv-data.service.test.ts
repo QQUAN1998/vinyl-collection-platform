@@ -100,6 +100,55 @@ describe("TvDataService", () => {
     }
   });
 
+  it("proxies cloud covers through a stable API URL while preserving style", async () => {
+    const prisma = new FakePrismaService();
+    const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
+    const storage = {
+      resolve: vi.fn(),
+    };
+    const service = new TvDataService(prisma as never, storage as never);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ code: "AB12CD", status: "confirmed" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await service.proxyConfirmExternalSession(
+        "AB12CD",
+        {
+          userId: "user-1",
+          albums: [{ id: "album-1", cover: cloudCover, style: "粤语流行" }],
+        },
+      );
+
+      expect(storage.resolve).not.toHaveBeenCalled();
+      const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body);
+      expect(requestBody.albums[0]).toMatchObject({
+        cover: `https://express-i2ts-281225-8-1453155745.sh.run.tcloudbase.com/cloud/vinyl-data/tv-cover?fileId=${encodeURIComponent(cloudCover)}`,
+        style: "粤语流行",
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("resolves only album cover cloud files for the TV cover endpoint", async () => {
+    const prisma = new FakePrismaService();
+    const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
+    const httpsCover = "https://cdn.example.com/album-covers/user-1/custom.jpg";
+    const storage = {
+      resolve: vi.fn().mockResolvedValue(new Map([[cloudCover, httpsCover]])),
+    };
+    const service = new TvDataService(prisma as never, storage as never);
+
+    await expect(service.resolveTvCoverUrl(cloudCover)).resolves.toBe(httpsCover);
+    await expect(
+      service.resolveTvCoverUrl("cloud://prod.bucket/private/user-data.json"),
+    ).rejects.toThrow();
+    expect(storage.resolve).toHaveBeenCalledTimes(1);
+  });
+
   it("resolves a user's cloud cover before serving the TV library", async () => {
     const prisma = new FakePrismaService();
     const cloudCover = "cloud://prod.bucket/album-covers/user-1/album-1.jpg";

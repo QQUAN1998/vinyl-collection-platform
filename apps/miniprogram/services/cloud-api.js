@@ -415,14 +415,17 @@ function buildCloudCollectionRequest(collectionItem, album) {
 }
 
 function normalizeCloudCollectionPayload(payload = {}, seedAlbums = []) {
-  const seedIds = new Set(seedAlbums.map((album) => album.id));
+  const seedAlbumsById = new Map((seedAlbums || []).map((album) => [album.id, album]));
   const rawOwner = payload.owner || { id: "", displayName: DEFAULT_PROFILE_NAME, avatarUrl: null };
   const owner = {
     ...rawOwner,
     displayName: cleanDisplayName(rawOwner.displayName) || DEFAULT_PROFILE_NAME
   };
   const albums = (payload.albums || []).map(toLocalAlbum);
-  const manualAlbums = albums.filter((album) => !seedIds.has(album.id));
+  const manualAlbums = albums.filter((album) => {
+    const seedAlbum = seedAlbumsById.get(album.id);
+    return !seedAlbum || albumDiffersFromSeed(album, seedAlbum);
+  });
   const collectionItems = (payload.collectionItems || []).map(toLocalCollectionItem);
 
   return {
@@ -431,6 +434,23 @@ function normalizeCloudCollectionPayload(payload = {}, seedAlbums = []) {
     manualAlbums,
     collectionItems
   };
+}
+
+function albumDiffersFromSeed(album, seedAlbum) {
+  const normalizedSeed = toLocalAlbum(seedAlbum);
+  const textFields = ["title", "artist", "region", "style", "coverUrl"];
+  if (textFields.some((field) => String(album[field] || "") !== String(normalizedSeed[field] || ""))) {
+    return true;
+  }
+  if (Number(album.year || 0) !== Number(normalizedSeed.year || 0)) {
+    return true;
+  }
+
+  const trackSignature = (tracks) => (tracks || []).map((track, index) => ({
+    position: Number(track.position || index + 1),
+    title: String(track.title || "")
+  }));
+  return JSON.stringify(trackSignature(album.tracks)) !== JSON.stringify(trackSignature(normalizedSeed.tracks));
 }
 
 function applyCloudCollectionPayload(app, payload, seedAlbums = []) {

@@ -1155,6 +1155,35 @@ test("cloud collection payload keeps remote cover URLs usable", () => {
   );
 });
 
+test("cloud collection payload keeps user overrides for seed albums", () => {
+  const seedAlbum = albums[0];
+  const unchangedSeedAlbum = albums[1];
+  const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
+  const payload = normalizeCloudCollectionPayload({
+    owner: { id: "user-1", displayName: "Alice", avatarUrl: null },
+    albums: [
+      unchangedSeedAlbum,
+      {
+        id: seedAlbum.id,
+        title: seedAlbum.title,
+        artist: seedAlbum.artist,
+        year: seedAlbum.year,
+        region: "日本",
+        style: "原声音乐",
+        coverUrl: cloudCover,
+        tracks: [],
+      },
+    ],
+    collectionItems: [],
+  }, albums);
+
+  assert.equal(payload.manualAlbums.length, 1);
+  assert.equal(payload.manualAlbums[0].id, seedAlbum.id);
+  assert.equal(payload.manualAlbums[0].style, "原声音乐");
+  assert.equal(payload.manualAlbums[0].cover, cloudCover);
+  assert.equal(payload.manualAlbums.some((album) => album.id === unchangedSeedAlbum.id), false);
+});
+
 test("cloud collection payload does not overwrite a synced profile with dash placeholders", () => {
   const app = {
     globalData: {
@@ -1438,7 +1467,7 @@ test("TV login confirmation uses the cloud proxy for APK scan URLs", async () =>
   assert.equal(requests[0].data.albums.length, 1);
 });
 
-test("TV login confirmation resolves cloud covers to HTTPS before syncing", async () => {
+test("TV login proxy preserves cloud cover ids for the stable API cover route", async () => {
   const requests = [];
   const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
   const httpsCover = "https://cdn.example.com/album-covers/user-1/custom.jpg";
@@ -1479,6 +1508,53 @@ test("TV login confirmation resolves cloud covers to HTTPS before syncing", asyn
     app,
     albums,
     { publicBaseUrl: "https://example.com", forceTvConfirmProxy: true },
+    wxApi,
+  );
+
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].data.albums[0].cover, cloudCover);
+});
+
+test("direct TV login confirmation resolves cloud covers to HTTPS", async () => {
+  const requests = [];
+  const cloudCover = "cloud://prod.bucket/album-covers/user-1/custom.jpg";
+  const httpsCover = "https://cdn.example.com/album-covers/user-1/custom.jpg";
+  const wxApi = {
+    request(options) {
+      requests.push(options);
+      options.success({
+        statusCode: 200,
+        data: { code: "AB12CD", status: "confirmed" },
+      });
+    },
+    cloud: {
+      getTempFileURL() {
+        return Promise.resolve({
+          fileList: [{ fileID: cloudCover, tempFileURL: httpsCover, status: 0 }],
+        });
+      },
+    },
+  };
+  const app = {
+    globalData: {
+      userId: "user-1",
+      userProfile: { name: "Alice" },
+      manualAlbums: [{
+        id: "custom-album",
+        title: "Custom Album",
+        artist: "Alice",
+        coverUrl: cloudCover,
+        tracks: [],
+      }],
+      collectionItems: [{ albumId: "custom-album", quantity: 1 }],
+    },
+  };
+
+  await confirmTvLoginWithQr(
+    "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54/cloud/vinyl-data/tv-login/AB12CD/scan",
+    app,
+    albums,
+    { forceTvConfirmProxy: false },
     wxApi,
   );
 
@@ -1588,6 +1664,8 @@ test("TV login confirmation falls back to a compact cloud-container payload when
   assert.equal(containerRequests[0].data.albums[0].songs[0].title, "Nascence");
   assert.equal(containerRequests[0].data.albums[0].title, "Journey");
   assert.equal(containerRequests[0].data.albums[0].songCount, albums[0].tracks.length);
+  assert.equal(containerRequests[0].data.albums[0].style, albums[0].style);
+  assert.equal(containerRequests[0].data.albums[0].region, albums[0].region);
 });
 
 test("TV login confirm payload carries the current user's collected albums", () => {

@@ -402,6 +402,28 @@ test("easter library packages the fixed backup collection with cloud-hosted cove
   assert.ok(easterAlbums.every((album) => !String(album.region + album.style).includes("?")));
 });
 
+test("easter library keeps music genres separate from physical media", () => {
+  const mediaLabels = new Set([
+    "\u9ed1\u80f6",
+    "\u5f69\u80f6",
+    "CD",
+    "SACD",
+    "\u78c1\u5e26",
+  ]);
+  const styles = new Set(easterAlbums.map((album) => album.style));
+
+  assert.ok(easterAlbums.every((album) => !mediaLabels.has(album.style)));
+  assert.ok(styles.size >= 8);
+  assert.equal(
+    easterAlbums.find((album) => album.sourceId === "E55E796E-890B-482B-A3E9-ADFAF767BACF").style,
+    "\u53e4\u5178",
+  );
+  assert.equal(
+    easterAlbums.find((album) => album.sourceId === "3194F893-28B3-436A-BBB0-C1B41FDA4B7C").style,
+    "\u7535\u5f71/\u6e38\u620f\u539f\u58f0",
+  );
+});
+
 test("easter library merges confirmed duplicate artist aliases", () => {
   const artistNames = new Set(easterAlbums.map((album) => album.artist));
   const aliases = [
@@ -505,8 +527,8 @@ test("easter library marks collected albums and skips duplicates", () => {
 
   assert.equal(views[0].collected, true);
   assert.equal(views[0].meta, "已收藏");
-  assert.equal(views[0].region, "隐藏库");
-  assert.equal(views[0].style, "黑胶");
+  assert.equal(views[0].region, album.region);
+  assert.equal(views[0].style, album.style);
   assert.equal(result.createdItems.length, 0);
   assert.equal(result.skippedItems.length, 1);
   assert.equal(getUncollectedEasterAlbumIds([album], existing).length, 0);
@@ -1691,6 +1713,34 @@ test("TV login confirm payload carries the current user's collected albums", () 
     duration: 0,
     orderNumber: 1,
   });
+});
+
+test("TV login repairs legacy media labels stored as easter album genres", () => {
+  const referenceAlbum = easterAlbums.find(
+    (album) => album.sourceId === "E55E796E-890B-482B-A3E9-ADFAF767BACF",
+  );
+  const legacyAlbum = {
+    ...referenceAlbum,
+    region: "\u9690\u85cf\u5e93",
+    style: "\u9ed1\u80f6",
+  };
+  const app = {
+    globalData: {
+      userId: "user-1",
+      userProfile: { name: "Alice" },
+      manualAlbums: [legacyAlbum],
+      collectionItems: [{
+        albumId: legacyAlbum.id,
+        collectionDate: "2026-08-17",
+        quantity: 1,
+      }],
+    },
+  };
+
+  const payload = buildTvLoginConfirmPayload(app, albums);
+
+  assert.equal(payload.albums[0].style, "\u53e4\u5178");
+  assert.equal(payload.albums[0].region, "\u6b27\u7f8e");
 });
 
 test("TV login confirm payload keeps large libraries under the cloud proxy limit", () => {

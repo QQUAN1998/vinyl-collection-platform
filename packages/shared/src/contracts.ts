@@ -79,6 +79,7 @@ export interface CloudAlbum {
   title: string;
   artist: string;
   year: number | null;
+  releaseDate?: string | null;
   region: string | null;
   style: string | null;
   coverUrl: string | null;

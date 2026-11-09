@@ -139,6 +139,18 @@ export class CloudCollectionsService {
       },
     });
 
+    // Older clients omit releaseDate; retain the user's existing date on those writes.
+    if (input.album.releaseDate === undefined) {
+      const previous = await client.collection.findUnique({
+        where: { userId_albumId: { userId: user.id, albumId: input.album.id } },
+        select: { albumOverride: true },
+      });
+      const override = previous?.albumOverride;
+      const date = override && typeof override === "object" && !Array.isArray(override)
+        ? optionalReleaseDate(override["releaseDate"]) : null;
+      input.album.releaseDate = date && Number(date.slice(0, 4)) === input.album.year ? date : null;
+    }
+
     await client.collection.upsert({
       where: { userId_albumId: { userId: user.id, albumId: input.album.id } },
       create: {
@@ -200,12 +212,15 @@ function parseAlbum(value: unknown): CloudAlbum {
   const title = requiredString(album["title"], 200);
   const artist = requiredString(album["artist"], 160);
   const year = optionalYear(album["year"]);
+  const releaseDate = album["releaseDate"] === undefined ? undefined : optionalReleaseDate(album["releaseDate"]);
+  if (releaseDate && year !== Number(releaseDate.slice(0, 4))) throw new UnprocessableEntityException();
 
   return {
     id,
     title,
     artist,
     year,
+    ...(releaseDate === undefined ? {} : { releaseDate }),
     region: optionalString(album["region"], 80),
     style: optionalString(album["style"], 80),
     coverUrl: optionalString(album["coverUrl"], 2048),
@@ -392,6 +407,14 @@ function optionalString(value: unknown, maxLength: number): string | null {
   }
   const text = value.trim();
   return text ? text.slice(0, maxLength) : null;
+}
+
+function optionalReleaseDate(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new UnprocessableEntityException();
+  const [year, month, day] = value.split("-").map(Number) as [number, number, number];
+  if (year < 1800 || year > 3000 || month < 1 || month > 12 || day < 1 || day > new Date(Date.UTC(year, month, 0)).getUTCDate()) throw new UnprocessableEntityException();
+  return value;
 }
 
 function optionalYear(value: unknown): number | null {

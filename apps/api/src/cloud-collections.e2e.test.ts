@@ -199,8 +199,8 @@ class FakePrismaService {
       this.collections
         .filter((collection) => collection.userId === where.userId)
         .map((collection) => this.withAlbum(collection)),
-    findUnique: async ({ where }: { where: { id: string } }) => {
-      const collection = this.collections.find((item) => item.id === where.id);
+    findUnique: async ({ where }: { where: { id?: string; userId_albumId?: {userId:string;albumId:string} } }) => {
+      const collection = this.collections.find((item) => where.userId_albumId ? item.userId === where.userId_albumId.userId && item.albumId === where.userId_albumId.albumId : item.id === where.id);
       return collection ? this.withAlbum(collection) : null;
     },
     upsert: async ({
@@ -298,6 +298,20 @@ describe("WeChat cloud collection API", () => {
   afterEach(async () => {
     await app.close();
     delete process.env["AUTH_TOKEN_SECRET"];
+  });
+
+  it("roundtrips release days, isolates owners, retains dates for old clients, and validates the calendar", async () => {
+    const album = {id:"dated",title:"Record",artist:"Artist",year:2024,releaseDate:"2024-02-29",tracks:[]};
+    const collection = {collectionDate:"2026-11-09",quantity:1,condition:"NM",mediumKey:"vinyl",source:"store",notes:"keep"};
+    const save = (owner:string,value:Record<string,unknown>) => request(app.getHttpServer()).post("/api/collections").set("x-wx-openid",owner).send({album:value,collection});
+    const created = await save("date-owner",album).expect(201);
+    expect(created.body.albums[0].releaseDate).toBe("2024-02-29");
+    const {releaseDate:_,...legacy} = album;
+    const old = await save("date-owner",legacy).expect(201);expect(old.body.albums[0].releaseDate).toBe("2024-02-29");
+    const other = await save("other-owner",{...album,releaseDate:"2024-03-01"}).expect(201);expect(other.body.albums[0].releaseDate).toBe("2024-03-01");
+    const mine = await request(app.getHttpServer()).get("/api/collections/me").set("x-wx-openid","date-owner").expect(200);expect(mine.body.albums[0].releaseDate).toBe("2024-02-29");expect(mine.body.collectionItems[0].notes).toBe("keep");
+    for (const date of ["2023-02-29","2024-04-31","2024-13-01","bad"]) await save("date-owner",{...album,releaseDate:date}).expect(422);
+    const cleared = await save("date-owner",{...album,releaseDate:null}).expect(201);expect(cleared.body.albums[0].releaseDate).toBeNull();
   });
 
   it("persists the caller collection and exposes it through a share owner id", async () => {

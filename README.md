@@ -1,3 +1,27 @@
+# 把实体唱片，变成私人唱片柜
+
+[English](README.en.md) · [在线图示](https://qquan1998.github.io/vinyl-collection-platform/) · [反馈问题](https://github.com/QQUAN1998/vinyl-collection-platform/issues)
+
+![15 秒功能演示](docs/images/demo.gif)
+
+> 适合实体唱片收藏者及微信小程序开发者。 在线图示只展示本地示例，不连接你的微信收藏；真实小程序体验需要微信及相应权限。
+
+<a id="quick-start"></a>
+
+## 三步开始
+
+1. 先打开在线图示，查看唱片和演出票根示例，无需登录。
+2. 开发体验：克隆仓库，用微信开发者工具导入 apps/miniprogram。
+3. 使用自己的 AppID 和云环境；先阅读完整 README 中的后端与配置说明。
+
+```text
+git clone https://github.com/QQUAN1998/vinyl-collection-platform.git
+```
+
+[中英文推广文案](docs/LAUNCH.md) · [本次文档更新](docs/UPDATES.md) · [版本记录方法](docs/RELEASING.md)
+
+---
+
 # 大收藏家 · 唱片演出记录
 
 [English](README.en.md) · [1.2.43 更新说明](docs/releases/1.2.43.zh-CN.md)

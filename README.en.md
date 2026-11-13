@@ -1,3 +1,27 @@
+# A personal cabinet for physical records
+
+[简体中文](README.md) · [Visual tour](https://qquan1998.github.io/vinyl-collection-platform/) · [Report an issue](https://github.com/QQUAN1998/vinyl-collection-platform/issues)
+
+![15-second visual tour](docs/images/demo.gif)
+
+> For physical-record collectors and WeChat mini-program developers. The visual tour uses local fixtures and never loads your WeChat collection. Running the mini program requires WeChat and the appropriate setup.
+
+<a id="quick-start"></a>
+
+## Quick start
+
+1. Open the visual tour to inspect record and show posters without signing in.
+2. For development, clone the repository and import apps/miniprogram in WeChat DevTools.
+3. Use your own AppID and cloud environment; follow the backend setup in the full README.
+
+```text
+git clone https://github.com/QQUAN1998/vinyl-collection-platform.git
+```
+
+[Bilingual launch copy](docs/LAUNCH.md) · [Documentation changes](docs/UPDATES.md) · [Release checklist](docs/RELEASING.md)
+
+---
+
 # MUSIC & LIVE · Personal Music Collection
 
 [简体中文](README.md) · [1.2.43 release notes](docs/releases/1.2.43.en.md)

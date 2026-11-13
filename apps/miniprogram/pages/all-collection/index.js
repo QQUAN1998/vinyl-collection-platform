@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const {
   COLLECTION_SEARCH_SCOPES,
@@ -22,8 +23,17 @@ function decorateBatchSelection(albumList = [], selectedAlbumIds = []) {
   }));
 }
 
-Page({
-  data: {
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
+  uiShowDetail(options){this.setData({uiDetailOptions:options,uiDetailOpen:true});},
+  uiDismissDetail(){this.setData({uiDetailOpen:false});},
+  uiDetailLeft(){this.setData({uiDetailOpen:false,uiDetailOptions:null});this.loadCollection();},
+
+  async uiPrepareShare(){
+    if(this.data.uiPreparingShare||!this.data.canManageCollection)return;
+    this.setData({uiPreparingShare:true});
+    try{const app=getApp(),me=await requireCloudAccount(app);if(me&&app.globalData.userId){this.loadLocalCollection();this.setData({uiShareReady:true});uiLocale.toast(wx,{title:'已就绪，点击分享',icon:'none'});}}catch(e){uiLocale.toast(wx,{title:'请先在我的页面登录',icon:'none'});}finally{this.setData({uiPreparingShare:false});}
+  },
+  data: {uiDetailOpen:false,uiDetailOptions:null,uiShareReady:false,uiPreparingShare:false,uiSharedError:false,uiCatalogAvatar:"",
     userName: "\u5531\u7247\u67dc\u7528\u6237",
     avatarInitial: "D",
     stats: {
@@ -97,9 +107,11 @@ Page({
     const app = getApp();
     app.loadSharedCloudCollection(ownerId).then((payload) => {
       if (!payload) {
-        this.loadLocalCollection();
+        this.renderCollection([],[],{name:"收藏暂时不可用"});
+        this.setData({uiSharedError:true});
         return;
       }
+      this.setData({uiSharedError:false});
 
       this.renderCollection(
         [...albums, ...payload.manualAlbums],
@@ -116,6 +128,8 @@ Page({
     const collectedAlbums = showcase.albums;
 
     this.setData({
+      uiCatalogAvatar:getApp().globalData.userProfile?.avatar||"",
+      uiShareReady:!!(this.data.canManageCollection&&getApp().isCloudAccountReady()&&getApp().globalData.userId),
       userName: showcase.userName,
       avatarInitial: showcase.avatarInitial,
       stats: showcase.stats,
@@ -173,14 +187,14 @@ Page({
   },
   toggleBatchDeleteMode() {
     if (!this.data.canManageCollection) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "分享页面不能删除",
         icon: "none"
       });
       return;
     }
     if (!this.data.collectedAlbums.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "还没有可删除的唱片",
         icon: "none"
       });
@@ -204,7 +218,7 @@ Page({
       return;
     }
 
-    this.openAlbumCard(event);
+    const albumId=event.currentTarget.dataset.albumId;if(albumId)this.uiShowDetail({albumId,...(this.data.ownerId?{ownerId:this.data.ownerId}:{})});
   },
   toggleBatchSelection(event) {
     if (!this.data.canManageCollection || !this.data.batchDeleteMode) {
@@ -235,7 +249,7 @@ Page({
 
     const visibleAlbumIds = this.data.visibleAlbums.map((album) => album.id).filter(Boolean);
     if (!visibleAlbumIds.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "当前没有可选择的唱片",
         icon: "none"
       });
@@ -260,21 +274,21 @@ Page({
   },
   confirmBatchDelete() {
     if (!this.data.canManageCollection) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "分享页面不能删除",
         icon: "none"
       });
       return;
     }
     if (!this.data.selectedCount) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "先选择要删除的唱片",
         icon: "none"
       });
       return;
     }
 
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "批量删除唱片",
       content: `确定从收藏中删除已选择的 ${this.data.selectedCount} 张唱片吗？`,
       confirmText: "删除",
@@ -304,7 +318,7 @@ Page({
         albumIds: this.data.selectedAlbumIds
       });
     } catch (error) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "这些唱片已不在收藏中",
         icon: "none"
       });
@@ -335,7 +349,7 @@ Page({
     }, () => {
       this.loadLocalCollection();
     });
-    wx.showToast({
+    uiLocale.toast(wx,{
       title: `已删除${deleteResult.removedItems.length}张`,
       icon: "success"
     });
@@ -403,14 +417,15 @@ Page({
       albumCard: null
     }, () => {
       wx.navigateTo({
-        url: `/pages/album-detail/index?albumId=${albumCard.id}`
+        url: `/pages/album-detail/index?albumId=${albumCard.id}${this.data.ownerId?"&ownerId="+encodeURIComponent(this.data.ownerId):""}`
       });
     });
   },
   noop() {},
   onShareAppMessage() {
+    if(this.data.uiDetailOpen){const detail=this.selectComponent("#uiDetail");if(detail?.onShareAppMessage)return detail.onShareAppMessage();}
     const app = getApp();
-    const ownerId = encodeURIComponent(app.globalData.userId || "");
+    const ownerId = encodeURIComponent(this.data.ownerId || app.globalData.userId || "");
     return createShareMessage({
       title: `${this.data.userName}的全部唱片收藏`,
       path: ownerId ? `/pages/all-collection/index?ownerId=${ownerId}` : "/pages/all-collection/index"
@@ -419,4 +434,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+}));

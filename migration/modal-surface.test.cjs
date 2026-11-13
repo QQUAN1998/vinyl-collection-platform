@@ -1,0 +1,13 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),{createRequire}=require('node:module');
+function runtime(){const file=path.resolve('apps/miniprogram/ui/locale-runtime.js'),calls=[],theme=require('../apps/miniprogram/services/theme-service'),app={globalData:{theme:{mode:'standard'}}};const wx={getStorageSync:()=>'',getWindowInfo:()=>({statusBarHeight:47}),setBackgroundColor:o=>calls.push(o),setNavigationBarColor(){}};const module={exports:{}};vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,exports:module.exports,require:createRequire(file),wx,getApp:()=>app,getCurrentPages:()=>[],Set,Object,Array});return {locale:module.exports,calls,theme};}
+test('native bottom follows full-screen ticket actions and restores the preview scrim after close',()=>{
+ const {locale,calls}=runtime(),seen=[],spec=locale.page({onLoad(){seen.push('load');}}),p={...spec,data:{...spec.data},setData(patch,callback){Object.assign(this.data,patch);callback?.();return 'kept';}};p.onLoad();assert.deepEqual(seen,['load']);
+ assert.equal(p.setData({albumCard:{id:'a'}}),'kept');assert.equal(p.data.uiModalBackground,'#8c8e8e');
+ let completed=0;p.setData({uiTicket:{kind:'vinyl'}},()=>completed++);assert.equal(completed,1);assert.equal(p.data.uiModalBackground,'#f5f6f2');assert.equal(calls.at(-1).backgroundColorBottom,'#f5f6f2');
+ p.setData({uiTicket:null});assert.equal(p.data.uiModalBackground,'#8c8e8e');p.setData({albumCard:null});assert.equal(p.data.uiModalBackground,'#f5f6f2');
+ const count=calls.length;p.setData({unrelated:'kept'});assert.equal(calls.length,count);assert.equal(p.data.unrelated,'kept');
+ p.setData({uiThemeClass:'theme-dark',uiPreviewRecord:{id:'live'},uiTicket:{kind:'live'}});assert.equal(p.data.uiModalBackground,'#f5f6f2');p.setData({uiTicket:null,uiPreviewRecord:null});assert.equal(p.data.uiModalBackground,'#f5f6f2');p.onUnload();
+});
+test('isolated ticket dialog subscribes to the same display preferences and releases them',()=>{
+ const file=path.resolve('apps/miniprogram/components/ticket-share/index.js');let spec;const {locale}=runtime();vm.runInNewContext(fs.readFileSync(file,'utf8'),{require:name=>name.includes('locale-runtime')?locale:{},Component:s=>spec=s,Promise});assert.ok(spec.lifetimes.attached);const c={data:{...spec.data},setData(patch){Object.assign(this.data,patch);}};spec.lifetimes.attached.call(c);assert.equal(c.data.uiThemeClass,'theme-standard');assert.match(c.data.uiThemeStyle,/--color-screen: #f5f6f2/);spec.lifetimes.detached.call(c);assert.equal(c.closed,true);
+});

@@ -1,3 +1,9 @@
+const uiImageActions=require('../../ui/image-actions');
+const uiTicketData=require('../../ui/ticket-data');
+const uiLocale=require("../../ui/locale-runtime");
+const {refreshCollection}=require('../../ui/collection-refresh');
+const uiSpace=require('../../ui/space-navigation');
+const {buildDeck:uiBuildDeck}=require("../../ui/deck-model");
 const {
   albums,
   collectionItems,
@@ -154,8 +160,18 @@ function formatPreviewPlayerState(state = {}) {
   };
 }
 
-Page({
-  data: {
+const uiPrimaryTabs=require('../../ui/primary-tabs');
+Page(uiLocale.page({uiImageActions(){const d=this.data;uiImageActions.openImage(d.albumCard?.cover);},
+
+  ...uiPrimaryTabs,
+  uiShowDetail(options){this.setData({uiDetailOptions:options,uiDetailOpen:true});},
+  uiDismissDetail(){this.setData({uiDetailOpen:false});},
+  uiDetailLeft(){this.setData({uiDetailOpen:false,uiDetailOptions:null});this.loadCabinet();},
+
+  uiAllCollection(){wx.navigateTo({url:"/pages/all-collection/index"});},
+  data: {uiTab:'home',uiMounted:{add:false,stats:false},uiDetailOpen:false,uiDetailOptions:null,
+    uiLife:{},
+    deckAlbums:[],deckCollections:[],deckOwner:"",deckAvatar:"",
     userLabel: "\u5531\u7247\u67dc\u7528\u6237 / \u00a50",
     collectionCount: 0,
     collectionUnit: "张唱片",
@@ -175,7 +191,7 @@ Page({
     previewPlayer: null,
     dailyRecommendation: buildDailyRecommendationFallback("loading")
   },
-  onLoad() {
+  onLoad(options={}) {
     const app = getApp();
     if (typeof app.applyThemeToPage === "function") {
       app.applyThemeToPage(this);
@@ -183,7 +199,7 @@ Page({
     this.unsubscribePreviewPlayer = subscribePreviewPlayer((state) => {
       this.syncPreviewPlayerState(state);
     });
-    this.loadCabinet();
+    if(['add','stats'].includes(options.tab))this.uiPrimary(options.tab);
   },
   onShow() {
     const app = getApp();
@@ -192,15 +208,12 @@ Page({
     }
     this.loadCabinet();
     this.syncPreviewPlayerState();
-    if (typeof app.loadCloudCollection === "function") {
-      app.loadCloudCollection().then((payload) => {
-        if (payload) {
-          this.loadCabinet();
-        }
-      });
-    }
+    refreshCollection(app).then(payload => {
+      if (payload && !this.uiDisposed) this.loadCabinet();
+    }).catch(() => {});
   },
   onUnload() {
+    this.uiDisposed = true;
     if (this.unsubscribePreviewPlayer) {
       this.unsubscribePreviewPlayer();
       this.unsubscribePreviewPlayer = null;
@@ -211,42 +224,19 @@ Page({
     const sourceAlbums = mergeAlbumLibraries(albums, app.globalData.manualAlbums || []);
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
     const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
-    const collectionByAlbumId = collectionMapByAlbumId(liveCollectionItems);
-    const collectedAlbumIds = new Set(liveCollectionItems.map((item) => item.albumId));
-    const recentAlbums = recentAlbumIds
-      .filter((albumId) => collectedAlbumIds.has(albumId))
-      .map((albumId) => findAlbum(albumId, sourceAlbums))
-      .filter(Boolean);
-
-    const catalogState = buildCatalogState(
-      collectedAlbums,
-      this.data.catalogSearch,
-      this.data.catalogScope,
-      liveCollectionItems.length
-    );
-    const albumCard = this.data.albumCard
-      ? buildAlbumCard(
-        findAlbum(this.data.albumCard.id, sourceAlbums),
-        collectionByAlbumId.get(this.data.albumCard.id),
-        app.globalData.photoWallOrder || []
-      )
-      : null;
-
-    this.setData({
-      userLabel: app.globalData.userLabel || "\u5531\u7247\u67dc\u7528\u6237 / \u00a50",
+    const view = {
       collectionCount: liveCollectionItems.length,
-      featuredAlbum: findAlbum(featuredAlbumId, sourceAlbums),
-      photoWallAlbums: buildPhotoWallAlbums(
-        sourceAlbums,
-        liveCollectionItems,
-        app.globalData.photoWallOrder || [],
-        toAlbumView
-      ),
-      recentAlbums,
-      albumCard,
-      ...catalogState
-    });
-    this.refreshDailyRecommendation(sourceAlbums, liveCollectionItems);
+      deckAlbums: collectedAlbums.map(({id,title,artist,cover,coverUrl,year})=>({id,title,artist,cover,coverUrl,year})),
+      deckCollections: liveCollectionItems.map(({albumId,collectionDate,price,quantity})=>({albumId,collectionDate,price,quantity})),
+      deckOwner: app.globalData.userProfile?.name || "",
+      deckAvatar: app.globalData.userProfile?.avatar || ""
+    };
+    const signature = JSON.stringify(view);
+    if (signature !== this.uiCabinetSignature) {
+      this.uiCabinetSignature = signature;
+      this.setData(view);
+    }
+    // New UI has no daily recommendation; collection and audio detail services stay unchanged.
   },
   refreshDailyRecommendation(sourceAlbums, liveCollectionItems) {
     const loadKey = buildRecommendationLoadKey(sourceAlbums, liveCollectionItems);
@@ -353,7 +343,7 @@ Page({
       return;
     }
 
-    wx.showLoading({ title: "补全专辑信息" });
+    uiLocale.loading(wx,{ title: "补全专辑信息" });
     fetchCatalogAlbumDetail(album, { country: "CN" }, app.globalData.cloud || {}, wx)
       .then(openRecommendationDetail)
       .catch(() => openRecommendationDetail(album))
@@ -396,11 +386,10 @@ Page({
       ...buildCatalogState(collectedAlbums, this.data.catalogSearch, catalogScope, liveCollectionItems.length)
     });
   },
-  openAdd() {
-    wx.navigateTo({
-      url: "/pages/add/index"
-    });
-  },
+  openAdd() {this.uiPrimary('add');},
+  togglePhotoWall() { this.setData({ photoWallExpanded: !this.data.photoWallExpanded }); },
+  openHomeAlbum(event) {const albumId=event.detail.id;if(this.data.deckAlbums.some(row=>row.id===albumId))this.openAlbumCard(albumId,"home");},
+  openUiAccount() { wx.navigateTo({ url: "/pages/account/index" }); },
   openAlbum(event) {
     const { placeholder } = event.currentTarget.dataset;
     if (placeholder === true || placeholder === "true") {
@@ -422,7 +411,7 @@ Page({
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
     const collectedAlbums = buildCollectedAlbumLibrary(sourceAlbums, liveCollectionItems);
     const collectionByAlbumId = collectionMapByAlbumId(liveCollectionItems);
-    const contextAlbums = context === "wall" ? this.data.photoWallAlbums : this.data.visibleAlbums;
+    const contextAlbums = context === "home" ? this.data.deckAlbums : context === "wall" ? this.data.photoWallAlbums : this.data.visibleAlbums;
     let cardAlbumIds = (contextAlbums || [])
       .filter((item) => !item.placeholder)
       .map((item) => item.id);
@@ -536,14 +525,14 @@ Page({
       if (!result.createdItems.length) {
         this.loadCabinet();
         this.openAlbumCard(albumCard.id, this.data.cardContext);
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "\u5df2\u5728\u6536\u85cf",
           icon: "success"
         });
         return;
       }
 
-      wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+      uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d" });
       app.saveCollectionToCloud(result.createdItems[0], albumCard)
         .then((payload) => {
           if (!payload) {
@@ -553,7 +542,7 @@ Page({
 
           this.loadCabinet();
           this.openAlbumCard(albumCard.id, this.data.cardContext);
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "\u5df2\u52a0\u5165\u6536\u85cf",
             icon: "success"
           });
@@ -570,7 +559,7 @@ Page({
       return;
     }
 
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "删除唱片",
       content: `确认从收藏中删除《${albumCard.title}》吗？`,
       confirmText: "删除",
@@ -593,7 +582,7 @@ Page({
         collectionItems: app.globalData.collectionItems || [],
         albumId
       });
-      wx.showLoading({ title: "\u5220\u9664\u4e2d" });
+      uiLocale.loading(wx,{ title: "\u5220\u9664\u4e2d" });
       app.deleteCollectionFromCloud(result.removedItem.id)
         .then((payload) => {
           if (!payload) {
@@ -603,7 +592,7 @@ Page({
 
           this.loadCabinet();
           this.setData({ albumCard: null });
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "\u5df2\u5220\u9664",
             icon: "success"
           });
@@ -624,7 +613,7 @@ Page({
     const liveCollectionItems = app.globalData.collectionItems || collectionItems;
 
     if (!albumCard.isCollected) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "先加入收藏",
         icon: "none"
       });
@@ -637,7 +626,7 @@ Page({
       : addAlbumToPhotoWall(currentOrder, albumCard.id, sourceAlbums, liveCollectionItems);
 
     if (!albumCard.isOnPhotoWall && nextOrder.length === currentOrder.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "照片墙已满",
         icon: "none"
       });
@@ -648,13 +637,17 @@ Page({
 
     this.loadCabinet();
     this.openAlbumCard(albumCard.id, albumCard.isOnPhotoWall ? this.data.cardContext : "wall");
-    wx.showToast({
+    uiLocale.toast(wx,{
       title: albumCard.isOnPhotoWall ? "已下墙" : "已上墙",
       icon: "success"
     });
   },
+  uiTicketShare(){const ticket=uiTicketData.vinyl(this.data.albumCard,this.data.deckAlbums,this.data.deckCollections,this.data.deckOwner,this.data.deckAvatar);if(ticket)this.setData({uiTicket:ticket});},
+  uiTicketClose(){this.setData({uiTicket:null});},
   noop() {},
-  onShareAppMessage() {
+  onShareAppMessage(event) {
+    const paneMessage=this.uiPaneShare(event);if(paneMessage)return paneMessage;
+    if(this.data.uiDetailOpen){const detail=this.selectComponent("#uiDetail");if(detail?.onShareAppMessage)return detail.onShareAppMessage();}
     const app = getApp();
     const name = app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
     const album = this.data.albumCard;
@@ -671,4 +664,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"唱片柜"));

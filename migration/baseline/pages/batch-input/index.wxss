@@ -1,0 +1,13 @@
+.batch-input-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.batch-helper {
+  margin-top: -14rpx;
+}
+
+.bottom-action {
+  margin-top: auto;
+}

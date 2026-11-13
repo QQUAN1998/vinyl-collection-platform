@@ -1,0 +1,15 @@
+:host{position:relative;z-index:1200}
+.ticket-mask{position:fixed;top:0;right:0;bottom:0;left:0;z-index:1200;background:linear-gradient(135deg,#dfc9a6 0%,#bea27b 42%,#957752 100%);box-sizing:border-box}
+.ticket-dialog{display:flex;flex-direction:column;width:100%;height:100%;box-sizing:border-box;color:var(--color-ink,#171a17);overflow:hidden}
+.ticket-scroll{flex:1;min-height:0;position:relative;overflow:hidden}
+.ticket-paper{position:relative;width:100%;height:100%;overflow:hidden}
+.ticket-paper image{display:block;width:100%;height:100%}
+.ticket-render{position:absolute;left:0;top:0;opacity:0;pointer-events:none}
+.ticket-status{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:14px;color:#3f3426}
+.ticket-actions{display:flex;gap:10px;flex:none;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));background:var(--color-screen,#f5f6f2)}
+.ticket-actions button{flex:1;min-width:0;height:44px;min-height:44px;line-height:42px;padding:0;margin:0;border:1px solid var(--color-line,#d8dcd4);border-radius:24px;font-size:14px;font-weight:400;background:var(--color-soft,#edf0e8);color:var(--color-ink,#171a17)}
+.ticket-actions .ticket-save{background:var(--theme-primary-button-bg,#171a17);border-color:transparent;color:var(--theme-primary-button-text,#fff);font-weight:500}
+.ticket-actions button[disabled]{opacity:.4}
+.ticket-error{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center;font-size:14px;color:#3f3426}
+.ticket-error button{margin-top:24px;padding:0 24px;border:0;border-radius:24px;font-size:14px;background:var(--theme-primary-button-bg,#171a17);color:var(--theme-primary-button-text,#fff)}
+button::after{border:0}

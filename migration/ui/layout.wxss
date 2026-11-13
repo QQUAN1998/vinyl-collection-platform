@@ -1,0 +1,28 @@
+/* Shared page geometry. Keep forms and overview cards on the same content rails. */
+[hidden] { display: none !important; }
+.screen.ui-add, .ui-native-screen { width: 100%; box-sizing: border-box; }
+.ui-add .ui-method-tabs, .page .ui-method-tabs { width: 100%; gap: 8px; margin: 0 0 16px; }
+.ui-add .ui-method, .page .ui-method {
+  flex: 1 1 0; width: 0 !important; min-width: 0; max-width: none;
+  min-height: 40px; padding: 10px 4px; white-space: nowrap; text-align: center;
+}
+.ui-add .ui-add-card, .page .ui-add-card { width: 100%; min-height: 140px; padding: 20px; }
+.ui-add .ui-share-card, .page .ui-share-card { width: 100%; margin-top: 16px; padding: 20px; }
+.ui-search-row { align-items: center; width: 100%; }
+.ui-search-row .ui-primary { display: flex; align-items: center; justify-content: center; height: 44px; white-space: nowrap; }
+.ui-add .ui-link, .page .ui-link { min-height: 32px; white-space: nowrap; }
+.ui-add .ui-share-open, .page .ui-share-open { padding-top: 16px; }
+.ui-result-title, .ui-result-copy > text { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.screen.edit-screen .edit-cover-block { justify-content: flex-start; min-height: 0; padding: 0; gap: 16px; border: 0; background: none; }
+.screen.edit-screen .edit-cover { width: 88px; height: 88px; border-radius: 0; flex: 0 0 88px; }
+.screen.edit-screen .edit-cover-copy { flex: 1; width: 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.screen.edit-screen .edit-album-title { display: block; width: 100%; font-size: 14px; line-height: 1.4; }
+.screen.edit-screen .edit-album-meta { display: block; width: 100%; font-size: 11px; color: #747871; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.screen.edit-screen .cover-button { display: inline-flex; width: auto; flex: none; min-width: 96px; min-height: 36px; padding: 8px 12px; white-space: nowrap; align-items: center; justify-content: center; }
+.detail-screen .edit-button, .page .edit-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.detail-screen .edit-button .ui-action-icon { margin: 0; filter: none; flex: none; }
+@media (max-width: 350px) {
+  .ui-add .ui-add-card, .ui-add .ui-share-card, .page .ui-add-card, .page .ui-share-card { padding: 16px; }
+  .screen.edit-screen .edit-cover-block { gap: 12px; }
+  .screen.edit-screen .edit-cover { width: 72px; height: 72px; flex-basis: 72px; }
+}

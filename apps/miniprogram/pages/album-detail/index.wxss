@@ -103,7 +103,7 @@
   margin-top: 20rpx;
   border-radius: var(--radius-card);
   background: var(--color-action);
-  color: #ffffff;
+  color: var(--theme-card-surface);
   font-size: 27rpx;
   font-weight: 950;
 }
@@ -170,9 +170,20 @@
 
 .track-preview-button.is-playing {
   background: var(--color-action);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .track-preview-button-hover {
   opacity: 0.72;
 }
+
+@import "../../ui/pages.wxss";
+
+.ui-detail-page{animation:detail-reveal .32s ease-out;will-change:transform,opacity}.ui-detail-page.ui-closing{animation:none;transition:transform .18s,opacity .18s}.ui-detail-cover{position:relative;max-width:320px;margin:0 auto 24px;width:100%;height:calc(100vw - 40px);max-height:320px}.detail-screen .ui-detail-cover .detail-cover{width:100%;height:100%;aspect-ratio:1;border-radius:0;margin:0;box-shadow:0 14px 24px -12px #171a1760}.ui-cover-gloss{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px #ffffff88,inset -3px -3px 7px #0002;background:linear-gradient(135deg,#ffffff22,#fff0 45%,#ffffff15 49%,#fff0 55%)}.hero .poster{margin:0 auto;width:100%;max-width:320px;aspect-ratio:auto;height:auto;min-height:100px}.hero .poster image{display:block;width:100%;height:auto;position:static}
+@keyframes detail-reveal{from{opacity:.1;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+/* Unified screenshot refinement */
+.ui-detail-page{padding-left:20px!important;padding-right:20px!important;padding-bottom:110px!important}.ui-detail-cover,.detail-cover{width:68vw!important;max-width:280px!important;height:68vw!important;max-height:280px!important;margin-left:auto!important;margin-right:auto!important;border-radius:8px!important}.detail-title,.facts .title{font-size:23px!important;line-height:1.35!important;white-space:normal!important;word-break:break-word;text-align:center}.facts{text-align:center}.detail-artist{font-size:14px!important}.fact-grid{gap:10px!important}.fact,.fact-item{border:1px solid var(--color-line)!important;border-radius:17px!important;background:transparent!important;padding:14px!important}.detail-facts,.detail-section,.detail-toolbar{background:transparent!important;box-shadow:none!important}.detail-edit,.detail-actions .ghost-button{width:100%!important;background:transparent!important;border:1px solid var(--color-line)!important;color:var(--color-ink)!important;box-sizing:border-box;justify-content:center}.track-row,.song{background:transparent!important;border-radius:0!important;border-bottom:1px solid var(--color-line)!important}.track-list{background:transparent!important}.poster{width:64vw!important;max-width:260px;margin:0 auto 24px!important;background:transparent!important}.hero{background:transparent!important}.poster image{width:100%!important}.ui-sheet-nav{height:0!important;min-height:0!important;padding:0!important;overflow:hidden}.ui-detail-scroll{height:100vh!important;padding-top:12px!important;box-sizing:border-box}.ui-detail-back{position:fixed;z-index:200;bottom:calc(15px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:44px;height:44px;min-height:44px;background:var(--color-ink);border-radius:50%;padding:12px;box-sizing:border-box;margin:0}.ui-detail-back image{display:block;width:20px;height:20px;filter:brightness(0) invert(1)}
+/* Unified screenshot refinement */
+.ui-form-back{position:fixed!important;left:50%;bottom:calc(15px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:300;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;border-radius:50%!important;background:var(--color-ink)!important;padding:12px!important;margin:0!important;font-size:0!important;box-sizing:border-box;display:flex!important;align-items:center;justify-content:center}.ui-form-back image{width:20px;height:20px;filter:brightness(0) invert(1)}.all-collection-screen bottom-nav{display:none}.ui-catalog-title{font-size:18px!important}.screen,.page{padding-bottom:110px!important}
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

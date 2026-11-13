@@ -1,14 +1,15 @@
-<view class="screen results-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen results-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">搜索结果</view>
-    <view class="screen-kicker">{{candidates.length}} 个结果</view>
+    <view class="screen-title">{{i18n.t('搜索结果',uiLanguage)}}</view>
+    <view class="screen-kicker">{{candidates.length}} {{i18n.t('个结果',uiLanguage)}}</view>
   </view>
 
-  <view class="result-query">{{query || "批量匹配"}}</view>
+  <view class="result-query">{{query || i18n.t("批量匹配",uiLanguage)}}</view>
   <view class="result-notice" wx:if="{{providerNotice}}">{{providerNotice}}</view>
   <view class="result-notice is-muted" wx:if="{{resultNotice}}">{{resultNotice}}</view>
   <view class="result-notice is-warning" wx:if="{{errorMessage}}">{{errorMessage}}</view>
-  <view class="section-title">选择要加入的唱片</view>
+  <view class="section-title">{{i18n.t('选择要加入的唱片',uiLanguage)}}</view>
 
   <state-view
     wx:if="{{loading}}"
@@ -34,9 +35,9 @@
       bindtap="loadMoreResults"
       hover-class="load-more-hover"
     >
-      {{loadingMore ? "正在继续查找" : (hasMoreResults ? "继续加载更多" : "已显示全部可获取结果")}}
+      {{loadingMore ? i18n.t("正在继续查找",uiLanguage) : (hasMoreResults ? i18n.t("继续加载更多",uiLanguage) : i18n.t("已显示全部可获取结果",uiLanguage))}}
     </view>
-    <view class="load-more-meta">已显示 {{candidates.length}} 个结果</view>
+    <view class="load-more-meta">{{i18n.t('已显示',uiLanguage)}} {{candidates.length}} {{i18n.t('个结果',uiLanguage)}}</view>
   </view>
 
   <state-view
@@ -47,9 +48,10 @@
   />
 
   <view class="floating-action">
-    <view class="selected-count">已选择 {{selectedCount}} 张</view>
+    <view class="selected-count">{{i18n.t('已选择',uiLanguage)}} {{selectedCount}} {{i18n.t('张',uiLanguage)}}</view>
     <view class="next-action {{hydrating ? 'is-loading' : ''}}" bindtap="goConfirm" hover-class="next-action-hover">
-      {{hydrating ? "补全中" : "下一步 →"}}
+      {{hydrating ? i18n.t("补全中",uiLanguage) : i18n.t("下一步 →",uiLanguage)}}
     </view>
   </view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

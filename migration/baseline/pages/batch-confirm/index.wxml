@@ -1,0 +1,47 @@
+<view class="screen confirm-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">确认加入</view>
+    <view class="screen-kicker">{{selectedCount}} 张</view>
+  </view>
+
+  <view class="section confirm-section">
+    <view class="section-title">批量设置</view>
+    <view class="field-grid">
+      <form-field label="收藏日期" value="{{defaults.collectionDate}}" data-key="collectionDate" bind:change="handleDefaultChange" />
+      <form-field label="购买来源" value="{{defaults.source}}" data-key="source" bind:change="handleDefaultChange" />
+      <form-field label="默认数量" type="number" value="{{defaults.quantity}}" data-key="quantity" bind:change="handleDefaultChange" />
+      <form-field label="唱片品相" value="{{defaults.condition}}" data-key="condition" bind:change="handleDefaultChange" />
+    </view>
+    <view class="medium-batch-field">
+      <media-format-selector
+        options="{{mediaFormats}}"
+        selected-key="{{defaults.mediumKey}}"
+        bind:change="handleMediumChange"
+      />
+    </view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="section confirm-section">
+    <view class="section-head">
+      <view class="section-title">逐张补充价格</view>
+      <view class="caption">可稍后填写</view>
+    </view>
+    <view class="price-list">
+      <view class="price-row" wx:for="{{selectedAlbums}}" wx:key="id">
+        <image class="price-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="price-copy">
+          <view class="price-title">{{item.title}}</view>
+          <view class="price-year">{{item.year}}</view>
+        </view>
+        <view class="price-input-shell">
+          <text class="price-symbol">¥</text>
+          <input class="price-input" type="number" placeholder="填写" data-album-id="{{item.id}}" bindinput="handlePriceChange" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="confirm-button" bindtap="confirmAdd" hover-class="confirm-button-hover">确认加入 {{selectedCount}} 张</view>
+</view>

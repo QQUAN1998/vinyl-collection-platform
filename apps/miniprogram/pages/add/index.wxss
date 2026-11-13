@@ -86,7 +86,7 @@
 
 .secondary-action:last-child {
   background: var(--color-clay);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .secondary-action-hover {
@@ -111,7 +111,7 @@
 }
 
 .all-collection-title {
-  color: #ffffff;
+  color: var(--theme-card-surface);
   font-size: 32rpx;
   font-weight: 950;
   line-height: 1.15;
@@ -238,3 +238,11 @@
   font-size: 24rpx;
   font-weight: 950;
 }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/pages.wxss";
+@import "../../ui/add.wxss";
+@import "../../ui/exact-pages.wxss";
+/* Unified screenshot refinement */
+.screen-title,.ui-catalog-title{font-size:18px!important;line-height:1.4}.ui-catalog-head{align-items:center}.screen-kicker{display:none}.ui-native-screen,.screen{padding-left:20px!important;padding-right:20px!important;box-sizing:border-box}.tv-actions{display:flex!important;gap:10px!important}.tv-actions button{flex:1!important;min-width:0!important;margin:0!important;text-align:center}.tv-device{display:flex;align-items:center;gap:14px}.tv-device-copy{flex:1;min-width:0}
+@import "../../ui/disclosure-icons.wxss";

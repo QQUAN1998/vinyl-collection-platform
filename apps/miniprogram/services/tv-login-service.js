@@ -1,23 +1,11 @@
 const { findAlbumInLibrary } = require("./album-library-service.js");
 const { callCloudContainer, callPublicApi } = require("./cloud-api.js");
-const { MEDIA_FORMATS } = require("./media-format-service.js");
-const { easterAlbums } = require("../data/easter-library.js");
+const { repairLegacyEasterAlbumMetadata } = require("./easter-metadata-service.js");
 
 const DEFAULT_TV_BASE_URL = "https://lcnr7v37iwv6.aiforce.cloud/app/app_179nj1yqh54";
 const MAX_TV_LOGIN_TRACKS = 12;
 const MAX_TV_COMPACT_TRACKS = 8;
 const MAX_CLOUD_FILE_URL_BATCH = 50;
-const MEDIA_LABELS = new Set(MEDIA_FORMATS.map((item) => item.label.toLowerCase()));
-const EASTER_METADATA_BY_ID = new Map();
-
-easterAlbums.forEach((album) => {
-  [album.id, album.sourceId].filter(Boolean).forEach((id) => {
-    EASTER_METADATA_BY_ID.set(normalizeAlbumId(id), {
-      region: album.region,
-      style: album.style
-    });
-  });
-});
 
 function parseTvLoginQr(rawValue, options = {}) {
   const raw = String(rawValue || "").trim();
@@ -208,30 +196,12 @@ function toTvAlbum(collectionItem, seedAlbums, manualAlbums) {
 }
 
 function resolveTvAlbumMetadata(album = {}) {
-  const reference = EASTER_METADATA_BY_ID.get(normalizeAlbumId(album.id || album.sourceId));
-  const region = String(album.region || "").trim();
-  const style = String(album.style || album.genre || "").trim();
-  const legacyEasterMetadata = reference && (
-    region === "\u9690\u85cf\u5e93"
-    || !style
-    || MEDIA_LABELS.has(style.toLowerCase())
-  );
+  const repairedAlbum = repairLegacyEasterAlbumMetadata(album);
 
   return {
-    region: legacyEasterMetadata
-      ? reference.region
-      : region || (reference && reference.region) || "\u672a\u8bb0\u5f55",
-    style: legacyEasterMetadata
-      ? reference.style
-      : style || (reference && reference.style) || "\u672a\u5206\u7c7b"
+    region: String(repairedAlbum.region || "").trim() || "\u672a\u8bb0\u5f55",
+    style: String(repairedAlbum.style || repairedAlbum.genre || "").trim() || "\u672a\u5206\u7c7b"
   };
-}
-
-function normalizeAlbumId(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/^easter-/, "");
 }
 
 function normalizeTracks(tracks, fallbackArtist) {

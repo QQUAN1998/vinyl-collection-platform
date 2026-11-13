@@ -1,7 +1,7 @@
 page {
   --color-ink: #1a1a1a;
   --color-muted: #686a63;
-  --color-faint: #9a9b94;
+  --color-faint: var(--color-faint);
   --color-line: #d8d5cc;
   --color-soft: #efede6;
   --color-paper: #fbfaf6;
@@ -26,11 +26,11 @@ page {
   --theme-panel-tint: rgba(101, 118, 77, 0.07);
   --theme-panel-border: rgba(101, 118, 77, 0.1);
   --theme-card-surface: rgba(255, 255, 255, 0.88);
-  --theme-input-surface: #ffffff;
+  --theme-input-surface: var(--theme-card-surface);
   --theme-primary-button-bg: #1a1a1a;
-  --theme-primary-button-text: #ffffff;
+  --theme-primary-button-text: var(--theme-card-surface);
   --theme-profile-card-bg: #1a1a1a;
-  --theme-profile-card-text: #ffffff;
+  --theme-profile-card-text: var(--theme-card-surface);
   --theme-profile-card-muted: #e5ece5;
   --theme-profile-card-faint: #d7dee6;
   --theme-icon-filter: none;
@@ -273,3 +273,14 @@ page {
   font-size: 23rpx;
   font-weight: 900;
 }
+
+@import "ui/global.wxss";
+.ui-native-screen{padding:16px 20px 124px;background:var(--color-screen);min-height:100vh;box-sizing:border-box}
+
+.ui-action-icon{display:inline-block;width:16px;height:16px;vertical-align:-2px;margin-right:6px}.primary-button .ui-action-icon,.detail-edit .ui-action-icon{filter:invert(1)}.ui-form-back{align-items:center;gap:7px}.ui-form-back image{width:23px;height:23px;flex-shrink:0}
+
+@import "ui/layout.wxss";
+
+@import "ui/preference-theme.wxss";
+
+@import "ui/mobile-polish.wxss";

@@ -1,0 +1,2 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<text style="color:{{color}}!important;" class="rolling {{running?'running':''}}">{{display}}</text>

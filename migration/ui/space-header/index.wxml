@@ -1,0 +1,1 @@
+<view class="topline"><switch-cabinet current="{{kind}}"/><button class="avatar" bindtap="profile" aria-label="个人中心"><image wx:if="{{avatar}}" class="avatar-image avatar-cover" src="{{avatar}}" mode="aspectFill"/><image wx:else class="avatar-image" src="/assets/ui/nav-mine.svg" mode="aspectFit"/></button></view>

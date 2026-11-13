@@ -1,0 +1,2 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} space-switch" style="{{uiThemeStyle}}"><button class="space-tab {{current==='vinyl'?'active':''}}" data-space="vinyl" bindtap="open" aria-label="切换空间，当前{{current==='vinyl'?i18n.t('唱片柜',uiLanguage):i18n.t('演出集',uiLanguage)}}">{{i18n.t('唱片柜',uiLanguage)}}</button><button class="space-tab {{current==='live'?'active':''}}" data-space="live" bindtap="open" aria-label="{{i18n.t('切换空间',uiLanguage)}}">{{i18n.t('演出集',uiLanguage)}}</button></view>

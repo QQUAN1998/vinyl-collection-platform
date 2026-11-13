@@ -1,33 +1,21 @@
-<view class="screen guide-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen guide-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">小程序操作手册</view>
-    <view class="screen-kicker">GUIDE</view>
+    <view class="screen-title">{{i18n.t('小程序操作手册',uiLanguage)}}</view>
+    
   </view>
 
   <view wx:if="{{mode === 'onboarding'}}" class="guide-lead guide-lead-onboarding">
     <view class="guide-lead-kicker">NEW USER</view>
-    <view class="guide-lead-title">从“刘德华”开始试一次</view>
-    <view class="guide-lead-copy">你可以先按下面 6 步熟悉完整流程。点按钮后会直接打开刘德华的在线搜索结果。</view>
-    <view class="guide-start-button" bindtap="startExampleSearch" hover-class="button-hover">搜索刘德华</view>
+    <view class="guide-lead-title">{{i18n.t('从“刘德华”开始试一次',uiLanguage)}}</view>
+    <view class="guide-lead-copy">{{i18n.t('跟着图示完成添加、编辑和分享。',uiLanguage)}}</view>
+    <view class="guide-start-button" bindtap="startExampleSearch" hover-class="button-hover">{{i18n.t('搜索刘德华',uiLanguage)}}</view>
   </view>
 
   <view wx:else class="guide-lead">
-    <view class="guide-lead-title">不会使用看这里</view>
-    <view class="guide-lead-copy">按真实流程查看常用操作，搜索收藏、今日推荐、试听、主题、更多收藏和微信分享都在这里。</view>
-    <view class="guide-secondary-button" bindtap="openAddPage" hover-class="button-hover">去添加唱片</view>
-  </view>
-
-  <view wx:if="{{mode === 'onboarding'}}" class="guide-flow-card">
-    <view class="guide-flow-title">首次操作路线</view>
-    <view class="guide-flow-list">
-      <view class="guide-flow-step" wx:for="{{onboardingSteps}}" wx:key="title">
-        <view class="guide-flow-index">{{index + 1}}</view>
-        <view class="guide-flow-copy">
-          <view class="guide-flow-step-title">{{item.title}}</view>
-          <view class="guide-flow-step-desc">{{item.description}}</view>
-        </view>
-      </view>
-    </view>
+    <view class="guide-lead-title">{{i18n.t('不会使用看这里',uiLanguage)}}</view>
+    <view class="guide-lead-copy">{{i18n.t('跟着图示完成添加、编辑和分享。',uiLanguage)}}</view>
+    <view class="guide-secondary-button" bindtap="openAddPage" hover-class="button-hover">{{i18n.t('去添加唱片',uiLanguage)}}</view>
   </view>
 
   <view class="guide-list">
@@ -35,15 +23,34 @@
       <view class="guide-card-head">
         <view class="guide-index">{{item.index}}</view>
         <view class="guide-heading">
-          <view class="guide-title">{{item.title}}</view>
-          <view class="guide-desc">{{item.description}}</view>
+          <view class="guide-title">{{i18n.guide(item.title,uiLanguage,item.ja.title)}}</view>
+          <view wx:if="{{item.description}}" class="guide-desc">{{i18n.guide(item.description,uiLanguage,item.ja.description)}}</view>
         </view>
         <view class="screen-kicker">{{item.badge}}</view>
       </view>
+      <view wx:if="{{item.flow}}" class="guide-phones">
+        <view class="guide-phone-step" wx:for="{{item.flow}}" wx:for-item="phone" wx:key="title">
+          <view class="guide-phone-number">{{index+1}}</view>
+          <view class="guide-phone">
+            <view class="guide-phone-bar"><view></view><text>•••</text></view>
+            <view class="guide-phone-screen-title">{{i18n.t(phone.title,uiLanguage)}}</view>
+            <view wx:if="{{phone.screen==='search'}}" class="guide-phone-search"><text>⌕</text><text>{{i18n.t('搜索艺人或专辑',uiLanguage)}}</text></view>
+            <view wx:if="{{phone.screen==='search'}}" class="guide-phone-results"><view class="guide-mini-cover"></view><view><view class="guide-mini-line"></view><view class="guide-mini-line short"></view><text>{{i18n.t('选择目标专辑',uiLanguage)}}</text></view></view>
+            <view wx:if="{{phone.screen==='link'}}" class="guide-phone-link"><text>↗</text><text>{{i18n.t('粘贴演出链接',uiLanguage)}}</text><view class="guide-mini-line"></view><view class="guide-mini-line short"></view></view>
+            <view wx:if="{{phone.screen==='edit'}}" class="guide-phone-fields"><view wx:for="{{phone.fields}}" wx:for-item="field" wx:key="*this"><text>{{i18n.t(field,uiLanguage)}}</text><view class="guide-mini-line"></view></view></view>
+            <view wx:if="{{phone.screen==='saved'}}" class="guide-phone-saved"><view>✓</view><text>{{i18n.t('已保存',uiLanguage)}}</text><view class="guide-mini-line"></view><view class="guide-mini-line short"></view></view>
+            <view wx:if="{{phone.screen==='card'||phone.screen==='poster'}}" class="guide-phone-art {{phone.screen==='poster'?'is-poster':''}}"><view class="guide-mini-cover"></view><view class="guide-mini-line"></view><view class="guide-mini-line short"></view><view wx:if="{{phone.screen==='poster'}}" class="guide-mini-code">✳</view></view>
+            <view wx:if="{{phone.screen==='card'}}" class="guide-phone-actions"><text>{{i18n.t('查看详情',uiLanguage)}}</text><text>{{i18n.t('编辑唱片',uiLanguage)}}</text><text>{{i18n.t('删除唱片',uiLanguage)}}</text><text>{{i18n.t('分享唱片',uiLanguage)}}</text></view>
+            <view wx:else class="guide-phone-button">{{i18n.t(phone.action,uiLanguage)}}</view>
+          </view>
+          <view class="guide-phone-caption">{{i18n.t(phone.caption,uiLanguage)}}</view>
+          <text wx:if="{{index===0||index===2}}" class="guide-phone-next">→</text>
+        </view>
+      </view>
       <view class="guide-steps">
-        <view class="guide-step" wx:for="{{item.steps}}" wx:for-item="step" wx:key="*this">
+        <view class="guide-step" wx:for="{{uiLanguage==='ja'?item.ja.steps:item.steps}}" wx:for-item="step" wx:key="*this">
           <view class="guide-dot"></view>
-          <view>{{step}}</view>
+          <view>{{i18n.guide(step,uiLanguage)}}</view>
         </view>
       </view>
     </view>
@@ -51,9 +58,10 @@
 
   <view class="guide-more-card" bindtap="openEasterLibrary" hover-class="button-hover">
     <view class="guide-more-copy">
-      <view class="guide-more-title">更多</view>
-      <view class="guide-more-desc">隐藏唱片库与批量收藏</view>
+      <view class="guide-more-title">{{i18n.t('更多',uiLanguage)}}</view>
+      <view class="guide-more-desc">{{i18n.t('输入口令，查看隐藏唱片库',uiLanguage)}}</view>
     </view>
     <view class="guide-more-arrow">→</view>
   </view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

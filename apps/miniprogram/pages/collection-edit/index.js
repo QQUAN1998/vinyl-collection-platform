@@ -1,3 +1,6 @@
+const uiImageActions=require('../../ui/image-actions');
+const uiLocale=require("../../ui/locale-runtime");
+const releaseDates=require('../../ui/release-date');
 const { albums, featuredAlbumId } = require("../../data/seed.js");
 const { removeCollectionItem, updateCollectionItem } = require("../../services/collection-service.js");
 const {
@@ -15,9 +18,11 @@ const {
   updateEditableTrack
 } = require("../../services/album-edit-service.js");
 
-Page({
+Page(uiLocale.page({uiImageActions(){const d=this.data;uiImageActions.openImage(d.album?.cover);},
+
   data: {
     album: null,
+    releaseDate: "",
     collectionForm: {
       collectionDate: "",
       source: "",
@@ -52,7 +57,7 @@ Page({
       this.setData({
         album: album ? {
           ...toAlbumView(album),
-          yearLabel: album.year || album.releaseYear || "未记录",
+          yearLabel: releaseDates.value(album) || "未记录",
           tracks: normalizeEditableTracks(album.tracks || [])
         } : null,
         errorMessage: "这张唱片还没有收藏记录。"
@@ -63,9 +68,10 @@ Page({
     this.setData({
       album: {
         ...toAlbumView(album),
-        yearLabel: album.year || album.releaseYear || "未记录",
+        yearLabel: releaseDates.value(album) || "未记录",
         tracks: normalizeEditableTracks(album.tracks || [])
       },
+      releaseDate: releaseDates.value(album),
       collectionForm: {
         collectionDate: collectionItem.collectionDate,
         source: collectionItem.source,
@@ -77,6 +83,10 @@ Page({
       },
       errorMessage: ""
     });
+  },
+  handleReleaseDateChange(event) {
+    const value = String(event.detail.value || "");
+    this.setData({ releaseDate: value, "album.yearLabel": value || "未记录" });
   },
   handleFieldChange(event) {
     const { key } = event.currentTarget.dataset;
@@ -98,7 +108,7 @@ Page({
   addTrack() {
     const tracks = addEditableTrack(this.data.album.tracks || []);
     if (tracks === this.data.album.tracks) {
-      wx.showToast({ title: "最多添加 80 首曲目", icon: "none" });
+      uiLocale.toast(wx,{ title: "最多添加 80 首曲目", icon: "none" });
       return;
     }
     this.setData({ "album.tracks": tracks });
@@ -155,6 +165,12 @@ Page({
       return;
     }
 
+    const releaseDate = String(this.data.releaseDate || "").trim();
+    if (!releaseDates.valid(releaseDate)) {
+      uiLocale.toast(wx, { title: "请选择有效的发行日期", icon: "none" });
+      return;
+    }
+
     const app = getApp();
     const me = await requireCloudAccount(app);
     if (!me) {
@@ -173,11 +189,13 @@ Page({
     });
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], app.globalData.userId);
 
-    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d", mask: true });
+    uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d", mask: true });
     try {
       const cover = await app.uploadAlbumCoverIfNeeded(this.data.album.cover, this.data.album.id);
       const editedAlbum = {
         ...this.data.album,
+        ...releaseDates.fields(releaseDate),
+        yearLabel: releaseDate || "未记录",
         cover,
         coverUrl: cover,
         tracks: normalizeEditableTracks(this.data.album.tracks || [])
@@ -189,10 +207,10 @@ Page({
       }
 
       app.globalData.tvBindings = syncResult.bindings;
-      wx.showToast({ title: "\u5df2\u4fdd\u5b58", icon: "success" });
+      uiLocale.toast(wx,{ title: "\u5df2\u4fdd\u5b58", icon: "success" });
       wx.navigateBack();
     } catch (error) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: error && error.message ? error.message : "保存失败，请稍后重试",
         icon: "none"
       });
@@ -206,7 +224,7 @@ Page({
       return;
     }
 
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "删除唱片",
       content: `确认从收藏中删除《${this.data.album.title}》吗？`,
       confirmText: "删除",
@@ -234,7 +252,7 @@ Page({
       albumId: this.data.album.id
     });
 
-    wx.showLoading({ title: "\u5220\u9664\u4e2d" });
+    uiLocale.loading(wx,{ title: "\u5220\u9664\u4e2d" });
     app.deleteCollectionFromCloud(result.removedItem.id)
       .then((payload) => {
         if (!payload) {
@@ -242,7 +260,7 @@ Page({
           return;
         }
 
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "\u5df2\u5220\u9664",
           icon: "success"
         });
@@ -261,4 +279,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"编辑收藏"));

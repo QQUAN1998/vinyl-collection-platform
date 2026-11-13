@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const {
   TV_PACKAGE_FILE_NAME,
@@ -5,7 +6,7 @@ const {
   formatTvApkDownloadError,
 } = require("../../services/tv-apk-service.js");
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     fileName: TV_PACKAGE_FILE_NAME,
     fileSize: "约 330 KB",
@@ -23,25 +24,25 @@ Page({
     if (this.data.downloading) return;
 
     this.setData({ downloading: true, downloadProgress: 0, downloadError: "" });
-    wx.showLoading({ title: "准备安装包" });
+    uiLocale.loading(wx,{ title: "准备安装包" });
     downloadAndShareTvApk({
       onProgress: (downloadProgress) => {
         this.setData({ downloadProgress });
         if (downloadProgress > 0) {
-          wx.showLoading({ title: `下载 ${downloadProgress}%` });
+          uiLocale.loading(wx,{ title: `下载 ${downloadProgress}%` });
         }
       },
     })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: "压缩包已分享", icon: "success" });
+        uiLocale.toast(wx,{ title: "压缩包已分享", icon: "success" });
       })
       .catch((error) => {
         wx.hideLoading();
         const failure = formatTvApkDownloadError(error);
         if (!failure.cancelled) {
           this.setData({ downloadError: failure.message });
-          wx.showModal({
+          uiLocale.modal(wx,{
             title: failure.title,
             content: `${failure.message}\n诊断：${failure.detail}`,
             showCancel: false,
@@ -62,4 +63,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   },
-});
+},"电视版 APK"));

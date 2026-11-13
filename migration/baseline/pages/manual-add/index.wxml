@@ -1,0 +1,47 @@
+<view class="screen manual-add-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">手动添加</view>
+    <view class="screen-kicker">MANUAL</view>
+  </view>
+
+  <view class="cover-card" bindtap="chooseAlbumCover" hover-class="button-hover">
+    <image wx:if="{{cover}}" class="manual-cover" src="{{cover}}" mode="aspectFill" />
+    <view wx:else class="manual-cover-placeholder">+</view>
+    <view class="cover-copy">
+      <view class="cover-title">添加封面</view>
+      <view class="cover-desc">从相册或相机选择唱片封面</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">唱片资料</view>
+    <view class="manual-form">
+      <form-field label="专辑名" placeholder="例如：浪人情歌" value="{{manualForm.title}}" data-key="title" bind:change="handleFieldChange" />
+      <form-field label="艺人" placeholder="例如：伍佰 &amp; China Blue" value="{{manualForm.artist}}" data-key="artist" bind:change="handleFieldChange" />
+      <form-field label="发行年份" type="number" placeholder="1994" value="{{manualForm.year}}" data-key="year" bind:change="handleFieldChange" />
+      <form-field label="风格" placeholder="华语流行" value="{{manualForm.style}}" data-key="style" bind:change="handleFieldChange" />
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">收藏信息</view>
+    <view class="manual-form">
+      <form-field label="收藏日期" value="{{manualForm.collectionDate}}" data-key="collectionDate" bind:change="handleFieldChange" />
+      <form-field label="购买来源" value="{{manualForm.source}}" data-key="source" bind:change="handleFieldChange" />
+      <form-field label="数量" type="number" value="{{manualForm.quantity}}" data-key="quantity" bind:change="handleFieldChange" />
+      <form-field label="品相" value="{{manualForm.condition}}" data-key="condition" bind:change="handleFieldChange" />
+      <media-format-selector
+        options="{{mediaFormats}}"
+        selected-key="{{manualForm.mediumKey}}"
+        bind:change="handleMediumChange"
+      />
+      <form-field label="价格" type="number" placeholder="可稍后补充" value="{{manualForm.price}}" data-key="price" bind:change="handleFieldChange" />
+      <form-field label="备注" mode="textarea" placeholder="版本、来源或特殊说明" value="{{manualForm.notes}}" data-key="notes" bind:change="handleFieldChange" />
+    </view>
+  </view>
+
+  <view class="manual-actions">
+    <view class="ghost-button" bindtap="cancelManualAdd" hover-class="button-hover">取消</view>
+    <view class="primary-button" bindtap="saveManualAlbum" hover-class="button-hover">保存唱片</view>
+  </view>
+</view>

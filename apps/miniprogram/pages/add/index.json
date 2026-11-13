@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "搜索添加"
+  "navigationBarTitleText": "搜索添加",
+  "usingComponents": {
+    "space-header": "/components/space-header/index"
+  }
 }

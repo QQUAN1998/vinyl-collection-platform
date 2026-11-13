@@ -1,0 +1,1 @@
+Component({properties:{kind:{type:String,value:'vinyl'},avatar:{type:String,value:''}},methods:{profile(){wx.navigateTo({url:'/pages/account/index'});}}});

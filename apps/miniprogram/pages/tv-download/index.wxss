@@ -183,3 +183,7 @@
 .download-note {
   margin-top: 18rpx;
 }
+
+@import "../../ui/pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

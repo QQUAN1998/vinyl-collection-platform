@@ -1,0 +1,5 @@
+:host{display:block;width:126px;flex:0 0 126px}.space-switch{display:flex;width:126px;box-sizing:border-box;gap:4px;padding:4px;background:var(--color-soft);border-radius:18px}.space-switch .space-tab{box-sizing:border-box;width:57px!important;min-width:57px!important;max-width:57px;flex:0 0 57px;margin:0!important;padding:0!important;line-height:32px!important;height:32px!important;min-height:32px!important;border:0;border-radius:18px!important;font-size:11px!important;font-weight:600;color:var(--color-ink);background:transparent}.space-tab::after{border:0}.space-tab.active{background:var(--color-ink);color:var(--theme-card-surface)}
+/* Unified screenshot refinement */
+.space-switch{background:var(--color-soft)!important;border:1px solid var(--color-line);border-radius:24px!important;padding:4px!important;gap:0!important;width:132px!important}.space-switch .space-tab{width:61px!important;min-width:61px!important;flex-basis:61px!important}.space-tab.active{box-shadow:0 2px 6px #0002}
+
+@import "../../ui/preference-theme.wxss";

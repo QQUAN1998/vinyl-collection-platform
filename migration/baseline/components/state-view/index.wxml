@@ -1,0 +1,10 @@
+<view class="state-view state-view-{{tone}}">
+  <view class="state-view-mark"></view>
+  <view class="state-view-copy">
+    <view class="state-view-title">{{title}}</view>
+    <view class="state-view-description" wx:if="{{description}}">{{description}}</view>
+  </view>
+  <view wx:if="{{actionText}}" class="state-view-action" bindtap="handleAction" hover-class="state-view-action-hover">
+    {{actionText}}
+  </view>
+</view>

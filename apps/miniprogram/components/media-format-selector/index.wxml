@@ -1,17 +1,2 @@
-<view class="media-format-selector">
-  <view class="media-format-label">{{label}}</view>
-  <view class="media-format-grid">
-    <view
-      wx:for="{{options}}"
-      wx:key="key"
-      class="media-format-option {{item.key === selectedKey ? 'is-active' : ''}}"
-      data-key="{{item.key}}"
-      bindtap="handleSelect"
-      aria-role="button"
-      aria-label="选择{{item.label}}"
-    >
-      <view class="media-format-dot" style="background: {{item.color}}"></view>
-      <text>{{item.label}}</text>
-    </view>
-  </view>
-</view>
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} n-view media-format-selector" style="{{uiThemeStyle}}"><view class="n-view media-format-label">{{i18n.t(label,uiLanguage)}}</view><ui-select range="{{options}}" range-key="label" value="{{selectedIndex}}" bindchange="handleSelect" label="{{label}}"><view class="n-view media-format-control">{{i18n.t(selectedLabel,uiLanguage)}}<image class="n-text ui-disclosure ui-disclosure-down" src="/assets/ui/chevron-down.svg" mode="aspectFit" aria-hidden="true"/></view></ui-select></view>

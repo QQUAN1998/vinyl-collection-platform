@@ -1,0 +1,1 @@
+<view wx:if="{{visible}}" class="brand-entry {{ready?'is-ready':''}}" aria-hidden="true"><image src="/assets/ui/brand/entry-logo.png" mode="aspectFit" bindload="loaded" binderror="dismiss"/></view>

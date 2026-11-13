@@ -1,0 +1,5 @@
+/* Fixed boxes align supplied SVGs with labels without font-baseline offsets. */
+.ui-disclosure{display:block!important;width:14px!important;height:14px!important;min-width:14px!important;max-width:14px!important;flex:0 0 14px!important;align-self:center!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;opacity:.65;filter:none}
+.ui-disclosure-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ui-disclosure-row>text{min-width:0}
+.currency-card .ui-disclosure,.primary .ui-disclosure,.ui-primary .ui-disclosure{filter:brightness(0) invert(1);opacity:.85}

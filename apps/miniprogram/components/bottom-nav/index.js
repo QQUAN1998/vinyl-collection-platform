@@ -1,6 +1,7 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { getNavItems } = require("../../utils/navigation.js");
 
-Component({
+Component(uiLocale.component({
   properties: {
     active: {
       type: String,
@@ -36,4 +37,4 @@ Component({
       });
     }
   }
-});
+}));

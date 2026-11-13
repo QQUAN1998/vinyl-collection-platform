@@ -1,0 +1,62 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} ui-sheet-nav" style="{{uiThemeStyle}}"><button bindtap="uiSheetClose" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button><text>{{i18n.t('专辑详情',uiLanguage)}}</text></view><scroll-view style="{{uiThemeStyle}}" class="{{uiThemeClass}} ui-detail-scroll" scroll-y enhanced bindscroll="uiSheetScroll"><view class="screen detail-screen ui-detail-page {{uiClosing?'ui-closing':''}} {{themeClass}}" style="{{themeStyle}};transform:translateY({{uiDragY}}px);opacity:{{uiDetailOpacity}};">
+  <block wx:if="{{album}}">
+    <view class="ui-detail-cover" bindtouchstart="uiCoverStart" catchtouchmove="uiCoverMove" bindtouchend="uiCoverEnd" bindtouchcancel="uiCoverCancel"><image class="detail-cover" src="{{album.cover}}" mode="aspectFit"/><view class="ui-cover-gloss"/></view>
+    <view class="detail-title">{{album.title}}</view>
+    <view class="detail-artist">{{album.artist}}</view>
+
+    <view class="fact-grid">
+      <view class="fact" wx:for="{{detailFacts}}" wx:key="label">
+        <view class="fact-label">{{i18n.t(item.label,uiLanguage)}}</view>
+        <view class="fact-value">{{item.value}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{collectionItem&&!uiSharedOwnerId}}" class="detail-actions">
+      <view class="ghost-button edit-button" bindtap="openEdit" hover-class="button-hover"><image class="ui-action-icon" src="/assets/ui/edit.svg"/>{{i18n.t('编辑收藏',uiLanguage)}}</view>
+    </view>
+    <view wx:elif="{{!collectionItem&&!uiSharedOwnerId}}" class="notice detail-collection-notice">
+      <view class="notice-title">{{i18n.t('还没有加入收藏',uiLanguage)}}</view>
+      <view class="notice-desc">{{i18n.t('加入后可以继续维护品相、价格和备注。',uiLanguage)}}</view>
+      <media-format-selector
+        label="选择收藏形式"
+        options="{{mediaFormats}}"
+        selected-key="{{pendingMediumKey}}"
+        bind:change="handleMediumChange"
+      />
+      <view class="secondary-action" bindtap="addToCollection" hover-class="secondary-action-hover">{{i18n.t('加入收藏',uiLanguage)}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">{{i18n.t('曲目',uiLanguage)}}</view>
+      <view class="track-list">
+        <view class="track-row" wx:for="{{tracks}}" wx:key="position">
+          <text class="track-index">{{item.position || index + 1}}</text>
+          <text class="track-name">{{item.title}}</text>
+          <text class="track-duration">{{item.durationLabel || "--"}}</text>
+          <view
+            class="track-preview-button {{previewPlayingKey === item.previewKey ? 'is-playing' : ''}}"
+            data-index="{{index}}"
+            data-key="{{item.previewKey}}"
+            bindtap="handleTrackPreview"
+            aria-label="试听{{item.title}}"
+            hover-class="track-preview-button-hover"
+          >
+            <text wx:if="{{previewLoadingKey === item.previewKey}}">...</text>
+            <text wx:elif="{{previewPlayingKey === item.previewKey}}">Ⅱ</text>
+            <text wx:else>▶</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <state-view
+    wx:else
+    tone="warning"
+    title="没有找到这张专辑"
+    description="可能是本地资料还没有同步。"
+  />
+</view>
+</scroll-view>
+<button style="{{uiThemeStyle}}" class="{{uiThemeClass}} ui-detail-back" bindtap="uiSheetClose" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

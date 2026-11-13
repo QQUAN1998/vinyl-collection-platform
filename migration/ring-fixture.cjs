@@ -1,0 +1,3 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),{createRequire}=require('node:module');
+function chart(rows,theme='theme-standard'){const file=path.resolve('migration/ui/data-chart/index.js');let spec;vm.runInNewContext(fs.readFileSync(file,'utf8'),{Component:s=>spec=s,require:createRequire(file)});const self={data:{...spec.data,rows,visible:true,uiThemeClass:theme},setData(p){Object.assign(this.data,p)}};for(const [k,v]of Object.entries(spec.methods))self[k]=v.bind(self);self.queue();return self;}
+module.exports={chart};

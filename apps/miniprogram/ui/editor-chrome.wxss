@@ -1,0 +1,8 @@
+/* Keep navigation in its own opaque top bar; it must never float over a form field. */
+.ui-editor-nav{position:fixed;top:0;left:0;right:0;z-index:850;box-sizing:border-box;background:var(--color-screen,#f5f6f2);display:flex;align-items:center;justify-content:center}
+.ui-editor-nav .ui-form-back{position:absolute!important;left:12px!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:11px!important;box-shadow:none!important;background:transparent!important;border-radius:0!important}
+.ui-editor-nav .ui-form-back image{display:block;width:22px!important;height:22px!important;filter:none!important}
+.ui-editor-nav .ui-form-back::after{border:0!important}
+.ui-editor-nav .ui-editor-title{font-size:16px;font-weight:600;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edit-screen .screen-header,.live-edit-screen .ui-page-title{display:none!important}
+.edit-screen,.live-edit-screen{padding-bottom:36px!important}

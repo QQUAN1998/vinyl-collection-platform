@@ -1,0 +1,102 @@
+<view class="screen archive-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view>
+      <view class="screen-title">档案</view>
+      <view class="archive-title">{{profileTitle}}</view>
+    </view>
+    <button wx:if="{{profileType === 'all'}}" class="archive-share" open-type="share">分享</button>
+    <view wx:else class="screen-kicker">{{profileType}}</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">收藏唱片</view>
+    <view class="archive-filters" wx:if="{{profileType === 'all'}}">
+      <view class="filter-group">
+        <view class="filter-label">艺人</view>
+        <scroll-view class="filter-scroll" scroll-x>
+          <view class="filter-chip {{selectedArtist === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectArtist">全部</view>
+          <view class="filter-chip {{selectedArtist === item ? 'is-active' : ''}}" wx:for="{{artistFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectArtist">{{item}}</view>
+        </scroll-view>
+      </view>
+      <view class="filter-group">
+        <view class="filter-label">风格</view>
+        <scroll-view class="filter-scroll" scroll-x>
+          <view class="filter-chip {{selectedStyle === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectStyle">全部</view>
+          <view class="filter-chip {{selectedStyle === item ? 'is-active' : ''}}" wx:for="{{styleFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectStyle">{{item}}</view>
+        </scroll-view>
+      </view>
+      <view class="filter-group">
+        <view class="filter-label">年代</view>
+        <scroll-view class="filter-scroll" scroll-x>
+          <view class="filter-chip {{selectedDecade === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectDecade">全部</view>
+          <view class="filter-chip {{selectedDecade === item ? 'is-active' : ''}}" wx:for="{{decadeFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectDecade">{{item}}</view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <view class="archive-grid" wx:if="{{profileType === 'all'}}">
+      <view class="album-tile" wx:for="{{visibleAlbums}}" wx:key="id" data-album-id="{{item.id}}" bindtap="openAlbum">
+        <view class="album-tile-cover">
+          <image src="{{item.cover}}" mode="aspectFill" />
+        </view>
+        <view class="album-tile-title">{{item.title}}</view>
+        <view class="album-tile-meta">{{item.year}}</view>
+      </view>
+    </view>
+
+    <view class="archive-list" wx:else>
+      <album-row
+        wx:for="{{visibleAlbums}}"
+        wx:key="id"
+        album="{{item}}"
+        show-arrow="{{true}}"
+        bind:select="openAlbum"
+      />
+    </view>
+  </view>
+
+  <state-view
+    wx:if="{{!visibleAlbums.length}}"
+    tone="warning"
+    title="暂无收藏"
+    description="这个档案下还没有已收藏的唱片。"
+  />
+
+  <view class="preview-modal" wx:if="{{previewAlbum}}">
+    <view class="preview-scrim" bindtap="closePreview"></view>
+    <view class="preview-card {{previewAlbum.rarityClass}}">
+      <view class="preview-close" bindtap="closePreview">×</view>
+      <view class="preview-cover-wrap">
+        <image class="preview-cover" src="{{previewAlbum.cover}}" mode="aspectFill" />
+      </view>
+      <view class="preview-meta-row">
+        <view class="screen-kicker">{{previewIndex + 1}} / {{visibleAlbums.length}}</view>
+        <view class="rarity-corner">
+          <view>{{previewAlbum.rarityCode}}</view>
+          <text class="rarity-name">{{previewAlbum.rarityName}}</text>
+        </view>
+      </view>
+      <view class="preview-title">{{previewAlbum.title}}</view>
+      <view class="preview-meta">{{previewAlbum.artist}} · {{previewAlbum.year}}</view>
+      <view class="preview-tags">
+        <view>{{previewAlbum.style}}</view>
+        <view>{{previewAlbum.mediumLabel}}</view>
+        <view>¥{{previewAlbum.price}}</view>
+        <view>收藏于 {{previewAlbum.collectionDate}}</view>
+      </view>
+      <view class="preview-tracks">
+        <view class="preview-tracks-title">曲目</view>
+        <view class="preview-track" wx:for="{{previewAlbum.tracks}}" wx:key="position">
+          <text>{{item.position || index + 1}}</text>
+          <text>{{item.title}}</text>
+        </view>
+      </view>
+      <view class="preview-actions">
+        <view class="preview-circle is-prev" data-direction="-1" bindtap="movePreview">‹</view>
+        <button class="preview-share" open-type="share">分享</button>
+        <view class="preview-detail" bindtap="openDetail">查看详情</view>
+        <view class="preview-circle is-next" data-direction="1" bindtap="movePreview">›</view>
+      </view>
+    </view>
+  </view>
+</view>

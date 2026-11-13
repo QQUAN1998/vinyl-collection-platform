@@ -1,0 +1,12 @@
+<view class="screen settings-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}}">
+  <view class="settings-heading">语言设置</view>
+  <view class="settings-section language-section">
+    <view class="settings-label">界面语言</view>
+    <view class="language-list">
+      <button wx:for="{{languages}}" wx:key="code" class="language-choice {{selectedLanguage===item.code?'selected':''}}" data-code="{{item.code}}" bindtap="selectLanguage" aria-role="radio" aria-checked="{{selectedLanguage===item.code}}"><text>{{item.name}}</text><text class="language-check">{{selectedLanguage===item.code?'✓':''}}</text></button>
+    </view>
+    <view class="settings-hint">专辑、艺人和你填写的内容保留原文。</view>
+  </view>
+</view>
+
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="返回"><image src="/assets/ui/back.svg"/></button>

@@ -63,3 +63,5 @@
   font-weight: 900;
   line-height: 1.05;
 }
+
+@import "../../ui/preference-theme.wxss";

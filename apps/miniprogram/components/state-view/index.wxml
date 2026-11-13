@@ -1,4 +1,5 @@
-<view class="state-view state-view-{{tone}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} state-view state-view-{{tone}}" style="{{uiThemeStyle}}">
   <view class="state-view-mark"></view>
   <view class="state-view-copy">
     <view class="state-view-title">{{title}}</view>

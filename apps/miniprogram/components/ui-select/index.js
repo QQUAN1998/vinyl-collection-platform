@@ -1,0 +1,3 @@
+const uiLocale=require("../../ui/locale-runtime");
+const locale=require('../../ui/locale-runtime');
+Component(uiLocale.component({options:{multipleSlots:true},properties:{range:{type:Array,value:[]},rangeKey:{type:String,value:''},value:{type:null,value:0},disabled:{type:Boolean,value:false},label:{type:String,value:'选择'}},data:{labels:[]},observers:{'range,rangeKey,uiLanguage':function(){this.setData({labels:(this.data.range||[]).map(r=>locale.translate(this.data.rangeKey?r[this.data.rangeKey]:String(r)))});}},methods:{chooseNative(e){this.triggerEvent('change',{value:Number(e.detail.value)});}}}));

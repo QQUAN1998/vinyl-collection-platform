@@ -1,3 +1,5 @@
+const uiLocale=require("../../ui/locale-runtime");
+const releaseDates=require('../../ui/release-date');
 const { triggerTvSync } = require("../../services/tv-sync-service.js");
 const { requireCloudAccount, showCloudSaveFailed } = require("../../services/cloud-session.js");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
@@ -7,13 +9,13 @@ function todayText() {
   return new Date().toISOString().slice(0, 10);
 }
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     cover: "",
     manualForm: {
       title: "",
       artist: "",
-      year: "",
+      releaseDate: "",
       style: "",
       collectionDate: todayText(),
       source: "手动添加",
@@ -81,13 +83,16 @@ Page({
     const artist = form.artist.trim();
 
     if (!title || !artist) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "请填写专辑名和艺人",
         icon: "none"
       });
       return;
     }
 
+    if (!releaseDates.valid(form.releaseDate)) {
+      uiLocale.toast(wx,{title:"请选择有效的发行日期",icon:"none"});return;
+    }
     const me = await requireCloudAccount(app);
     if (!me) {
       return;
@@ -99,7 +104,7 @@ Page({
       id: albumId,
       title,
       artist,
-      year: Number(form.year || new Date().getFullYear()),
+      ...releaseDates.fields(form.releaseDate),
       region: "未记录",
       style: form.style.trim() || "未分类",
       cover: this.data.cover || "/covers/E493418C-7D4C-4114-9475-7DD55918D8D6.webp",
@@ -121,7 +126,7 @@ Page({
     };
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], app.globalData.userId, now);
 
-    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d" });
     app.saveCollectionToCloud(collectionItem, album)
       .then((payload) => {
         if (!payload) {
@@ -130,7 +135,7 @@ Page({
         }
 
         app.globalData.tvBindings = syncResult.bindings;
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "\u5df2\u4fdd\u5b58",
           icon: "success"
         });
@@ -150,4 +155,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+}));

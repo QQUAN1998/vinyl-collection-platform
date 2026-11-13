@@ -2,5 +2,6 @@
   "navigationBarTitleText": "确认加入",
   "usingComponents": {
     "media-format-selector": "/components/media-format-selector/index"
-  }
+  },
+  "navigationStyle": "custom"
 }

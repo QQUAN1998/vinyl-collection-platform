@@ -1,4 +1,5 @@
-Component({
+const uiLocale=require("../../ui/locale-runtime");
+Component(uiLocale.component({
   properties: {
     tone: {
       type: String,
@@ -22,4 +23,4 @@ Component({
       this.triggerEvent("action");
     }
   }
-});
+}));

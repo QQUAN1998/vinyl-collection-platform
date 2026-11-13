@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "ui-select": "/components/ui-select/index",
+    "date-field": "/components/date-field/index",
+    "data-chart": "/components/data-chart/index",
+    "rolling-number": "/components/rolling-number/index"
+  }
+}

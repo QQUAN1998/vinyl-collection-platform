@@ -1,0 +1,22 @@
+<view class="form-field">
+  <view class="form-field-label">{{label}}</view>
+  <textarea
+    wx:if="{{mode === 'textarea'}}"
+    class="form-field-control is-textarea {{disabled ? 'is-disabled' : ''}}"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    disabled="{{disabled}}"
+    bindinput="handleInput"
+    maxlength="-1"
+    auto-height="{{false}}"
+  />
+  <input
+    wx:else
+    class="form-field-control {{disabled ? 'is-disabled' : ''}}"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    type="{{type}}"
+    disabled="{{disabled}}"
+    bindinput="handleInput"
+  />
+</view>

@@ -1,0 +1,76 @@
+<view class="screen easter-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">更多收藏</view>
+    <view class="screen-kicker">MORE</view>
+  </view>
+
+  <view wx:if="{{!unlocked}}" class="password-panel">
+    <view class="password-kicker">PRIVATE</view>
+    <view class="password-title">输入密码</view>
+    <view class="password-copy">验证通过后可以查看固定唱片库，并选择加入自己的唱片柜。</view>
+    <input
+      class="password-input"
+      password="{{true}}"
+      maxlength="8"
+      placeholder="请输入密码"
+      value="{{password}}"
+      bindinput="handlePasswordInput"
+      bindconfirm="unlockLibrary"
+    />
+    <view class="password-button" bindtap="unlockLibrary" hover-class="button-hover">进入</view>
+  </view>
+
+  <block wx:else>
+    <view class="library-summary">
+      <view>
+        <view class="library-title">隐藏唱片库</view>
+        <view class="library-copy">共 {{totalCount}} 张 · 未收藏 {{uncollectedCount}} 张</view>
+      </view>
+      <view class="library-pill">已解锁</view>
+    </view>
+
+    <view class="library-search">
+      <input
+        class="library-search-input"
+        placeholder="搜唱片 / 艺人 / 年份"
+        value="{{query}}"
+        bindinput="handleQueryInput"
+      />
+      <view wx:if="{{query}}" class="library-clear" bindtap="clearQuery">×</view>
+    </view>
+
+    <view class="action-grid">
+      <view class="action-button secondary" bindtap="selectVisibleAlbums" hover-class="button-hover">选中当前结果</view>
+      <view class="action-button secondary" bindtap="clearSelection" hover-class="button-hover">清空选择</view>
+      <view class="action-button primary" bindtap="collectAll" hover-class="button-hover">一键收藏全部</view>
+    </view>
+
+    <view class="section-head library-head">
+      <view class="section-title">选择要加入的唱片</view>
+      <view class="caption">{{visibleCount}} 条</view>
+    </view>
+
+    <view class="album-list">
+      <album-row
+        wx:for="{{visibleAlbums}}"
+        wx:key="id"
+        album="{{item}}"
+        meta="{{item.meta}}"
+        selected="{{item.selected}}"
+        disabled="{{item.collected || saving}}"
+        show-check="{{true}}"
+        bind:select="toggleAlbum"
+      />
+    </view>
+
+    <view class="sticky-actions">
+      <view class="sticky-copy">
+        <view class="sticky-title">已选择 {{selectedCount}} 张</view>
+        <view class="sticky-subtitle">{{progressText || '可选择部分收藏，也可以一键收藏全部'}}</view>
+      </view>
+      <view class="sticky-button {{selectedCount ? '' : 'is-disabled'}}" bindtap="collectSelected" hover-class="button-hover">
+        加入收藏
+      </view>
+    </view>
+  </block>
+</view>

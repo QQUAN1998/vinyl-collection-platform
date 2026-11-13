@@ -1,34 +1,35 @@
-<view class="screen archive-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen archive-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
     <view>
-      <view class="screen-title">档案</view>
+      <view class="screen-title">{{i18n.t('档案',uiLanguage)}}</view>
       <view class="archive-title">{{profileTitle}}</view>
     </view>
-    <button wx:if="{{profileType === 'all'}}" class="archive-share" open-type="share">分享</button>
+    <button wx:if="{{profileType === 'all'}}" class="archive-share" open-type="share">{{i18n.t('分享',uiLanguage)}}</button>
     <view wx:else class="screen-kicker">{{profileType}}</view>
   </view>
 
   <view class="section">
-    <view class="section-title">收藏唱片</view>
+    <view class="section-title">{{i18n.t('收藏唱片',uiLanguage)}}</view>
     <view class="archive-filters" wx:if="{{profileType === 'all'}}">
       <view class="filter-group">
-        <view class="filter-label">艺人</view>
+        <view class="filter-label">{{i18n.t('艺人',uiLanguage)}}</view>
         <scroll-view class="filter-scroll" scroll-x>
-          <view class="filter-chip {{selectedArtist === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectArtist">全部</view>
+          <view class="filter-chip {{selectedArtist === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectArtist">{{i18n.t('全部',uiLanguage)}}</view>
           <view class="filter-chip {{selectedArtist === item ? 'is-active' : ''}}" wx:for="{{artistFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectArtist">{{item}}</view>
         </scroll-view>
       </view>
       <view class="filter-group">
-        <view class="filter-label">风格</view>
+        <view class="filter-label">{{i18n.t('风格',uiLanguage)}}</view>
         <scroll-view class="filter-scroll" scroll-x>
-          <view class="filter-chip {{selectedStyle === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectStyle">全部</view>
+          <view class="filter-chip {{selectedStyle === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectStyle">{{i18n.t('全部',uiLanguage)}}</view>
           <view class="filter-chip {{selectedStyle === item ? 'is-active' : ''}}" wx:for="{{styleFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectStyle">{{item}}</view>
         </scroll-view>
       </view>
       <view class="filter-group">
-        <view class="filter-label">年代</view>
+        <view class="filter-label">{{i18n.t('年代',uiLanguage)}}</view>
         <scroll-view class="filter-scroll" scroll-x>
-          <view class="filter-chip {{selectedDecade === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectDecade">全部</view>
+          <view class="filter-chip {{selectedDecade === 'all' ? 'is-active' : ''}}" data-value="all" bindtap="selectDecade">{{i18n.t('全部',uiLanguage)}}</view>
           <view class="filter-chip {{selectedDecade === item ? 'is-active' : ''}}" wx:for="{{decadeFilters}}" wx:key="*this" data-value="{{item}}" bindtap="selectDecade">{{item}}</view>
         </scroll-view>
       </view>
@@ -82,10 +83,10 @@
         <view>{{previewAlbum.style}}</view>
         <view>{{previewAlbum.mediumLabel}}</view>
         <view>¥{{previewAlbum.price}}</view>
-        <view>收藏于 {{previewAlbum.collectionDate}}</view>
+        <view>{{i18n.t('收藏于',uiLanguage)}} {{previewAlbum.collectionDate}}</view>
       </view>
       <view class="preview-tracks">
-        <view class="preview-tracks-title">曲目</view>
+        <view class="preview-tracks-title">{{i18n.t('曲目',uiLanguage)}}</view>
         <view class="preview-track" wx:for="{{previewAlbum.tracks}}" wx:key="position">
           <text>{{item.position || index + 1}}</text>
           <text>{{item.title}}</text>
@@ -93,10 +94,11 @@
       </view>
       <view class="preview-actions">
         <view class="preview-circle is-prev" data-direction="-1" bindtap="movePreview">‹</view>
-        <button class="preview-share" open-type="share">分享</button>
-        <view class="preview-detail" bindtap="openDetail">查看详情</view>
+        <button class="preview-share" open-type="share">{{i18n.t('分享',uiLanguage)}}</button>
+        <view class="preview-detail" bindtap="openDetail">{{i18n.t('查看详情',uiLanguage)}}</view>
         <view class="preview-circle is-next" data-direction="1" bindtap="movePreview">›</view>
       </view>
     </view>
   </view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

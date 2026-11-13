@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "添加现场",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "ui-select": "/components/ui-select/index",
+    "date-field": "/components/date-field/index",
+    "space-header": "/components/space-header/index"
+  },
+  "navigationStyle": "custom"
+}

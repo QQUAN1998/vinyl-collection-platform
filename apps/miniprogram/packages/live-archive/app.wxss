@@ -1,0 +1,79 @@
+page {
+  --ink: #1a1a1a;
+  --muted: #686a63;
+  --line: #d8d5cc;
+  --soft: #efede6;
+  --paper: #fbfaf6;
+  --action: #65764d;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+view, text, input, textarea, button { box-sizing: border-box; }
+button,
+button:not([size="mini"]) {
+  width: auto; min-width: 0;
+  margin-left: 0; margin-right: 0;
+}
+button {
+  display: flex; align-items: center; justify-content: center;
+  margin: 0;
+  padding: 20rpx 24rpx; min-height: 88rpx;
+  font-size: 28rpx; line-height: 1.5; font-weight: 600;
+  color: inherit; background: transparent; border-radius: 24rpx;
+}
+button::after { border: none; }
+button[disabled] { opacity: .5; }
+.page { min-height: 100vh; padding: 32rpx 32rpx calc(184rpx + env(safe-area-inset-bottom)); }
+.title { font-size: 44rpx; font-weight: 700; line-height: 1.2; letter-spacing: -1rpx; }
+.muted { color: var(--muted); font-size: 24rpx; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; min-width: 0; }
+.section { margin-top: 36rpx; }
+.section-title { font-size: 30rpx; font-weight: 700; margin-bottom: 20rpx; }
+.primary { background: var(--action); color: var(--theme-card-surface); }
+.outline { border: 1rpx solid var(--line); background: var(--theme-card-surface); }
+.surface { background: var(--theme-card-surface); border: 1rpx solid var(--line); border-radius: 32rpx; padding: 28rpx; }
+.field { margin: 28rpx 0; }
+.label { font-size: 24rpx; color: var(--muted); margin-bottom: 12rpx; }
+input, textarea, .select {
+  padding: 20rpx 24rpx; background: var(--theme-card-surface); border: 1rpx solid var(--line);
+  border-radius: 20rpx; width: 100%; font-size: 28rpx; line-height: 1.5;
+}
+input, .select { height: 92rpx; min-height: 44px; }
+.select { display: flex; align-items: center; }
+/* Native input centers its own text; vertical padding clips filled values. */
+input { padding-top: 0; padding-bottom: 0; }
+textarea { height: 200rpx; }
+.actions { display: flex; gap: 16rpx; margin-top: 20rpx; }
+.actions button { flex: 1; min-width: 0; }
+.empty { text-align: center; color: var(--muted); padding: 72rpx 16rpx; font-size: 26rpx; }
+.empty .primary { margin: 24rpx auto 0; width: 260rpx; }
+.poster-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28rpx 16rpx; }
+.record-card { min-width: 0; }
+.poster {
+  height: calc((100vw - 96rpx) * 4 / 9); background: #dfe8d3;
+  overflow: hidden; border-radius: 12rpx; position: relative; width: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 16rpx; color: #35402e;
+}
+.poster image { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.poster-label { font-size: 16rpx; letter-spacing: 1rpx; }
+.poster-name { font-size: 28rpx; font-weight: 700; word-break: break-all; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.card-name { font-size: 24rpx; font-weight: 600; line-height: 1.4; margin-top: 12rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.card-meta { font-size: 22rpx; color: var(--muted); margin-top: 4rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.theme-1 { background: #393d33; color: #f0e9d9; }
+.theme-2 { background: #f1e8c3; color: #664631; }
+.theme-3 { background: #c9dcdd; color: #33494f; }
+.theme-4 { background: #ead0ca; color: #673e37; }
+.theme-5 { background: #d2cce2; color: #433957; }
+.divider { border-top: 1rpx solid var(--line); margin: 28rpx 0; }
+.danger { color: #9e483d; }
+.link { color: var(--action); padding: 16rpx 0; min-height: 44px; }
+.pill { display: inline-block; padding: 12rpx 20rpx; background: #dfe8d3; border-radius: 16rpx; font-size: 24rpx; }
+.media-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16rpx; }
+.media-grid image { width: 100%; height: calc((100vw - 96rpx) / 3); border-radius: 12rpx; }
+.tiny { font-size: 24rpx; }
+.loading { color: var(--muted); margin: 24rpx 0; font-size: 26rpx; }
+.notice { color: #8f5146; font-size: 26rpx; margin: 24rpx 0; padding: 20rpx 24rpx; background: #f4eae4; border-radius: 20rpx; }

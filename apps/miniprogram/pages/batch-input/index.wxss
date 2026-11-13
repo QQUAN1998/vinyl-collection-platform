@@ -11,3 +11,8 @@
 .bottom-action {
   margin-top: auto;
 }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/exact-pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

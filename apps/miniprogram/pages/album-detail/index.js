@@ -1,3 +1,7 @@
+const uiImageActions=require('../../ui/image-actions');
+const uiLocale=require("../../ui/locale-runtime");
+const releaseDates=require('../../ui/release-date');
+const uiDetailMotion=require('../../ui/detail-motion');
 const { albums, collectionItems, demoPricesByAlbumId, featuredAlbumId } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
 const {
@@ -25,8 +29,12 @@ function formatPrice(price) {
   return `¥ ${price}`;
 }
 
-Page({
+Page(uiLocale.page({uiImageActions(){const d=this.data;uiImageActions.openImage(d.album?.cover);},
+uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
+  ...uiDetailMotion,
   data: {
+    uiDragY:0,uiDetailOpacity:1,uiClosing:false,
+    uiSharedOwnerId:"",
     album: null,
     collectionItem: null,
     detailFacts: [],
@@ -44,7 +52,9 @@ Page({
     this.unsubscribePreviewPlayer = subscribePreviewPlayer((state) => {
       this.syncPreviewPlayerState(state);
     });
-    this.loadAlbumDetail(options.albumId || featuredAlbumId);
+    const id=options.albumId||featuredAlbumId;
+    if(options.ownerId){this.setData({uiSharedOwnerId:options.ownerId});app.loadSharedCloudCollection(options.ownerId).then(payload=>{if(!payload)return;this.uiSharedPayload=payload;this.loadAlbumDetail(id);});}
+    else this.loadAlbumDetail(id);
   },
   onShow() {
     const app = getApp();
@@ -64,12 +74,10 @@ Page({
   },
   loadAlbumDetail(albumId) {
     const app = getApp();
-    const sourceAlbums = mergeAlbumLibraries(
-      albums,
-      app.globalData.manualAlbums || [],
-      app.globalData.recommendationAlbums || []
-    );
-    const liveCollectionItems = app.globalData.collectionItems || collectionItems;
+    const shared=this.data.uiSharedOwnerId;
+    if(shared&&!this.uiSharedPayload)return;
+    const sourceAlbums=shared?mergeAlbumLibraries(albums,this.uiSharedPayload.manualAlbums||[]):mergeAlbumLibraries(albums,app.globalData.manualAlbums||[],app.globalData.recommendationAlbums||[]);
+    const liveCollectionItems=shared?this.uiSharedPayload.collectionItems:(app.globalData.collectionItems||collectionItems);
     const album = toAlbumView(sourceAlbums.find((item) => item.id === albumId));
     const collectionItem = liveCollectionItems.find((item) => item.albumId === albumId) || null;
 
@@ -89,7 +97,7 @@ Page({
       album,
       collectionItem,
       detailFacts: [
-        { label: "发行年份", value: `${album.year || album.releaseYear || "未记录"}` },
+        { label: "发行日期", value: releaseDates.value(album) || "未记录" },
         { label: "地区", value: album.region },
         { label: "风格", value: album.style },
         { label: "介质", value: collectionItem ? getMediaFormat(collectionItem.mediumKey).label : "未收藏" },
@@ -140,7 +148,7 @@ Page({
     )
       .then((preview) => {
         if (!preview || !preview.ok || !preview.streamUrl) {
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "暂无试听",
             icon: "none"
           });
@@ -149,7 +157,7 @@ Page({
         this.playPreviewAudio(preview.streamUrl, key, track);
       })
       .catch(() => {
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "试听失败",
           icon: "none"
         });
@@ -196,6 +204,7 @@ Page({
     });
   },
   addToCollection() {
+    if(this.data.uiSharedOwnerId)return;
     if (!this.data.album || this.data.collectionItem) {
       return;
     }
@@ -230,14 +239,14 @@ Page({
 
       if (!result.createdItems.length) {
         this.loadAlbumDetail(this.data.album.id);
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "\u5df2\u5728\u6536\u85cf",
           icon: "success"
         });
         return;
       }
 
-      wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+      uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d" });
       app.saveCollectionToCloud(result.createdItems[0], this.data.album)
         .then((payload) => {
           if (!payload) {
@@ -246,7 +255,7 @@ Page({
           }
 
           this.loadAlbumDetail(this.data.album.id);
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "\u5df2\u52a0\u5165\u6536\u85cf",
             icon: "success"
           });
@@ -258,6 +267,7 @@ Page({
     return;
   },
   openEdit() {
+    if(this.data.uiSharedOwnerId)return;
     if (!this.data.album) {
       return;
     }
@@ -268,17 +278,17 @@ Page({
   },
   onShareAppMessage() {
     const app = getApp();
-    const name = app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
+    const name = this.uiSharedPayload?.owner?.displayName || app.globalData.userProfile?.name || "\u5531\u7247\u67dc\u7528\u6237";
     const album = this.data.album;
     if (!album) return createShareMessage();
 
     return createShareMessage({
       title: this.data.collectionItem ? `${name}收藏的 ${album.title}` : `${name}的唱片柜 · ${album.title}`,
-      path: `/pages/album-detail/index?albumId=${album.id}`,
+      path: this.data.uiSharedOwnerId?`/pages/all-collection/index?ownerId=${encodeURIComponent(this.data.uiSharedOwnerId)}`:`/pages/album-detail/index?albumId=${album.id}`,
       imageUrl: album.cover
     });
   },
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"专辑详情"));

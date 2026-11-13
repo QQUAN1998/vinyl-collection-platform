@@ -1,0 +1,2 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<picker mode="selector" range="{{labels}}" value="{{value}}" disabled="{{disabled}}" bindchange="chooseNative" aria-label="{{i18n.t(label,uiLanguage)}}"><view class="{{uiThemeClass}} select-anchor" style="{{uiThemeStyle}}"><slot/></view></picker>

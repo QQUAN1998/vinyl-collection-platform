@@ -56,6 +56,7 @@ const {
   EASTER_CLOUD_COVER_BASE_URL,
   easterAlbums,
 } = require("../data/easter-library.js");
+const { EASTER_ALBUM_METADATA } = require("../data/easter-metadata.js");
 const {
   buildEasterAlbumListViews,
   buildEasterCollectionItems,
@@ -400,6 +401,14 @@ test("easter library packages the fixed backup collection with cloud-hosted cove
   assert.ok(easterAlbums.some((album) => album.artist.includes("刘德华")));
   assert.ok(easterAlbums.some((album) => (album.tracks || []).length > 0));
   assert.ok(easterAlbums.every((album) => !String(album.region + album.style).includes("?")));
+});
+
+test("compact easter metadata index covers the complete backup library", () => {
+  assert.equal(Object.keys(EASTER_ALBUM_METADATA).length, easterAlbums.length);
+  easterAlbums.forEach((album) => {
+    const id = String(album.sourceId || album.id).toLowerCase().replace(/^easter-/, "");
+    assert.deepEqual(EASTER_ALBUM_METADATA[id], [album.region, album.style]);
+  });
 });
 
 test("easter library keeps music genres separate from physical media", () => {
@@ -1151,6 +1160,45 @@ test("cloud collection payload can be merged back into local page data", () => {
   assert.equal(payload.manualAlbums[0].id, "manual-cloud");
   assert.equal(payload.manualAlbums[0].cover, "/assets/covers/manual.webp");
   assert.equal(payload.collectionItems[0].price, 500);
+});
+
+test("cloud collection payload repairs legacy easter album genre metadata", () => {
+  const referenceAlbum = easterAlbums.find(
+    (album) => album.sourceId === "1AF92540-96EE-4BE7-B482-D3C312DD78E4",
+  );
+  const payload = normalizeCloudCollectionPayload({
+    owner: { id: "user-1", displayName: "Alice", avatarUrl: null },
+    albums: [{
+      ...referenceAlbum,
+      region: "\u672a\u8bb0\u5f55",
+      style: "\u9ed1\u80f6",
+    }],
+    collectionItems: [],
+  }, albums);
+
+  assert.equal(payload.manualAlbums[0].region, referenceAlbum.region);
+  assert.equal(payload.manualAlbums[0].style, referenceAlbum.style);
+});
+
+test("stored cloud collection repairs legacy easter album genre metadata", () => {
+  const referenceAlbum = easterAlbums.find(
+    (album) => album.sourceId === "ED5E08B3-20CF-4CA1-A18B-E91266A86FC7",
+  );
+  const definition = loadMiniProgramAppDefinition({});
+  const app = createMiniProgramAppInstance(definition);
+
+  app.restoreStoredCloudCollection({
+    manualAlbums: [{
+      ...referenceAlbum,
+      region: "\u672a\u8bb0\u5f55",
+      style: "\u9ed1\u80f6",
+    }],
+    collectionItems: [],
+    photoWallOrder: [],
+  });
+
+  assert.equal(app.globalData.manualAlbums[0].region, referenceAlbum.region);
+  assert.equal(app.globalData.manualAlbums[0].style, referenceAlbum.style);
 });
 
 test("cloud collection payload keeps remote cover URLs usable", () => {
@@ -2107,22 +2155,22 @@ test("cloud collection load uses a stored token before cloud init is ready", asy
   }
 });
 
-test("theme settings normalize standard, white, dark, and custom modes", () => {
+test("theme settings normalize the standard mode and migrate removed settings", () => {
   assert.deepEqual(normalizeThemeSetting(), {
     mode: "standard",
-    customColor: "#fbfaf6",
+    customColor: "#f5f6f2",
   });
   assert.deepEqual(normalizeThemeSetting("white"), {
-    mode: "white",
-    customColor: "#ffffff",
+    mode: "standard",
+    customColor: "#f5f6f2",
   });
   assert.deepEqual(normalizeThemeSetting({ mode: "dark", customColor: "#ffffff" }), {
-    mode: "dark",
-    customColor: "#101113",
+    mode: "standard",
+    customColor: "#f5f6f2",
   });
   assert.deepEqual(normalizeThemeSetting({ mode: "custom", customColor: "#DDEEDD" }), {
-    mode: "custom",
-    customColor: "#ddeedd",
+    mode: "standard",
+    customColor: "#f5f6f2",
   });
 });
 
@@ -2133,24 +2181,15 @@ test("theme view data exposes page variables and navigation colors", () => {
   const custom = buildThemeViewData({ mode: "custom", customColor: "#ddeedd" });
 
   assert.equal(standard.themeClass, "theme-standard");
-  assert.match(standard.themeStyle, /--color-paper:\s*#fbfaf6/);
-  assert.equal(standard.navigationBarBackgroundColor, "#fbfaf6");
+  assert.match(standard.themeStyle, /--color-paper:\s*#f5f6f2/);
+  assert.equal(standard.navigationBarBackgroundColor, "#f5f6f2");
   assert.equal(standard.navigationBarFrontColor, "#000000");
-  assert.match(white.themeStyle, /--color-screen:\s*#ffffff/);
-  assert.equal(white.navigationBarBackgroundColor, "#ffffff");
-  assert.match(dark.themeStyle, /--color-paper:\s*#101113/);
-  assert.match(dark.themeStyle, /--color-ink:\s*#f7f3ea/);
-  assert.match(dark.themeStyle, /--theme-card-surface:\s*#171a1a/);
-  assert.match(dark.themeStyle, /--theme-input-surface:\s*#171a1a/);
-  assert.match(dark.themeStyle, /--theme-primary-button-bg:\s*#b9c89b/);
-  assert.match(dark.themeStyle, /--theme-primary-button-text:\s*#101113/);
-  assert.match(dark.themeStyle, /--theme-profile-card-bg:\s*#171a1a/);
-  assert.match(dark.themeStyle, /--theme-profile-card-text:\s*#f7f3ea/);
-  assert.equal(dark.navigationBarBackgroundColor, "#101113");
-  assert.equal(dark.navigationBarFrontColor, "#ffffff");
-  assert.match(custom.themeStyle, /--color-paper:\s*#ddeedd/);
-  assert.match(custom.themeStyle, /--color-screen:\s*#ddeedd/);
-  assert.equal(custom.navigationBarBackgroundColor, "#ddeedd");
+  assert.match(white.themeStyle, /--color-screen:\s*#f5f6f2/);
+  assert.equal(white.navigationBarBackgroundColor, "#f5f6f2");
+  assert.deepEqual(dark, standard);
+  assert.match(custom.themeStyle, /--color-paper:\s*#f5f6f2/);
+  assert.match(custom.themeStyle, /--color-screen:\s*#f5f6f2/);
+  assert.equal(custom.navigationBarBackgroundColor, "#f5f6f2");
 });
 
 test("theme settings persist and update native navigation colors", () => {
@@ -2178,16 +2217,16 @@ test("theme settings persist and update native navigation colors", () => {
   applyThemeChrome(viewData, wxApi);
 
   assert.deepEqual(storage[THEME_STORAGE_KEY], {
-    mode: "custom",
-    customColor: "#eef7f0",
+    mode: "standard",
+    customColor: "#f5f6f2",
   });
   assert.equal(navCalls.length, 1);
-  assert.equal(navCalls[0].backgroundColor, "#eef7f0");
+  assert.equal(navCalls[0].backgroundColor, "#f5f6f2");
   assert.equal(navCalls[0].frontColor, "#000000");
   assert.deepEqual(bgCalls[0], {
-    backgroundColor: "#eef7f0",
-    backgroundColorTop: "#eef7f0",
-    backgroundColorBottom: "#eef7f0",
+    backgroundColor: "#f5f6f2",
+    backgroundColorTop: "#f5f6f2",
+    backgroundColorBottom: "#f5f6f2",
   });
 });
 

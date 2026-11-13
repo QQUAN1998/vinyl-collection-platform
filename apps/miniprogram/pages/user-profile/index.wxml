@@ -1,25 +1,27 @@
-<view class="screen user-profile-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen user-profile-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">编辑个人资料</view>
-    <view class="screen-kicker">PROFILE</view>
+    <view class="screen-title">{{i18n.t('编辑个人资料',uiLanguage)}}</view>
+    
   </view>
 
   <button class="avatar-editor" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" hover-class="button-hover">
     <image wx:if="{{profileForm.avatar}}" class="profile-avatar-large" src="{{profileForm.avatar}}" mode="aspectFill" />
-    <view wx:else class="profile-avatar-large">{{avatarInitial}}</view>
-    <view class="avatar-action">替换头像</view>
+    <image wx:else class="profile-avatar-large" src="/assets/ui/brand/default-avatar.jpg" mode="aspectFill"/>
+    <view class="avatar-action">{{i18n.t('替换头像',uiLanguage)}}</view>
   </button>
 
   <view class="section">
-    <view class="section-title">个人信息</view>
+    <view class="section-title">{{i18n.t('个人信息',uiLanguage)}}</view>
     <view class="profile-form">
       <form-field label="用户名" type="nickname" value="{{profileForm.name}}" data-key="name" bind:change="handleFieldChange" />
-      <form-field label="简介" mode="textarea" value="{{profileForm.bio}}" placeholder="写下你的收藏偏好" data-key="bio" bind:change="handleFieldChange" />
+      <form-field label="简介" mode="textarea" value="{{profileForm.bio}}" placeholder="{{i18n.t('写下你的收藏偏好',uiLanguage)}}" data-key="bio" bind:change="handleFieldChange" />
     </view>
   </view>
 
   <view class="profile-actions">
-    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">取消</view>
-    <view class="primary-button" bindtap="saveProfile" hover-class="button-hover">保存资料</view>
+    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">{{i18n.t('取消',uiLanguage)}}</view>
+    <view class="primary-button" bindtap="saveProfile" hover-class="button-hover">{{i18n.t('保存资料',uiLanguage)}}</view>
   </view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

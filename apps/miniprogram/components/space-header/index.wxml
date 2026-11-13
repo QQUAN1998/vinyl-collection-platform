@@ -1,0 +1,2 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} space-header" style="{{uiThemeStyle}}"><text class="space-owner">{{i18n.owner(owner||i18n.t('我',uiLanguage),kind,uiLanguage)}}</text><button class="space-profile" bindtap="profile" aria-label="{{i18n.t('我的',uiLanguage)}}"><image wx:if="{{avatar}}" src="{{avatar}}" mode="aspectFill"/><image wx:else src="/assets/ui/brand/default-avatar.jpg" mode="aspectFill"/></button></view>

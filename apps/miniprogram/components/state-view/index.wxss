@@ -65,3 +65,5 @@
 .state-view-action-hover {
   background: var(--theme-input-surface);
 }
+
+@import "../../ui/preference-theme.wxss";

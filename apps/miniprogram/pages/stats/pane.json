@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "统计",
+  "usingComponents": {
+    "stats-board": "/components/stats-board/index",
+    "space-header": "/components/space-header/index"
+  },
+  "component": true,
+  "styleIsolation": "apply-shared"
+}

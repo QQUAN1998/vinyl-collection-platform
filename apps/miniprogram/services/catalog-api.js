@@ -204,6 +204,7 @@ function catalogCandidateToAlbum(candidate = {}, previousAlbum = {}) {
     title: candidate.title || previousAlbum.title || "",
     artist: candidate.artist || previousAlbum.artist || "",
     year: candidate.year || previousAlbum.year || undefined,
+    releaseDate: candidate.releaseDate || previousAlbum.releaseDate || undefined,
     region: candidate.region || previousAlbum.region || providerLabel(provider),
     style: candidate.style || candidate.genre || previousAlbum.style || candidate.format || "未分类",
     coverUrl,

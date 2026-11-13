@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const {
   getDefaultSelectedAlbumIds,
@@ -8,7 +9,7 @@ const { createShareMessage, createShareTimeline } = require("../../services/shar
 
 const sampleBatchText = "伍佰 & China Blue - 浪人情歌\n伍佰 & China Blue - 白鸽\n伍佰 & China Blue - 双面人";
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     batchText: sampleBatchText,
     duplicateLines: [],
@@ -63,4 +64,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"批量输入"));

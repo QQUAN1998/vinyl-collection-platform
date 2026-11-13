@@ -1,3 +1,6 @@
+const releaseDates=require('../ui/release-date');
+const { repairLegacyEasterAlbumMetadata } = require("./easter-metadata-service.js");
+
 const DEFAULT_CLOUD_CONFIG = {
   enabled: true,
   env: "prod-d5gmzcuby62751753",
@@ -421,7 +424,9 @@ function normalizeCloudCollectionPayload(payload = {}, seedAlbums = []) {
     ...rawOwner,
     displayName: cleanDisplayName(rawOwner.displayName) || DEFAULT_PROFILE_NAME
   };
-  const albums = (payload.albums || []).map(toLocalAlbum);
+  const albums = (payload.albums || [])
+    .map(toLocalAlbum)
+    .map(repairLegacyEasterAlbumMetadata);
   const manualAlbums = albums.filter((album) => {
     const seedAlbum = seedAlbumsById.get(album.id);
     return !seedAlbum || albumDiffersFromSeed(album, seedAlbum);
@@ -500,6 +505,7 @@ function toLocalAlbum(album) {
     title: album.title,
     artist: album.artist,
     year: album.year || album.releaseYear || undefined,
+    releaseDate: album.releaseDate === undefined ? undefined : releaseDates.normalize(album.releaseDate) || null,
     region: album.region || "未记录",
     style: album.style || album.genre || "未分类",
     coverUrl,
@@ -554,6 +560,7 @@ function normalizeCloudAlbum(album = {}) {
     title: requiredLimitedString(album.title, CLOUD_FIELD_LIMITS.albumTitle, FALLBACK_ALBUM_TITLE),
     artist: requiredLimitedString(album.artist, CLOUD_FIELD_LIMITS.artist, FALLBACK_ARTIST_NAME),
     year: album.year === undefined ? album.releaseYear || null : album.year,
+    releaseDate: album.releaseDate === undefined ? undefined : releaseDates.normalize(album.releaseDate) || null,
     region: optionalLimitedString(album.region, CLOUD_FIELD_LIMITS.region),
     style: optionalLimitedString(album.style || album.genre, CLOUD_FIELD_LIMITS.style),
     coverUrl: optionalLimitedString(stripLeadingSlash(album.coverUrl || album.cover || ""), CLOUD_FIELD_LIMITS.coverUrl),

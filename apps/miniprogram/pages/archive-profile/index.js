@@ -1,8 +1,9 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const { buildArchiveProfile } = require("../../services/archive-profile-service.js");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     profileType: "artist",
     profileTitle: "",
@@ -132,4 +133,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"档案"));

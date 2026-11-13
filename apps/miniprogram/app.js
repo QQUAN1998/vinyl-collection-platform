@@ -1,3 +1,4 @@
+const uiLocale=require("./ui/locale-runtime");
 const { albums } = require("./data/seed.js");
 const {
   DEFAULT_PROFILE_NAME,
@@ -33,8 +34,7 @@ const {
   writeStoredThemeSetting
 } = require("./services/theme-service.js");
 const { getCollectionAmount } = require("./services/stats-service.js");
-
-const LOGIN_PROMPT_DELAY_MS = 600;
+const { repairLegacyEasterAlbumMetadata } = require("./services/easter-metadata-service.js");
 
 function money(value) {
   return `¥${Number(value || 0).toLocaleString("zh-CN")}`;
@@ -76,7 +76,6 @@ App({
     if (this.canLoadCloudCollection()) {
       this.loadCloudCollection();
     }
-    this.promptWechatLoginOnLaunch();
     enableFriendShare();
   },
   onShow() {
@@ -171,7 +170,7 @@ App({
   },
   restoreStoredCloudCollection(cloudCollection = {}) {
     this.globalData.manualAlbums = Array.isArray(cloudCollection.manualAlbums)
-      ? cloudCollection.manualAlbums
+      ? cloudCollection.manualAlbums.map(repairLegacyEasterAlbumMetadata)
       : [];
     this.globalData.collectionItems = Array.isArray(cloudCollection.collectionItems)
       ? cloudCollection.collectionItems
@@ -323,7 +322,7 @@ App({
         this.globalData.auth.lastError = error && error.message ? error.message : "Login failed";
         this.rememberCloudError(error);
         if (!options.silent && typeof wx !== "undefined" && typeof wx.showToast === "function") {
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "登录未成功，请再试一次",
             icon: "none"
           });
@@ -376,83 +375,6 @@ App({
     const hasIdentity = Boolean(auth.loggedIn || hasPublicToken);
     const hasTransport = Boolean(options.force || cloud.ready || hasPublicToken);
     return hasIdentity && hasTransport;
-  },
-  promptWechatLoginOnLaunch() {
-    if (
-      typeof wx === "undefined"
-      || typeof wx.showModal !== "function"
-      || this.globalData.auth.loginPromptShown
-      || this.hasLoggedInIdentity()
-    ) {
-      return;
-    }
-
-    this.globalData.auth.loginPromptShown = true;
-    const showPrompt = () => {
-      if (this.hasLoggedInIdentity()) {
-        return;
-      }
-
-      wx.showModal({
-        title: "登录唱片柜",
-        content: "登录后，你的收藏、上墙和电视同步都会保存在自己的微信账号里。",
-        confirmText: "微信登录",
-        cancelText: "稍后",
-        success: (result) => {
-          if (!result || !result.confirm) {
-            return;
-          }
-
-          this.openAccountPageForLogin();
-          this.requireWechatAccount({
-            desc: "用于创建唱片柜账号并保存你的收藏"
-          }).then((me) => {
-            if (!me) {
-              return;
-            }
-            this.refreshAccountPageAfterLogin(me);
-            if (typeof wx.showToast === "function") {
-              wx.showToast({
-                title: "已登录",
-                icon: "success"
-              });
-            }
-          });
-        }
-      });
-    };
-
-    if (typeof setTimeout === "function") {
-      setTimeout(showPrompt, LOGIN_PROMPT_DELAY_MS);
-      return;
-    }
-    showPrompt();
-  },
-  openAccountPageForLogin() {
-    if (typeof wx === "undefined" || typeof wx.redirectTo !== "function") {
-      return;
-    }
-
-    wx.redirectTo({
-      url: "/pages/account/index"
-    });
-  },
-  refreshAccountPageAfterLogin(me) {
-    if (typeof getCurrentPages !== "function") {
-      return;
-    }
-
-    const pages = getCurrentPages();
-    const currentPage = pages && pages.length ? pages[pages.length - 1] : null;
-    if (!currentPage || currentPage.route !== "pages/account/index") {
-      return;
-    }
-    if (typeof currentPage.loadAccount === "function") {
-      currentPage.loadAccount();
-    }
-    if (typeof currentPage.showOnboardingGuideIfNeeded === "function") {
-      currentPage.showOnboardingGuideIfNeeded(me);
-    }
   },
   requireWechatAccount(options = {}) {
     if (this.isCloudAccountReady()) {

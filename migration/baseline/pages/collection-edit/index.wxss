@@ -1,0 +1,175 @@
+.edit-screen {
+  padding-bottom: calc(260rpx + var(--safe-bottom));
+}
+
+.edit-form {
+  display: grid;
+  gap: 24rpx;
+}
+
+.edit-cover-block {
+  display: grid;
+  grid-template-columns: 180rpx 1fr;
+  gap: 22rpx;
+  align-items: center;
+  margin-bottom: 28rpx;
+  padding: 22rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.edit-cover {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: var(--radius-cover);
+  background: var(--color-soft);
+  box-shadow: var(--shadow-cover);
+}
+
+.edit-cover-copy {
+  min-width: 0;
+  display: grid;
+  gap: 10rpx;
+}
+
+.edit-album-title {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-album-meta {
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 24rpx;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cover-button {
+  width: 164rpx;
+  min-height: 60rpx;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+}
+
+.track-edit-section {
+  margin-top: 54rpx;
+}
+
+.track-edit-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 1rpx solid var(--color-line);
+}
+
+.track-edit-title {
+  margin-bottom: 4rpx;
+}
+
+.track-edit-hint,
+.track-empty {
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.track-add-button {
+  flex: 0 0 auto;
+  min-height: 64rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 18rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.track-add-button image {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.track-empty {
+  padding: 30rpx 0;
+}
+
+.track-edit-list {
+  display: grid;
+}
+
+.track-edit-row {
+  min-height: 88rpx;
+  display: grid;
+  grid-template-columns: 52rpx minmax(0, 1fr) 64rpx;
+  align-items: center;
+  border-bottom: 1rpx solid var(--color-line);
+}
+
+.track-position {
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.track-title-input {
+  width: 100%;
+  height: 88rpx;
+  color: var(--color-ink);
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.track-remove-button {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-remove-button image {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.edit-actions {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + var(--safe-bottom));
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 150rpx 150rpx 1fr;
+  gap: 18rpx;
+}
+
+.danger-button {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid rgba(185, 109, 91, 0.32);
+  border-radius: var(--radius-card);
+  background: rgba(185, 109, 91, 0.12);
+  color: var(--palette-red);
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.danger-button-hover {
+  background: rgba(185, 109, 91, 0.18);
+}

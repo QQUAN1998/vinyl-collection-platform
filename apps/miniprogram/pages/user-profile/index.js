@@ -1,5 +1,6 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     avatarInitial: "\u5531",
     profileForm: {
@@ -69,7 +70,7 @@ Page({
     app.globalData.userLabel = `${name} / ${app.globalData.collectionCostLabel || "\u00a50"}`;
 
     const finish = () => {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "已保存",
         icon: "success"
       });
@@ -107,7 +108,7 @@ Page({
 
     const finish = () => {
       applyLocalProfile();
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "\u5df2\u4fdd\u5b58",
         icon: "success"
       });
@@ -116,11 +117,11 @@ Page({
     };
 
     if (app.isCloudAccountReady && app.isCloudAccountReady() && app.syncWechatProfile) {
-      wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+      uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d" });
       app.syncWechatProfile({ displayName: name, nickName: name, avatarUrl: nextProfile.avatar })
         .then((me) => {
           if (!me) {
-            wx.showToast({
+            uiLocale.toast(wx,{
               title: "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5",
               icon: "none"
             });
@@ -129,7 +130,7 @@ Page({
           finish();
         })
         .catch(() => {
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: "\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5",
             icon: "none"
           });
@@ -151,4 +152,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"编辑个人资料"));

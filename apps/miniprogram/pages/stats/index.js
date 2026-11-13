@@ -1,4 +1,9 @@
-﻿const { albums } = require("../../data/seed.js");
+const uiLocale=require("../../ui/locale-runtime");
+const {refreshCollection}=require('../../ui/collection-refresh');
+const {requireCloudAccount}=require('../../services/cloud-session');
+const uiStats = require("../../ui/stats-model");
+const uiSnapshot = require("../../ui/stats-snapshot");
+const { albums } = require("../../data/seed.js");
 const {
   buildMediaFormatDistribution,
   getCollectionAmount,
@@ -74,8 +79,20 @@ function findYearIndex(years, year) {
   return index >= 0 ? index : 0;
 }
 
-Page({
-  data: {
+Page(uiLocale.page({
+  async uiCollectionShare(e){
+    if(this.uiReadOnly||this.data.uiReadOnly||this.data.uiCollectionPreparing)return;
+    const app=getApp();
+    const ready=()=>!!(app.isCloudAccountReady?.()&&app.globalData.userId);
+    this.setData({uiCollectionShareReady:ready(),uiShareSource:ready()?{ownerId:app.globalData.userId}:null});
+    if(e.detail.passive||ready())return;
+    this.setData({uiCollectionPreparing:true});
+    try{await requireCloudAccount(app);this.setData({uiCollectionShareReady:ready(),uiShareSource:ready()?{ownerId:app.globalData.userId}:null});}
+    catch(e){uiLocale.toast(wx,{title:'请先在我的页面登录',icon:'none'});}
+    finally{this.setData({uiCollectionPreparing:false});}
+  },
+  data: {uiCollectionShareReady:false,uiCollectionPreparing:false,
+    uiShareSource:null,uiShareLoading:false,uiShareError:"",uiRecords:[],uiOwner:"音乐收藏者",uiAvatar:"",uiReadOnly:false,uiSnapshotOptions:null,
     stats: {
       albumCount: 0,
       artistCount: 0,
@@ -106,24 +123,47 @@ Page({
     monthDrawerTitle: "",
     monthCollectionItems: []
   },
+  async onLoad(options={}) {
+    if(!options.uiRef&&!options.uiSnapshot)return;
+    this.uiReadOnly=true;
+    this.uiStatsShare=null;
+    this.setData({uiReadOnly:true,uiShareLoading:true,uiShareError:'',uiRecords:[]});
+    try{
+      const snap=options.uiRef?await uiSnapshot.readReference(options.uiRef):uiSnapshot.decode(options.uiSnapshot);
+      if(this.uiDisposed)return;
+      this.setData({uiRecords:snap.records,uiKind:snap.kind,uiOwner:snap.owner,uiAvatar:snap.avatar||'',uiReadOnly:true,uiShareSource:snap.source||null,uiSnapshotOptions:snap});
+      try{this.uiStatsShare=uiSnapshot.message(snap);}catch(e){this.uiStatsShare=null;}
+      if(!options.uiRef){
+        const media=require('../../ui/stats-share-media');
+        media.hydrate(snap,media.readShared).then(uiRecords=>{if(!this.uiDisposed)this.setData({uiRecords});}).catch(()=>{});
+      }
+    }catch(e){if(!this.uiDisposed)this.setData({uiShareError:'分享暂不可用，请稍后重试',uiStatsShare:null});}
+    finally{if(!this.uiDisposed)this.setData({uiShareLoading:false});}
+  },
+  uiRetryShare(){return this.onLoad(this.options||{});},
+  uiSelect(e) { if(this.uiReadOnly)return; this.openAlbumDetail({currentTarget:{dataset:{albumId:e.detail.id}}}); },
+  uiShare(e) { this.uiStatsShare=e.detail.message; },
   onShow() {
+    if(this.uiReadOnly)return;
     const app = getApp();
     if (typeof app.applyThemeToPage === "function") {
       app.applyThemeToPage(this);
     }
     this.loadStats();
-    if (typeof app.loadCloudCollection === "function") {
-      app.loadCloudCollection().then((payload) => {
-        if (payload) {
-          this.loadStats();
-        }
-      });
-    }
+    refreshCollection(app).then(payload => {
+      if (payload && !this.uiDisposed) this.loadStats();
+    }).catch(() => {});
   },
+  onUnload() {this.uiDisposed=true;},
   loadStats() {
     const app = getApp();
     const collectionItems = app.globalData.collectionItems || [];
     const sourceAlbums = [...albums, ...(app.globalData.manualAlbums || [])];
+    const view={uiShareSource:app.isCloudAccountReady?.()&&app.globalData.userId?{ownerId:app.globalData.userId}:null,uiRecords:uiStats.vinylRecords(sourceAlbums,collectionItems),uiKind:"vinyl",uiOwner:app.globalData.userProfile?.name || "音乐收藏者",uiAvatar:app.globalData.userProfile?.avatar || ""};
+    const signature=JSON.stringify(view);
+    if(signature===this.uiStatsSignature)return;
+    this.uiStatsSignature=signature;this.uiStatsShare=null;
+    this.setData(view);
     const stats = calculateCollectionStats(sourceAlbums, collectionItems);
     const collectedAlbums = getCollectedAlbums(sourceAlbums, collectionItems);
     const artistRanks = buildArtistRanks(sourceAlbums, collectionItems);
@@ -169,7 +209,7 @@ Page({
     const month = Number(event.currentTarget.dataset.month);
     const count = Number(event.currentTarget.dataset.count || 0);
     if (!count) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "这个月暂无收藏",
         icon: "none"
       });
@@ -219,11 +259,16 @@ Page({
       url: `/pages/archive-profile/index?type=${type}&name=${encodeURIComponent(name)}`
     });
   },
-  onShareAppMessage() {
+  onShareAppMessage(event) {
+    if(event?.target?.dataset?.scope==='all'&&!this.uiReadOnly&&!this.data.uiReadOnly){
+      const app=getApp(),owner=app.isCloudAccountReady?.()?app.globalData.userId:'';
+      return createShareMessage(owner?{title:(app.globalData.userProfile?.name||'音乐收藏者')+'的全部唱片收藏',path:'/pages/all-collection/index?ownerId='+encodeURIComponent(owner)}:{});
+    }
+    if(this.uiStatsShare)return this.uiStatsShare;
     return createShareMessage();
   },
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"统计"));
 

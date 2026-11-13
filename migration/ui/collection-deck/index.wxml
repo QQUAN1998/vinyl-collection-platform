@@ -1,0 +1,24 @@
+<view class="deck {{kind==='live'?'live-deck':''}}">
+  <view class="deck-top"><text class="deck-greeting">Hi, {{owner||'你好'}}</text><button wx:if="{{!readOnly}}" class="deck-profile" bindtap="profile" aria-label="我的"><image wx:if="{{avatar}}" src="{{avatar}}" mode="aspectFill"/><image wx:else class="profile-placeholder" src="/assets/ui/nav-mine.svg" mode="aspectFit"/></button></view>
+  <view class="deck-summary"><text wx:if="{{kind==='live'}}" class="deck-count">{{count}} 场收藏</text><view wx:else class="deck-count deck-quantities"><text>去重收藏 {{uniqueCount}} 张</text><text>总张数 {{totalQuantity}} 张</text></view><text wx:if="{{amountLabel}}" class="deck-total">{{amountLabel}}</text></view>
+  <block wx:if="{{cards.length}}">
+    <view class="deck-stage">
+      <scroll-view class="deck-scroll" scroll-x enhanced enable-flex enable-passive bounces="{{false}}" show-scrollbar="{{false}}" scroll-with-animation="{{animated}}" scroll-left="{{scrollLeft}}" bindscroll="scroll" bindtouchstart="touchStart" bindtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchEnd">
+        <view class="gallery-track" style="padding-left:{{inset}}px;padding-right:{{inset}}px;">
+          <view wx:for="{{cards}}" wx:key="id" class="gallery-slot" style="width:{{cardSize}}px;margin-right:{{index===cards.length-1?0:22}}px;">
+            <view class="deck-slide {{openingId===item.id?'is-opening':''}}" style="{{slideStyles[index]||''}}" data-id="{{item.id}}" bindtap="select" aria-role="button" aria-label="查看{{item.title}}">
+              <view class="deck-art {{kind==='live'?'ticket-art':''}}" style="{{kind==='live'?'background:'+(posterTones[item.id]||'#636e67')+';':'height:'+cardSize+'px;'}}">
+                <view class="art-picture"><image wx:if="{{item.cover&&index>=active-3&&index<=active+3}}" src="{{item.cover}}" data-src="{{item.cover}}" binderror="imageError" mode="{{kind==='live'?'aspectFit':'aspectFill'}}" lazy-load/><view wx:else class="deck-placeholder"><text>{{kind==='live'?'LIVE':'MUSIC'}}</text><text class="deck-placeholder-title">{{item.title}}</text><text>{{item.date||item.year}}</text></view></view>
+                <view wx:if="{{kind==='live'}}" class="ticket-footer"><text>{{item.city||'城市待补'}}</text><text>{{item.amountLabel||'票价未填写'}}</text></view>
+                <view wx:if="{{kind!=='live'}}" class="sleeve-gloss"/>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    <view class="deck-caption"><text class="deck-title">{{current.title}}</text><text class="deck-artist">{{current.artist}}</text><text class="deck-sequence">{{current.sequence?'人生第 '+current.sequence+(kind==='live'?' 场现场':' 张唱片'):''}}</text></view>
+    <view class="deck-pagination" aria-label="第{{active+1}}项，共{{cards.length}}项"><view class="deck-ruler"><view class="ruler-track" style="background-position-x:{{rulerOffset}}px;"/><view class="ruler-needle"/></view><text class="deck-position">{{position}} / {{cards.length}}</text></view>
+  </block>
+  <view wx:else class="deck-empty"><image src="/assets/ui/{{kind==='live'?'ticket':'disc'}}.svg"/><text>{{kind==='live'?'收藏第一场现场':'收藏第一张唱片'}}</text><button wx:if="{{!readOnly}}" bindtap="empty">添加收藏</button></view>
+</view>

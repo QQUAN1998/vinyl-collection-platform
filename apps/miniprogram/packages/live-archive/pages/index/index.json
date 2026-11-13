@@ -1,0 +1,15 @@
+{
+  "navigationBarTitleText": "演出集",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "switch-cabinet": "/components/switch-cabinet/index",
+    "collection-deck": "/components/collection-deck/index",
+    "stats-board": "/components/stats-board/index",
+    "space-header": "/components/space-header/index",
+    "ui-select": "/components/ui-select/index",
+    "date-field": "/components/date-field/index",
+    "home-dock": "/components/home-dock/index",
+    "detail-sheet": "../detail/sheet",
+    "ticket-share": "/components/ticket-share/index"
+  }
+}

@@ -1,0 +1,24 @@
+/* Shared mobile refinements: no edge rules, full artwork, quiet icon actions. */
+.home-dock{border:0!important;box-shadow:none!important;background:var(--color-screen,#f5f6f2)!important}
+.ui-preview-footer{border:0!important;padding-top:12px!important}
+.ui-album-sheet .ui-preview-tracks{border-top:0!important}
+.ui-preview-tracks:empty{display:none}
+.ui-album-sheet .ui-dialog-actions{justify-content:center;gap:20px!important}
+.ui-album-sheet .ui-dialog-actions button{flex:0 0 56px!important;width:56px!important;min-width:56px!important;height:48px!important;min-height:48px!important;padding:12px 16px!important;background:var(--color-soft,#edf0e8)!important;color:var(--color-ink,#171a17)!important;border:0!important;border-radius:24px!important}
+.ui-album-dialog .ui-album-sheet .ui-dialog-actions .ui-dialog-primary,.ui-album-dialog .ui-album-sheet .ui-dialog-actions .ui-dialog-secondary{background:var(--color-soft,#edf0e8)!important;color:var(--color-ink,#171a17)!important}
+.ui-album-sheet .ui-dialog-actions image{display:block;width:24px!important;height:24px!important;filter:none!important;margin:0!important}
+.ui-album-sheet .ui-dialog-actions .ui-dialog-delete{margin:0!important}
+.ui-album-sheet .ui-dialog-actions .ui-dialog-delete image{opacity:.65}
+.ui-album-sheet .ui-dialog-close,.ui-album-sheet .ui-dialog-pager button{color:var(--color-ink,#171a17)!important;background:transparent!important}
+.deck-slide:not(.is-disc) .deck-art:not(.ticket-art){box-shadow:0 12px 24px -10px #0005,2px 3px 4px #0002!important;border:0!important}
+.deck-slide:not(.is-disc) .sleeve-gloss{box-shadow:inset 0 0 0 1px #ffffff38,inset -1px -1px 4px #0002!important;background:linear-gradient(135deg,#ffffff10,#fff0 48%,#ffffff06)!important}
+.edit-screen .edit-cover-block,.live-edit-screen .live-edit-summary{display:flex!important;align-items:center!important;gap:12px!important;padding:12px 0 20px!important;border:0!important;box-shadow:none!important;background:transparent!important;margin:0 0 16px!important}
+.edit-screen .edit-cover-block .edit-cover{display:block;width:88px!important;height:88px!important;flex:0 0 88px!important;max-width:none!important;max-height:none!important;border-radius:0!important;box-shadow:none!important;object-fit:contain}
+.edit-screen .edit-cover-copy{flex:1!important;width:0!important;min-width:0!important;gap:6px!important}
+.edit-screen .edit-album-title{font-size:17px!important;line-height:1.35!important;white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.edit-screen .edit-cover-block>.cover-button,.live-edit-summary>.ui-replace-cover{display:flex!important;flex:none!important;align-items:center!important;justify-content:center!important;width:64px!important;min-width:64px!important;min-height:40px!important;padding:6px!important;margin:0!important;font-size:11px!important;line-height:1.4!important;text-align:center!important;background:var(--color-soft,#edf0e8)!important;border:0!important;border-radius:16px!important;box-sizing:border-box}
+.live-edit-screen .live-edit-summary>image{display:block!important;flex:0 0 72px!important;width:72px!important;height:100px!important;min-height:100px!important;max-height:none!important;border-radius:0!important;object-fit:contain}
+.live-edit-screen .live-edit-summary>view{flex:1!important;min-width:0!important;width:0!important;gap:8px!important}
+.live-edit-screen .live-edit-summary>view>text:first-child{font-size:16px!important;line-height:1.4!important;white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.live-edit-screen .live-edit-summary>view>text:last-child{font-size:11px!important;white-space:normal!important;line-height:1.5!important}
+.ui-replace-cover::after{border:0!important}

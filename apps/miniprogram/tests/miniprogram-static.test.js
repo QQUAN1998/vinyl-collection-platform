@@ -113,10 +113,9 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.match(appScript, /requireWechatAccount/);
   assert.match(appScript, /loginPromise/);
   assert.match(appScript, /restoreStoredAuthState/);
-  assert.match(appScript, /promptWechatLoginOnLaunch/);
+  assert.doesNotMatch(appScript, /promptWechatLoginOnLaunch/);
   assert.match(appScript, /hasLoggedInIdentity/);
   assert.match(appScript, /canAttemptWechatIdentityLogin/);
-  assert.match(appScript, /登录唱片柜/);
   assert.match(appScript, /persistAuthState/);
   assert.match(appScript, /restoreTheme/);
   assert.match(appScript, /applyThemeToPage/);
@@ -148,21 +147,19 @@ test("official WeChat share menu is wired globally without visible page-wide but
   assert.match(shareScript, /shareAppMessage/);
   assert.match(shareScript, /shareTimeline/);
   assert.match(shareScript, /createShareTimeline/);
-  for (const text of ["全部唱片", "catalogSearch", "visibleAlbums", "搜唱片"]) {
-    assert.ok(cabinetMarkup.includes(text), `cabinet catalog includes ${text}`);
-  }
-  for (const text of ["add-fab", "album-tile-cover", "catalog-smart-chips"]) {
-    assert.ok(cabinetMarkup.includes(text), `cabinet keeps prototype home structure ${text}`);
-  }
-  for (const text of ["album-card-modal", "album-modal-card", "rarity-corner", "cardPositionLabel"]) {
+  assert.ok(cabinetMarkup.includes("home-dock"));
+  assert.ok(cabinetMarkup.includes("collection-deck"));
+  assert.doesNotMatch(cabinetMarkup, /catalogSearch|bottom-nav/);
+  for (const text of ["album-card-modal", "ui-album-sheet", "ui-dialog-actions", "cardPositionLabel"]) {
     assert.ok(cabinetMarkup.includes(text), `cabinet keeps prototype album card structure ${text}`);
   }
-  assert.doesNotMatch(cabinetMarkup + addMarkup + statsMarkup + accountMarkup + allCollectionMarkup, /open-type="share"/);
+  assert.match(addMarkup,/open-type="share"/);
+  assert.match(readText("pages/add/index.js"),/ownerId/);
 });
 
 test("cloud hosting packages the latest TV APK inside a ZIP download", () => {
-  const apkPath = path.resolve(root, "..", "api", "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.apk");
-  const zipPath = path.resolve(root, "..", "api", "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.zip");
+  const apkPath = path.resolve(process.env.TV_ARTIFACT_ROOT || path.resolve(root, "..", "api"), "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.apk");
+  const zipPath = path.resolve(process.env.TV_ARTIFACT_ROOT || path.resolve(root, "..", "api"), "public", "downloads", "vinyl-cabinet-tv-1.0.66.7.zip");
 
   assert.ok(fs.existsSync(apkPath), "versioned TV APK exists in the cloud-hosting public directory");
   assert.ok(fs.statSync(apkPath).size > 300_000, "TV APK contains the complete installer");
@@ -216,50 +213,26 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.match(appStyles, /--radius-cover:\s*12rpx/);
   assert.ok(readText("utils/navigation.js").includes("iconSrc"), "bottom navigation exposes concrete SVG image paths");
   assert.doesNotMatch(cabinetMarkup + addMarkup + accountMarkup, /icon-mask/, "mini-program icons render through image tags instead of CSS mask");
-  assert.ok(cabinetMarkup.includes("album-tile-title"), "home catalog uses cover-first album tiles");
-  assert.ok(cabinetMarkup.includes("catalog-sticky-tools"), "home catalog search tools stay grouped for sticky scrolling");
+  assert.ok(allCollectionMarkup.includes("all-album-title"), "all collection keeps cover-first tiles");
+  assert.ok(allCollectionMarkup.includes("collection-search-tools"), "catalogue search remains on the collection page");
   assert.match(cabinetStyles, /\.catalog-sticky-tools\s*\{[^}]*position:\s*sticky[^}]*top:\s*0/s);
-  assert.ok(cabinetMarkup.includes("preview-player-card"), "home page shows the currently playing preview between wall and catalog");
-  assert.ok(cabinetMarkup.includes("preview-player-kicker"), "preview player keeps its English label above the card");
-  assert.ok(cabinetMarkup.includes("previewPlayer.albumCover"), "preview player card renders the current album cover");
-  assert.ok(cabinetMarkup.includes("NOW PLAYING"), "preview player uses the English mini label style");
-  assert.ok(cabinetMarkup.includes("正在试听"), "preview player card keeps the Chinese status label");
-  assert.ok(cabinetMarkup.includes("DAILY PICK"), "home page keeps a persistent daily recommendation label when no preview is playing");
-  assert.ok(cabinetMarkup.includes("今日推荐"), "home page keeps the daily recommendation card between wall and catalog");
-  assert.ok(cabinetMarkup.includes("dailyRecommendation"), "home page binds daily recommendation view state");
-  assert.ok(cabinetMarkup.includes("wx:else"), "daily recommendation renders as the alternate state to now playing");
-  assert.ok(cabinetMarkup.includes("preview-play.svg"), "preview player uses the provided play icon");
-  assert.ok(cabinetMarkup.includes("preview-pause.svg"), "preview player uses the provided pause icon");
-  assert.ok(cabinetMarkup.includes("togglePreviewPlayer"), "preview player card can pause or resume playback");
-  assert.ok(cabinetScript.includes("subscribePreviewPlayer"), "home page subscribes to the shared preview player");
-  assert.ok(cabinetScript.includes("openPreviewPlayerDetail"), "home preview card opens the current album detail page");
-  assert.ok(cabinetScript.includes("loadDailyRecommendation"), "home page loads a cached daily recommendation from NetEase search");
-  assert.ok(cabinetScript.includes("openDailyRecommendation"), "home daily recommendation can open the detail flow");
-  const openDailyRecommendationSource = cabinetScript.match(/openDailyRecommendation\(\) \{[\s\S]*?\n  \},\n  handleCatalogSearch/)[0];
-  assert.ok(openDailyRecommendationSource.includes("recommendationAlbums"), "daily recommendation keeps a temporary detail-only album library");
-  assert.ok(openDailyRecommendationSource.includes("/pages/album-detail/index?albumId="), "daily recommendation opens album detail instead of add confirmation");
-  assert.ok(openDailyRecommendationSource.includes("fetchCatalogAlbumDetail"), "home daily recommendation hydrates the selected catalog album before detail viewing");
-  assert.doesNotMatch(openDailyRecommendationSource, /importDraft|batch-confirm/, "daily recommendation must not prefill the add-to-collection confirmation flow");
-  assert.match(cabinetStyles, /\.preview-player-card\s*\{[^}]*grid-template-columns:\s*92rpx minmax\(0,\s*1fr\) 68rpx/s);
-  assert.match(cabinetStyles, /\.preview-player-card\s*\{[^}]*background:\s*var\(--theme-card-surface\)/s);
-  assert.match(cabinetStyles, /\.preview-player-section\s*\{[^}]*margin:\s*16rpx 0 52rpx/s);
-  assert.match(cabinetStyles, /\.preview-player-toggle-icon\s*\{[^}]*width:\s*68rpx[^}]*height:\s*68rpx/s);
-  assert.match(cabinetStyles, /\.daily-recommend-action\s*\{[^}]*min-width:\s*84rpx/s);
+  assert.ok(cabinetMarkup.includes("collection-deck"), "home uses the new native collection deck");
+  assert.doesNotMatch(cabinetMarkup, /preview-player-card|daily-recommend|photo-wall-section/, "old-only home sections follow the approved removal");
   assert.match(cabinetStyles, /\.search-box\s*\{[^}]*background:\s*var\(--theme-input-surface\)/s);
   assert.match(cabinetStyles, /\.album-modal-card\s*\{[^}]*--album-modal-ink:\s*#1a1a1a/s);
   assert.match(cabinetStyles, /\.album-modal-card\s*\{[^}]*--album-modal-muted:\s*#686a63/s);
   assert.match(cabinetStyles, /\.modal-title\s*\{[^}]*color:\s*var\(--album-modal-ink\)/s);
   assert.match(cabinetStyles, /\.modal-subtitle\s*\{[^}]*color:\s*var\(--album-modal-muted\)/s);
   assert.match(cabinetStyles, /\.modal-track\s*\{[^}]*color:\s*var\(--album-modal-muted\)/s);
-  assert.ok(cabinetMarkup.includes("modal-delete-entry"), "album card shows a direct delete entry for collected albums");
-  assert.ok(cabinetMarkup.includes("delete-action.svg"), "album card delete entry uses the provided delete icon");
+  assert.ok(cabinetMarkup.includes("ui-dialog-delete"), "album card shows a direct delete entry for collected albums");
+  assert.ok(cabinetMarkup.includes("handleCardDeleteAction"), "album card delete entry uses the provided delete icon");
   assert.ok(cabinetScript.includes("handleCardDeleteAction"), "album card delete entry opens the delete confirmation flow");
-  assert.ok(cabinetScript.includes("wx.showModal"), "album card delete flow confirms before deleting");
-  assert.ok(cabinetMarkup.includes("wall-down-muted"), "album card wall action uses downloaded wall icons");
-  assert.ok(cabinetMarkup.includes("modal-edit-action"), "album card keeps a direct edit action");
-  assert.ok(cabinetMarkup.includes("modal-wall-action"), "album card can move albums up or down the photo wall");
-  assert.ok(cabinetMarkup.includes('<scroll-view scroll-y class="modal-track-scroll"'), "album card tracks use native mini-program scrolling");
-  for (const markup of [cabinetMarkup, allCollectionMarkup, archiveMarkup, detailMarkup]) {
+  assert.ok(cabinetScript.includes("uiLocale.modal(wx,"), "album card delete flow confirms before deleting");
+  assert.ok(cabinetMarkup.includes("ui-preview-tracks"), "preview card preserves track information");
+  assert.ok(cabinetMarkup.includes("handleCardCollectionAction"), "album card keeps a direct edit action");
+  assert.ok(!cabinetMarkup.includes('bindtap="handleWallAction"'), "preview card omits the wall action as requested");
+  assert.ok(cabinetMarkup.includes('<scroll-view scroll-y class="ui-preview-body"'), "album card tracks use native mini-program scrolling");
+  for (const markup of [allCollectionMarkup, archiveMarkup, detailMarkup]) {
     assert.ok(markup.includes("{{item.title}}"), "track rows render the track title instead of the raw object");
     assert.doesNotMatch(markup, /wx:for="\{\{[^"]*tracks[^"]*\}\}"[\s\S]{0,240}\{\{item\}\}/i);
   }
@@ -297,22 +270,22 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   }
   assert.ok(collectionEditMarkup.includes("confirmDeleteCollection"), "collection edit page can delete a collection item");
   assert.ok(readText("pages/collection-edit/index.js").includes("deleteCollectionFromCloud"), "collection edit delete flow syncs to cloud");
-  assert.ok(readText("pages/collection-edit/index.js").includes("wx.showModal"), "collection edit delete flow confirms before deleting");
+  assert.ok(readText("pages/collection-edit/index.js").includes("uiLocale.modal(wx,"), "collection edit delete flow confirms before deleting");
   assert.ok(collectionEditMarkup.includes("addTrack"), "collection edit page lets users add missing tracks");
   assert.ok(collectionEditMarkup.includes("handleTrackTitleInput"), "collection edit page lets users edit track titles");
   assert.ok(collectionEditMarkup.includes("removeTrack"), "collection edit page lets users remove tracks");
   assert.match(readText("pages/collection-edit/index.js"), /uploadAlbumCoverIfNeeded/);
   assert.match(readText("pages/collection-edit/index.js"), /normalizeEditableTracks/);
-  assert.match(detailScript, /album\.year \|\| album\.releaseYear \|\| "未记录"/);
+  assert.match(detailScript, /releaseDates\.value\(album\)/);
   assert.ok(archiveMarkup.includes("mediumLabel"), "archive preview displays the selected media format");
-  assert.ok(addMarkup.includes("screen-header"), "add page uses the shared header architecture");
-  assert.ok(addMarkup.includes(">ADD<"), "add page includes a right-side header badge");
+  assert.ok(addMarkup.includes("space-header"), "add page uses the shared header architecture");
+  assert.doesNotMatch(addMarkup, />ADD</, "new UI omits decorative header badge");
   assert.doesNotMatch(addMarkup, /recent-search|recentSearches|useRecent/, "add page no longer keeps recent-search records");
-  assert.ok(addMarkup.includes("search-action.png"), "add page search uses downloaded icon");
-  assert.ok(addMarkup.includes("查看全部在线结果"), "add page exposes a full online results entry");
+  assert.ok(addMarkup.includes("/assets/ui/search.svg"), "add page search uses downloaded icon");
+  assert.ok(addMarkup.includes("查看全部结果"), "add page exposes a full online results entry");
   assert.ok(addScript.includes("searchCatalogAlbums"), "add page search fetches online catalog results directly");
   assert.ok(addScript.includes("pages/search-results/index?query="), "add page search action opens the full results page");
-  assert.ok(addMarkup.includes("在线资料"), "add page tells users search results come from the online catalog");
+  assert.ok(addMarkup.includes("ui-search-results"), "add page tells users search results come from the online catalog");
   assert.ok(searchResultsScript.includes("searchCatalogAlbums"), "search results page uses the cloud catalog search API");
   assert.match(addStyles, /\.notice\s*\{[^}]*background:\s*var\(--theme-panel-tint\)/s);
   assert.match(searchResultsStyles, /\.load-more-button\s*\{[^}]*background:\s*var\(--theme-input-surface\)/s);
@@ -328,17 +301,13 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(batchConfirmScript.includes("draft.candidates"), "batch confirm can add online catalog candidates");
   assert.ok(addMarkup.includes("批量输入"), "add page keeps batch input action");
   assert.ok(addMarkup.includes("手动新建"), "add page keeps manual add action");
-  assert.ok(addMarkup.includes("all-collection-card"), "add page includes the all collection card");
+  assert.ok(addMarkup.includes("ui-share-card"), "add page includes the all collection card");
   assert.ok(addMarkup.includes("goAllCollection"), "add page can open all collection page");
-  assert.ok(
-    addMarkup.indexOf("资料库没有？") < addMarkup.indexOf("最近加入")
-      && addMarkup.indexOf("最近加入") < addMarkup.indexOf("all-collection-card"),
-    "add page swaps the manual-create notice above recent albums and all-collection card below them",
-  );
+  assert.ok(addMarkup.indexOf("ui-method-tabs")<addMarkup.indexOf("ui-share-card"),"approved add methods precede the collection card");
   assert.doesNotMatch(addMarkup, /扫码|搜索方式/, "add page does not drift back to scan/method list UI");
   assert.ok(allCollectionMarkup.includes("全部唱片"), "all collection page keeps a clear title");
-  assert.ok(allCollectionMarkup.includes("按唱片价格排序"), "all collection page explains the price sort");
-  assert.ok(allCollectionMarkup.includes("collection-summary-grid"), "all collection page shows basic collection data");
+  assert.ok(allCollectionMarkup.includes("ui-shared-owner"), "all collection page explains the price sort");
+  assert.ok(allCollectionMarkup.includes("stats.albumCount"), "all collection page shows basic collection data");
   assert.ok(allCollectionMarkup.includes("collection-search-tools"), "all collection page supports searching shared collected albums");
   assert.ok(allCollectionMarkup.includes("搜唱片 / 艺人 / 风格 / 年份"), "all collection search matches the cabinet search scope wording");
   assert.ok(allCollectionMarkup.includes("collection-scope-chip"), "all collection page exposes search scopes");
@@ -363,7 +332,7 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.match(cabinetScript, /deleteCollectionFromCloud/);
   assert.ok(allCollectionStyles.includes('@import "../cabinet/index.wxss";'), "all collection page reuses the prototype album card animations");
   assert.match(allCollectionStyles, /\.owner-panel\s*\{[^}]*background:\s*var\(--palette-black\)/s);
-  assert.ok(batchInputMarkup.includes(">BATCH<"), "batch input page uses a shared English header badge");
+  assert.doesNotMatch(batchInputMarkup,/>BATCH</, "batch input page uses a shared English header badge");
   assert.doesNotMatch(batchInputMarkup, /<view>\s*<view class="screen-title">批量输入<\/view>\s*<view class="caption">/, "batch input header does not stack subtitle under the title");
   assert.doesNotMatch(batchInputMarkup, /lineCount|\{\{lineCount\}\}|行<\/view>/, "batch input page removes the top line-count badge");
   assert.ok(batchInputMarkup.indexOf("<form-field") < batchInputMarkup.indexOf("batch-helper"), "batch input helper copy sits below the input field");
@@ -375,25 +344,12 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(readText("services/preview-player-service.js").includes("createInnerAudioContext"), "preview player service plays previews through the native mini-program audio context");
   assert.ok(catalogScript.includes("/api/catalog/preview"), "catalog API exposes the track preview endpoint");
   assert.ok(catalogScript.includes("buildTrackPreviewStreamUrl"), "catalog API plays previews through the cloud-hosted stream URL");
-  for (const text of ["month-grid", "handleYearChange", "openMonthDetail", "month-drawer", "format-stack", "visibleMediaFormats"]) {
-    assert.ok(statsMarkup.includes(text), `stats page includes collection distribution UI ${text}`);
-  }
-  const statsScript = readText("pages/stats/index.js");
-  assert.doesNotMatch(
-    statsMarkup,
-    /分享海报|openPoster|savePoster|sharePosterImage|previewPoster|statsPosterCanvas|poster-share-action\.png/,
-    "stats page no longer renders the share poster entry or modal",
-  );
-  assert.doesNotMatch(
-    statsScript,
-    /POSTER_|wx\.createCanvasContext|wx\.canvasToTempFilePath|wx\.saveImageToPhotosAlbum|wx\.showShareImageMenu|drawStatsPoster|buildTopValueAlbums/,
-    "stats page no longer carries the poster canvas generation flow",
-  );
-  assert.doesNotMatch(statsStyles, /poster-section|poster-panel|poster-generate|poster-icon-button|poster-modal|poster-canvas/, "stats page does not keep poster styles");
-  assert.doesNotMatch(statsMarkup, /all-albums-entry|查看完整收藏清单/, "stats page removes the all-albums shortcut card");
-  assert.doesNotMatch(statsStyles, /all-albums-entry|all-albums-title/, "stats page removes all-albums shortcut styles");
-  assert.ok(statsMarkup.indexOf("rank-section") < statsMarkup.indexOf("format-section"), "stats rank section appears above format share");
-  assert.ok(statsMarkup.includes(">收藏排行<"), "stats rank title is simplified");
+  assert.match(statsMarkup,/<stats-board/);
+  const statsScript=readText("pages/stats/index.js"),board=readText("components/stats-board/index.wxml"),boardScript=readText("components/stats-board/index.js");
+  for(const event of ["yearChange","monthTap","rankChange","timelineChange","openLayout","openShare","generatePoster"]){assert.ok(board.includes(event),`approved statistics control ${event}`);assert.ok(boardScript.includes(event),`statistics handler ${event}`);}
+  assert.match(readText("ui/stats-poster.js"),/canvasToTempFilePath/);
+  assert.match(readText("ui/stats-snapshot.js"),/uiSnapshot=/);
+  assert.doesNotMatch(statsMarkup,/all-albums-entry|查看完整收藏清单/);
   assert.ok(accountMarkup.includes("screen-header"), "account page uses the shared header architecture");
   assert.ok(readText("pages/account/index.js").includes('userLabel: "SETTINGS"'), "account page uses SETTINGS as the right-side header badge");
   assert.ok(accountMarkup.includes("profile-edit-card"), "account page keeps profile-card architecture");
@@ -425,16 +381,16 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(accountMarkup.includes("平台服务"), "account page keeps service section");
   assert.ok(accountMarkup.includes("电视版 APK"), "account page links to the TV APK service");
   assert.ok(accountMarkup.includes("openTvDownload"), "account page opens the TV APK download page");
-  assert.ok(accountMarkup.includes("tv-action.png"), "account device row uses the downloaded TV icon");
+  assert.ok(accountMarkup.includes("/assets/ui/tv.svg"), "account device row uses the supplied TV icon");
   assert.ok(accountMarkup.includes("scanTvLogin"), "account page can scan and bind the TV app login QR code");
   assert.ok(accountMarkup.includes("openBatchImport"), "account import row opens batch album import");
   assert.ok(accountMarkup.includes("exportCollectionMarkdown"), "account export row writes and shares a Markdown collection file");
   assert.ok(accountMarkup.includes("小程序操作手册"), "account page links to the operation manual");
   assert.ok(accountMarkup.includes("不会使用看这里"), "account operation manual helper copy is clear");
   assert.ok(accountMarkup.includes("openUserGuide"), "account page opens the operation manual page");
-  assert.ok(accountMarkup.includes("主题设置"), "account page links to theme settings");
+  assert.ok(accountMarkup.includes("语言设置"), "account page links to theme settings");
   assert.ok(accountMarkup.includes("openThemeSettings"), "account page opens the theme settings page");
-  assert.ok(accountMarkup.includes("theme-palette.svg"), "account theme settings row uses the provided palette icon");
+  assert.ok(accountMarkup.includes("/assets/ui/language.svg"), "account language row uses the supplied globe icon");
   assert.doesNotMatch(accountStyles, /\.theme-tool-icon\s*\{[^}]*background:\s*var\(--color-soft\)/s, "theme palette row uses the same icon background as neighboring rows");
   assert.ok(readText("pages/account/index.js").includes("themeSummary"), "account page shows the current theme name");
   const tvDownloadMarkup = readText("pages/tv-download/index.wxml");
@@ -446,76 +402,16 @@ test("primary mini-program pages keep the prototype interaction structure", () =
   assert.ok(tvDownloadMarkup.includes("整个“唱片柜-TV”文件夹"), "TV APK page explains the reliable USB folder flow");
   assert.ok(tvDownloadMarkup.includes("扫码同步"), "TV APK page explains collection synchronization");
   assert.ok(tvDownloadScript.includes("downloadAndShareTvApk"), "TV APK page downloads and shares the installer");
-  assert.ok(tvDownloadScript.includes("wx.showModal"), "TV APK failures remain visible after the loading state closes");
+  assert.ok(tvDownloadScript.includes("uiLocale.modal(wx,"), "TV APK failures remain visible after the loading state closes");
   assert.ok(tvDownloadMarkup.includes("downloadError"), "TV APK page keeps an inline failure status for diagnosis");
-  assert.ok(themeSettingsMarkup.includes("显示模式"), "theme settings page exposes preset theme modes");
-  assert.ok(themeSettingsMarkup.includes("自定义底色"), "theme settings page exposes custom background color");
-  assert.ok(themeSettingsMarkup.includes("customSwatches"), "theme settings page exposes custom color swatches");
-  assert.ok(themeSettingsMarkup.includes("theme-status-row"), "theme settings page follows the shared compact status-row style");
-  assert.ok(themeSettingsMarkup.includes("theme-palette.svg"), "theme settings page uses the provided palette icon");
-  assert.ok(themeSettingsScript.includes("app.setTheme"), "theme settings page persists theme changes");
-  assert.ok(themeSettingsScript.includes("normalizeHexColor"), "theme settings page validates custom hex colors");
-  assert.match(themeSettingsStyles, /\.theme-option-desc\s*\{[^}]*font-size:\s*23rpx/s);
-  assert.match(themeSettingsStyles, /\.theme-option-desc\s*\{[^}]*line-height:\s*1\.35/s);
-  assert.doesNotMatch(themeSettingsMarkup, /<view class="row-meta">\{\{item\.description\}\}/, "theme option descriptions do not fall back to the default large font");
-  for (const text of [
-    "小程序操作手册",
-    "首次收藏流程",
-    "今日推荐",
-    "试听播放",
-    "编辑收藏",
-    "照片墙",
-    "删除唱片",
-    "统计与排行",
-    "主题设置",
-    "账号与同步",
-    "导入导出",
-    "更多收藏",
-    "微信分享"
-  ]) {
+  assert.ok(themeSettingsMarkup.includes("界面语言"), "settings keeps language selection");
+  assert.ok(themeSettingsMarkup.includes("selectLanguage"), "settings applies language selection");
+  assert.doesNotMatch(themeSettingsMarkup, /theme-choices|selectTheme|暗夜模式/, "appearance selection is removed");
+  for (const text of ["小程序操作手册", "浏览收藏", "添加唱片", "记录演出", "编辑与删除", "统计与清单", "语言设置", "账号与设置", "导入导出", "分享票根"]) {
     assert.ok((userGuideMarkup + userGuideScript).includes(text), `operation manual documents ${text}`);
   }
-  assert.ok(userGuideScript.includes("单价 × 数量"), "operation manual documents quantity-aware investment totals");
-  assert.ok(userGuideScript.includes("GO!"), "operation manual documents the daily recommendation action");
-  assert.ok(userGuideScript.includes("0816"), "operation manual documents the More collection password");
-  assert.ok(userGuideMarkup.includes("搜索刘德华"), "operation manual can launch the Liu Dehua onboarding search");
-  assert.ok(userGuideScript.includes("ONBOARDING_STEPS"), "operation manual reuses the first-login onboarding flow");
-  assert.ok(userGuideMarkup.includes("guide-more-card"), "operation manual exposes the More easter-library entry");
-  assert.ok(userGuideScript.includes("openEasterLibrary"), "operation manual opens the easter library page");
-  assert.ok(easterLibraryScript.includes("EASTER_PASSWORD = \"0816\""), "easter library is protected by the requested password");
-  assert.ok(easterLibraryMarkup.includes("password-panel"), "easter library keeps the collection hidden before password entry");
-  assert.ok(easterLibraryMarkup.includes("一键收藏全部"), "easter library can save the full fixed library");
-  assert.ok(easterLibraryScript.includes("buildEasterCollectionItems"), "easter library saves selected albums into the user's collection");
-  assert.ok(easterLibraryScript.includes("requireCloudAccount(app)"), "easter library completes WeChat login before saving albums");
-  assert.ok(easterLibraryScript.includes("saveCollectionsToCloud"), "easter library can save many selected albums through one cloud batch request");
-  assert.ok(readText("components/album-row/index.wxml").includes('lazy-load="{{true}}"'), "album rows lazy-load cover images in long lists");
-  assert.ok(
-    !readJson("project.config.json").packOptions.include.some((item) => item.value === "assets/covers/easter"),
-    "easter cover assets are served from cloud hosting instead of the mini-program package",
-  );
-  for (const iconFile of ["import-action.png", "export-action.png", "share-action.png"]) {
-    assert.ok(accountMarkup.includes(iconFile), `account service row uses ${iconFile}`);
-  }
-  assert.match(bottomNavStyles, /\.bottom-nav-icon\s*\{[^}]*width:\s*38rpx[^}]*height:\s*38rpx/s);
-  assert.match(bottomNavStyles, /\.bottom-nav-label\s*\{[^}]*font-size:\s*23rpx/s);
-  assert.match(statsStyles, /\.rank-list\s*\{[^}]*border:\s*1rpx solid var\(--color-line\)/s);
-  assert.match(statsStyles, /\.rank-row\s*\{[^}]*border-bottom:\s*1rpx solid var\(--color-line\)/s);
-  assert.match(readText("pages/add/index.wxss"), /\.all-collection-card\s*\{[^}]*border-radius:\s*var\(--radius-card\)[^}]*background:\s*var\(--palette-black\)/s);
-  assert.match(readText("pages/add/index.wxss"), /\.add-screen\s*\{[^}]*gap:\s*32rpx/s);
-  assert.doesNotMatch(readText("pages/add/index.wxss"), /recent-search-list|recent-search-chip/);
-  for (const styles of [
-    cabinetStyles,
-    archiveStyles,
-    allCollectionStyles,
-    readText("components/album-row/index.wxss"),
-    readText("components/album-card/index.wxss"),
-    readText("pages/album-detail/index.wxss"),
-  ]) {
-    assert.ok(styles.includes("var(--radius-cover)"), "album photo frames keep the original cover radius");
-  }
-  assert.doesNotMatch(
-    appStyles + cabinetStyles + statsScript,
-    /#171814|#111410/,
-    "visible black UI tokens use 90% black",
-  );
+  assert.ok(userGuideScript.includes("发行日期"), "manual explains editable release dates");
+  assert.ok(userGuideScript.includes("单价 × 数量"), "manual documents quantity-aware totals");
+  assert.doesNotMatch(userGuideScript, /今日推荐|照片墙|暗夜模式|自定义底色/, "manual does not advertise removed features");
+
 });

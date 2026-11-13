@@ -1,0 +1,5 @@
+:host{display:block;height:68px}.space-header{position:fixed;top:0;left:0;right:0;z-index:80;height:68px;box-sizing:border-box;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:var(--color-screen)}.space-owner{font-size:28px;font-weight:750;line-height:1.25;letter-spacing:-1px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;min-width:0;flex:1}.space-profile{width:40px!important;height:40px!important;min-height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;border:0;border-radius:50%;overflow:hidden;background:var(--color-soft);display:flex;align-items:center;justify-content:center}.space-profile::after{border:0}.space-profile image{width:100%;height:100%}
+/* Unified screenshot refinement */
+.space-header{padding-left:20px!important;padding-right:20px!important}
+
+@import "../../ui/preference-theme.wxss";

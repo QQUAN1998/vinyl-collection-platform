@@ -1,0 +1,113 @@
+<view class="screen stats-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">收藏统计</view>
+    <view class="screen-kicker">DATA</view>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-card" wx:for="{{statCards}}" wx:key="label">
+      <view class="stat-value">{{item.value}}</view>
+      <view class="stat-label">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view class="section distribution-section">
+    <view class="section-toolbar">
+      <view class="section-title">收藏分布</view>
+      <picker
+        class="year-picker"
+        mode="selector"
+        range="{{availableYears}}"
+        value="{{selectedYearIndex}}"
+        bindchange="handleYearChange"
+      >
+        <view class="year-picker-value">{{monthlyDistribution.year}} v</view>
+      </picker>
+    </view>
+    <view class="month-grid">
+      <view
+        class="month-card month-card-{{item.tone}}"
+        wx:for="{{monthlyDistribution.months}}"
+        wx:key="month"
+        data-month="{{item.month}}"
+        data-count="{{item.count}}"
+        bindtap="openMonthDetail"
+        hover-class="month-card-hover"
+      >
+        <view class="month-label">{{item.label}}</view>
+        <view class="month-count">{{item.count}}件</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section rank-section">
+    <view class="section-title">收藏排行</view>
+    <view class="rank-tabs">
+      <view class="rank-tab {{rankMetric === 'count' ? 'is-active' : ''}}" data-metric="count" bindtap="toggleRank">收藏数量</view>
+      <view class="rank-tab {{rankMetric === 'amount' ? 'is-active' : ''}}" data-metric="amount" bindtap="toggleRank">总金额</view>
+    </view>
+    <view class="rank-list">
+      <view class="rank-row {{item.medalClass}}" wx:for="{{currentArtistRank}}" wx:key="name" data-type="artist" data-name="{{item.name}}" bindtap="openProfile">
+        <view class="rank-index">{{item.rank}}</view>
+        <image class="artist-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="rank-name">{{item.name}}</view>
+        <view class="rank-value">{{item.displayValue}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section format-section">
+    <view class="section-toolbar">
+      <view class="section-title">收藏形式占比</view>
+      <view class="format-total">{{mediaFormatDistribution.totalCount}} 件</view>
+    </view>
+    <view class="format-stack" wx:if="{{mediaFormatDistribution.totalCount > 0}}">
+      <view
+        class="format-stack-segment"
+        wx:for="{{mediaFormatSegments}}"
+        wx:key="key"
+        style="width: {{item.width}}; background: {{item.color}};"
+      />
+    </view>
+    <view class="format-empty" wx:else>暂无收藏数据</view>
+    <view class="format-list">
+      <view class="format-row" wx:for="{{visibleMediaFormats}}" wx:key="key">
+        <view class="format-name">
+          <view class="format-dot" style="background: {{item.color}};" />
+          <text>{{item.label}}</text>
+        </view>
+        <view class="format-meta">{{item.count}}件 · {{item.percent}}%</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="month-drawer-mask" wx:if="{{monthDrawerVisible}}" bindtap="closeMonthDetail" />
+  <view class="month-drawer" wx:if="{{monthDrawerVisible}}">
+    <view class="month-drawer-header">
+      <view>
+        <view class="month-drawer-title">{{monthDrawerTitle}}</view>
+        <view class="caption">{{monthCollectionItems.length}} 张收藏唱片</view>
+      </view>
+      <view class="month-drawer-close" bindtap="closeMonthDetail">×</view>
+    </view>
+    <view class="month-drawer-list">
+      <view
+        class="month-album-row"
+        wx:for="{{monthCollectionItems}}"
+        wx:key="id"
+        data-album-id="{{item.albumId}}"
+        bindtap="openAlbumDetail"
+      >
+        <image class="month-album-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="month-album-copy">
+          <view class="month-album-title">{{item.title}}</view>
+          <view class="month-album-meta">{{item.artist}}</view>
+          <view class="month-album-tags">{{item.mediumLabel}} · {{item.collectionDate}}</view>
+        </view>
+        <view class="month-album-quantity">{{item.quantity}}张</view>
+      </view>
+    </view>
+  </view>
+
+  <bottom-nav active="stats" />
+</view>

@@ -32,7 +32,76 @@
   },
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "tests"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/add-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/chart-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/close-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/detail-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/edit-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/export-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/import-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/records-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/scan-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/search-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/share-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/star-filled-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/star-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/user-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/wall-down-gold.svg"
+      },
+      {
+        "type": "file",
+        "value": "assets/icons/wall-up-gold.svg"
+      }
+    ],
     "include": []
   },
   "editorSetting": {}

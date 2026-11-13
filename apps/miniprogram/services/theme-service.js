@@ -1,27 +1,25 @@
 const THEME_STORAGE_KEY = "vinylThemeSetting";
 
 const DEFAULT_MODE = "standard";
-const STANDARD_BACKGROUND = "#fbfaf6";
-const WHITE_BACKGROUND = "#ffffff";
-const DARK_BACKGROUND = "#101113";
+const STANDARD_BACKGROUND = "#f5f6f2";
 
 const lightBaseVars = {
-  "--color-ink": "#1a1a1a",
-  "--color-muted": "#686a63",
+  "--color-ink": "#171a17",
+  "--color-muted": "#747871",
   "--color-faint": "#9a9b94",
-  "--color-line": "#d8d5cc",
-  "--color-soft": "#efede6",
-  "--color-action": "#65764d",
-  "--color-select": "#65764d",
-  "--color-sync": "#65764d",
+  "--color-line": "#dde0d8",
+  "--color-soft": "#edf0e8",
+  "--color-action": "#171a17",
+  "--color-select": "#171a17",
+  "--color-sync": "#171a17",
   "--color-warning": "#9a7520",
-  "--color-mustard": "#e7d37c",
-  "--color-clay": "#b96d5b",
-  "--color-sky": "#c9dcdd",
-  "--palette-green-soft": "#dfe8d3",
-  "--palette-yellow-soft": "#f1e8c3",
-  "--palette-red-soft": "#ead0ca",
-  "--theme-nav-surface": "rgba(239, 237, 230, 0.96)",
+  "--color-mustard": "#d1ff66",
+  "--color-clay": "#171a17",
+  "--color-sky": "#e7ece3",
+  "--palette-green-soft": "#d1ff66",
+  "--palette-yellow-soft": "#edf0e8",
+  "--palette-red-soft": "#e7ece3",
+  "--theme-nav-surface": "rgba(255, 255, 255, 0.98)",
   "--theme-nav-border": "rgba(216, 213, 204, 0.9)",
   "--theme-nav-muted": "#898b84",
   "--theme-nav-hover": "rgba(255, 255, 255, 0.72)",
@@ -29,89 +27,20 @@ const lightBaseVars = {
   "--theme-panel-border": "rgba(101, 118, 77, 0.1)",
   "--theme-card-surface": "rgba(255, 255, 255, 0.88)",
   "--theme-input-surface": "#ffffff",
-  "--theme-primary-button-bg": "#1a1a1a",
+  "--theme-primary-button-bg": "#171a17",
   "--theme-primary-button-text": "#ffffff",
-  "--theme-profile-card-bg": "#1a1a1a",
+  "--theme-profile-card-bg": "#171a17",
   "--theme-profile-card-text": "#ffffff",
   "--theme-profile-card-muted": "#e5ece5",
   "--theme-profile-card-faint": "#d7dee6",
   "--theme-icon-filter": "none",
 };
 
-const darkVars = {
-  "--color-ink": "#f7f3ea",
-  "--color-muted": "#b4b0a7",
-  "--color-faint": "#7f8279",
-  "--color-line": "rgba(247, 243, 234, 0.18)",
-  "--color-soft": "#1d2020",
-  "--color-paper": DARK_BACKGROUND,
-  "--color-screen": DARK_BACKGROUND,
-  "--color-action": "#b9c89b",
-  "--color-select": "#b9c89b",
-  "--color-sync": "#b9c89b",
-  "--color-warning": "#e7d37c",
-  "--color-mustard": "#e7d37c",
-  "--color-clay": "#d8937f",
-  "--color-sky": "#23373a",
-  "--palette-red": "#cf705e",
-  "--palette-black": "#171a1a",
-  "--palette-green-soft": "rgba(185, 200, 155, 0.18)",
-  "--palette-yellow-soft": "rgba(231, 211, 124, 0.18)",
-  "--palette-red-soft": "rgba(216, 147, 127, 0.2)",
-  "--theme-nav-surface": "rgba(29, 32, 32, 0.96)",
-  "--theme-nav-border": "rgba(247, 243, 234, 0.18)",
-  "--theme-nav-muted": "#9c9a92",
-  "--theme-nav-hover": "rgba(247, 243, 234, 0.08)",
-  "--theme-panel-tint": "rgba(185, 200, 155, 0.1)",
-  "--theme-panel-border": "rgba(185, 200, 155, 0.16)",
-  "--theme-card-surface": "#171a1a",
-  "--theme-input-surface": "#171a1a",
-  "--theme-primary-button-bg": "#b9c89b",
-  "--theme-primary-button-text": "#101113",
-  "--theme-profile-card-bg": "#171a1a",
-  "--theme-profile-card-text": "#f7f3ea",
-  "--theme-profile-card-muted": "#d4d0c7",
-  "--theme-profile-card-faint": "#b4b0a7",
-  "--theme-icon-filter": "invert(1) brightness(1.7)",
-};
 
 const themeOptions = [
-  {
-    mode: "standard",
-    label: "标准模式",
-    description: "现在的暖白唱片柜底色",
-    swatch: STANDARD_BACKGROUND,
-  },
-  {
-    mode: "white",
-    label: "白色模式",
-    description: "更干净的纯白底色",
-    swatch: WHITE_BACKGROUND,
-  },
-  {
-    mode: "dark",
-    label: "暗夜模式",
-    description: "低亮度深色界面",
-    swatch: DARK_BACKGROUND,
-  },
-  {
-    mode: "custom",
-    label: "自定义底色",
-    description: "输入或选择一个你喜欢的背景色",
-    swatch: "#ddeedd",
-  },
+  { mode: "standard", label: "普通模式", description: "柔和底色与青柠点缀", swatch: STANDARD_BACKGROUND }
 ];
-
-const customSwatches = [
-  "#fbfaf6",
-  "#ffffff",
-  "#ddeedd",
-  "#e8f1f4",
-  "#f2e7df",
-  "#efe7f3",
-  "#101113",
-  "#1f2622",
-];
+const customSwatches = [];
 
 function getWxApi(wxApi) {
   if (wxApi) return wxApi;
@@ -135,19 +64,15 @@ function normalizeHexColor(value, fallback = STANDARD_BACKGROUND) {
 }
 
 function getDefaultColor(mode) {
-  if (mode === "white") return WHITE_BACKGROUND;
-  if (mode === "dark") return DARK_BACKGROUND;
   return STANDARD_BACKGROUND;
 }
 
 function normalizeThemeSetting(value = {}) {
   const source = typeof value === "string" ? { mode: value } : (value || {});
-  const mode = ["standard", "white", "dark", "custom"].includes(source.mode)
+  const mode = ["standard"].includes(source.mode)
     ? source.mode
     : DEFAULT_MODE;
-  const customColor = mode === "custom"
-    ? normalizeHexColor(source.customColor, STANDARD_BACKGROUND)
-    : getDefaultColor(mode);
+  const customColor = getDefaultColor(mode);
 
   return {
     mode,
@@ -185,17 +110,9 @@ function isDarkColor(hexColor) {
 
 function buildCssVars(setting) {
   const normalized = normalizeThemeSetting(setting);
-  if (normalized.mode === "dark") {
-    return { ...darkVars };
-  }
 
-  const background = normalized.mode === "white"
-    ? WHITE_BACKGROUND
-    : normalized.mode === "custom"
-      ? normalized.customColor
-      : STANDARD_BACKGROUND;
-  const customDark = normalized.mode === "custom" && isDarkColor(background);
-  const baseVars = customDark ? darkVars : lightBaseVars;
+  const background = getDefaultColor(normalized.mode);
+  const baseVars = lightBaseVars;
 
   return {
     ...baseVars,

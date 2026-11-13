@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),{createRequire}=require('node:module');
+const {chart}=require('./ring-fixture.cjs');
+
+test('rings remain visible without canvas, image export or native selector services',()=>{for(const rows of [[{count:432,color:'#242424'}],[{count:176,color:'#242424'},{count:61,color:'#d1ff66'},{count:195,color:'#242424'}],[{count:2,color:'#242424'},{count:1,color:'#d1ff66'}]]){const c=chart(rows);assert.ok(c.data.segments.length);assert.ok(c.data.segments.every(s=>s.sweep>0&&s.sweep<=180));}const c=chart([]);assert.equal(c.data.segments.length,0);});
+test('visual sectors cover exact distribution including a complete single-category circle',()=>{for(const rows of [[{count:432}],[{count:2},{count:1}],[{count:0},{count:-1},{count:NaN}]]){const c=chart(rows);const degrees=c.data.segments.reduce((sum,s)=>sum+s.sweep,0);assert.ok(Math.abs(degrees-(rows[0].count>0?360:0))<1e-7);}});

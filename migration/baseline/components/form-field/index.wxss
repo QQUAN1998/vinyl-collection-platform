@@ -1,0 +1,35 @@
+.form-field {
+  display: block;
+}
+
+.form-field-label {
+  margin-bottom: 12rpx;
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.form-field-control {
+  width: 100%;
+  min-height: 76rpx;
+  box-sizing: border-box;
+  padding: 0 24rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.form-field-control.is-textarea {
+  height: 240rpx;
+  padding-top: 20rpx;
+  line-height: 1.45;
+}
+
+.is-disabled {
+  background: var(--color-soft);
+  color: var(--color-muted);
+}

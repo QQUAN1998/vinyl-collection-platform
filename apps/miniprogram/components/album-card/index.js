@@ -1,4 +1,5 @@
-Component({
+const uiLocale=require("../../ui/locale-runtime");
+Component(uiLocale.component({
   properties: {
     album: {
       type: Object,
@@ -20,4 +21,4 @@ Component({
       });
     }
   }
-});
+}));

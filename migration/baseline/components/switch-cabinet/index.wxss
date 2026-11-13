@@ -1,0 +1,3 @@
+:host { display: block; flex: 0 0 112rpx; width: 112rpx; order: 3; }
+button.switch-button, button.switch-button:not([size="mini"]) { width: 112rpx; min-width: 0; box-sizing: border-box; min-height: 64rpx; margin: 0; padding: 12rpx 10rpx; border: 1rpx solid #d8d5cc; border-radius: 32rpx; background: #fbfaf6; color: #65764d; font-size: 24rpx; font-weight: 500; line-height: 38rpx; white-space: nowrap; }
+.switch-button::after { border: none; }

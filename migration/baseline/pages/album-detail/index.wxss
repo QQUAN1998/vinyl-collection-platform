@@ -1,0 +1,178 @@
+.detail-screen {
+  padding-top: 36rpx;
+}
+
+.detail-cover {
+  width: 472rpx;
+  height: 472rpx;
+  display: block;
+  margin: 0 auto 34rpx;
+  border-radius: var(--radius-cover);
+  background: var(--color-soft);
+  box-shadow: 0 20rpx 48rpx rgba(17, 20, 24, 0.1);
+}
+
+.detail-title {
+  color: var(--color-ink);
+  font-size: 56rpx;
+  font-weight: 950;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.detail-artist {
+  margin-top: 14rpx;
+  color: var(--color-muted);
+  font-size: 30rpx;
+  font-weight: 850;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18rpx;
+  margin-top: 38rpx;
+}
+
+.fact {
+  min-height: 120rpx;
+  box-sizing: border-box;
+  padding: 22rpx;
+  border: 1rpx solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.fact-label {
+  color: var(--color-muted);
+  font-size: 22rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.fact-value {
+  margin-top: 12rpx;
+  color: var(--color-ink);
+  font-size: 30rpx;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.detail-actions {
+  margin-top: 28rpx;
+}
+
+.edit-button {
+  min-height: 88rpx;
+}
+
+.notice {
+  margin-top: 28rpx;
+  padding: 26rpx;
+  border: 1rpx solid var(--theme-panel-border);
+  border-radius: var(--radius-card);
+  background: var(--theme-panel-tint);
+}
+
+.notice-title {
+  margin-bottom: 8rpx;
+  color: var(--color-action);
+  font-size: 24rpx;
+  font-weight: 950;
+}
+
+.notice-desc {
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.detail-collection-notice media-format-selector {
+  display: block;
+  margin-top: 20rpx;
+}
+
+.secondary-action {
+  min-height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20rpx;
+  border-radius: var(--radius-card);
+  background: var(--color-action);
+  color: #ffffff;
+  font-size: 27rpx;
+  font-weight: 950;
+}
+
+.secondary-action-hover {
+  opacity: 0.86;
+}
+
+.section {
+  margin-top: 44rpx;
+}
+
+.track-list {
+  border-top: 1rpx solid var(--color-line);
+}
+
+.track-row {
+  min-height: 90rpx;
+  display: grid;
+  grid-template-columns: 42rpx minmax(0, 1fr) 54rpx 64rpx;
+  gap: 18rpx;
+  align-items: center;
+  border-bottom: 1rpx solid var(--color-line);
+}
+
+.track-index {
+  color: var(--color-action);
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.track-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 29rpx;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-duration {
+  color: var(--color-muted);
+  font-size: 23rpx;
+  font-weight: 750;
+}
+
+.track-preview-button {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  border: 1rpx solid rgba(101, 118, 77, 0.36);
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-action);
+  font-size: 22rpx;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.track-preview-button.is-playing {
+  background: var(--color-action);
+  color: #ffffff;
+}
+
+.track-preview-button-hover {
+  opacity: 0.72;
+}

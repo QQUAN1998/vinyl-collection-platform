@@ -1,0 +1,14 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="ticket-mask {{uiThemeClass}}" style="{{uiThemeStyle}}" catchtouchmove="noop">
+ <view class="ticket-dialog" catchtap="noop">
+  <view class="ticket-scroll">
+   <view wx:if="{{error}}" class="ticket-error"><text>{{i18n.t(error,uiLanguage)}}</text><button bindtap="generate">{{i18n.t('重新生成',uiLanguage)}}</button></view>
+   <view wx:else class="ticket-paper">
+    <text wx:if="{{generating}}" class="ticket-status">{{i18n.t('正在制作票根…',uiLanguage)}}</text>
+    <canvas wx:if="{{!url}}" type="2d" id="ticketPoster" class="ticket-render" style="width:390px;height:{{posterHeight}}px;"/>
+    <image wx:else src="{{url}}" mode="aspectFit" bindtap="preview" aria-label="{{i18n.t('预览完整票根',uiLanguage)}}"/>
+   </view>
+  </view>
+  <view class="ticket-actions"><button bindtap="close">{{i18n.t('返回',uiLanguage)}}</button><button class="ticket-save" bindtap="save" disabled="{{generating||!url||saving}}" loading="{{saving}}">{{i18n.t('保存海报',uiLanguage)}}</button></view>
+ </view>
+</view>

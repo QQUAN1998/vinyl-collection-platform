@@ -1,0 +1,62 @@
+.user-profile-screen {
+  padding-bottom: calc(150rpx + var(--safe-bottom));
+}
+
+.avatar-editor {
+  display: grid;
+  justify-items: center;
+  gap: 16rpx;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 32rpx 0 8rpx;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+.avatar-editor::after {
+  border: 0;
+}
+
+.profile-avatar-large {
+  width: 152rpx;
+  height: 152rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, var(--color-action), var(--color-ink));
+  color: #ffffff;
+  font-size: 58rpx;
+  font-weight: 900;
+  box-shadow: 0 20rpx 48rpx rgba(101, 118, 77, 0.24);
+}
+
+.avatar-action {
+  min-height: 56rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: var(--palette-green-soft);
+  color: var(--color-action);
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.profile-form {
+  display: grid;
+  gap: 24rpx;
+}
+
+.profile-actions {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + var(--safe-bottom));
+  display: grid;
+  grid-template-columns: 180rpx 1fr;
+  gap: 18rpx;
+}

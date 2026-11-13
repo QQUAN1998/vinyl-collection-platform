@@ -436,7 +436,7 @@
   width: 36rpx;
   height: 6rpx;
   border-radius: 999rpx;
-  background: #ffffff;
+  background: var(--theme-card-surface);
   transform: translate(-50%, -50%);
 }
 
@@ -499,22 +499,22 @@
 
 .album-modal-card.rarity-n {
   border-color: rgba(101, 118, 77, 0.54);
-  background: linear-gradient(145deg, #ffffff, #f6faf1);
+  background: linear-gradient(145deg, var(--theme-card-surface), #f6faf1);
 }
 
 .album-modal-card.rarity-r {
   border-color: rgba(95, 143, 147, 0.58);
-  background: linear-gradient(145deg, #ffffff, #edf7f8);
+  background: linear-gradient(145deg, var(--theme-card-surface), #edf7f8);
 }
 
 .album-modal-card.rarity-sr {
   border-color: rgba(128, 106, 145, 0.62);
-  background: linear-gradient(145deg, #ffffff, #f7f1fb);
+  background: linear-gradient(145deg, var(--theme-card-surface), #f7f1fb);
 }
 
 .album-modal-card.rarity-ssr {
   border-color: rgba(191, 201, 210, 0.92);
-  background: linear-gradient(145deg, #ffffff, #f7f9fa 44%, #eef2f4);
+  background: linear-gradient(145deg, var(--theme-card-surface), #f7f9fa 44%, #eef2f4);
   box-shadow: 0 24rpx 70rpx rgba(151, 164, 176, 0.22), 0 28rpx 72rpx rgba(17, 20, 24, 0.2);
   animation: album-card-rise 180ms ease-out, ssr-card-glow 3.8s ease-in-out infinite;
 }
@@ -711,7 +711,7 @@
   overflow: hidden;
   border-radius: var(--radius-card);
   background: rgba(17, 20, 24, 0.84);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .rarity-n .rarity-corner {
@@ -727,7 +727,7 @@
 }
 
 .rarity-ssr .rarity-corner {
-  background: linear-gradient(135deg, #ffffff, #b7c1ca 48%, #eef2f4);
+  background: linear-gradient(135deg, var(--theme-card-surface), #b7c1ca 48%, #eef2f4);
   color: var(--album-modal-ink);
 }
 
@@ -912,7 +912,7 @@
 
 .modal-detail-action {
   background: var(--palette-black);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .modal-wall-action {
@@ -924,3 +924,27 @@
   background: rgba(17, 20, 24, 0.08);
   color: rgba(17, 20, 24, 0.68);
 }
+
+/* Fusion UI: consistent collection rhythm and fixed-navigation clearance. */
+.cabinet-screen .preview-player-section { margin: 16rpx 0 28rpx; }
+.cabinet-screen > .divider { margin: 24rpx 0; }
+.cabinet-screen .home-catalog-section { margin-top: 0; padding-bottom: 32rpx; }
+.cabinet-screen .catalog-sticky-tools { margin: 0 0 24rpx; padding: 16rpx 0 12rpx; box-shadow: none; }
+.cabinet-screen .catalog-head { margin-bottom: 24rpx; }
+.cabinet-screen .catalog-search-box { margin-bottom: 20rpx; box-shadow: none; }
+.cabinet-screen .album-tile { grid-template-rows: auto 34rpx 32rpx; gap: 8rpx; align-content: start; }
+.cabinet-screen .album-tile-title { line-height: 34rpx; font-weight: 700; }
+.cabinet-screen .album-tile-meta { line-height: 32rpx; font-weight: 500; }
+.cabinet-screen .album-tile-cover { box-shadow: none; }
+.cabinet-screen .add-fab { bottom: calc(172rpx + var(--safe-bottom)); background: var(--color-action); box-shadow: 0 8rpx 24rpx rgba(101,118,77,.16); }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/exact-pages.wxss";
+
+.screen.cabinet-screen.home-gallery{padding:0!important;min-height:100vh;box-sizing:border-box;overflow-x:hidden}
+/* Unified screenshot refinement */
+.ui-album-dialog{position:fixed;inset:0;z-index:950;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}.ui-album-sheet{position:relative!important;inset:auto!important;width:100%!important;max-width:420px;max-height:85vh!important;border-radius:26px!important;background:var(--color-screen);padding:20px!important;box-sizing:border-box;box-shadow:0 20px 80px #0004}.ui-dialog-head{font-size:12px;color:var(--color-muted);min-height:30px}.ui-dialog-cover{display:block!important;width:68%!important;height:230px!important;margin:0 auto 16px!important;border-radius:8px}.ui-dialog-title{font-size:24px!important;line-height:1.3;overflow-wrap:break-word}.ui-dialog-artist{font-size:14px!important}.ui-dialog-kicker{font-size:11px}.ui-preview-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.ui-preview-chips text{background:var(--color-soft);border-radius:12px;padding:5px 9px;font-size:11px}.ui-preview-tracks{max-height:110px;height:110px;border-top:1px solid var(--color-line)}.ui-preview-track{display:flex;gap:12px;align-items:baseline;padding:8px 0;font-size:12px}.ui-preview-track text:first-child{color:var(--color-muted);width:20px;flex-shrink:0}.ui-dialog-actions{display:flex;gap:8px;margin-top:14px}.ui-dialog-actions button{flex:1;min-width:0!important;font-size:13px!important;height:44px!important;line-height:44px!important}.ui-dialog-pager{margin:8px 0 0;display:flex;justify-content:space-between;align-items:center;font-size:11px}.ui-dialog-pager button{width:38px;height:34px;line-height:30px;margin:0}.ui-dialog-delete{font-size:11px!important;margin:4px auto!important;color:#a65e4b!important;background:transparent!important}.ui-dialog-close{width:32px!important;height:32px!important;line-height:30px!important}.ui-album-sheet .ui-life{font-size:11px;margin-top:6px}
+/* Unified screenshot refinement */
+@import "../../ui/preview-card.wxss";
+
+.ui-album-dialog .ui-album-sheet .ui-dialog-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}.ui-album-dialog .ui-album-sheet .ui-dialog-actions button{display:flex!important;align-items:center;justify-content:center;gap:7px;flex:none!important;width:100%!important;min-width:0!important;height:48px!important;min-height:48px!important;margin:0!important;padding:8px!important;border-radius:14px!important;font-size:12px!important;line-height:16px!important;white-space:normal}.ui-album-dialog .ui-album-sheet .ui-dialog-actions button image{flex:0 0 20px;width:20px!important;height:20px!important}.ui-album-dialog .ui-album-sheet .ui-dialog-actions button text{min-width:0;max-width:calc(100% - 27px);white-space:normal;overflow-wrap:break-word}.ui-album-dialog .ui-album-sheet .ui-dialog-actions button:only-child{grid-column:1/-1}

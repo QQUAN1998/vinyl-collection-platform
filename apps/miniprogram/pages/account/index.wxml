@@ -1,6 +1,7 @@
-<view class="screen account-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen account-screen {{themeClass}}" style="{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">我的</view>
+    <view class="screen-title">{{i18n.t('我的',uiLanguage)}}</view>
     <view class="screen-kicker">{{userLabel}}</view>
   </view>
 
@@ -8,12 +9,12 @@
     <view class="profile-card profile-edit-card {{showProfileSyncInline ? 'profile-sync-card' : ''}}" bindtap="handleProfileCardTap" hover-class="profile-card-hover" aria-role="button">
       <button wx:if="{{showProfileSyncInline}}" class="profile-identity profile-avatar-button" open-type="chooseAvatar" bindchooseavatar="handleProfileAvatarChosen" catchtap="stopTap">
         <image wx:if="{{userProfile.avatar}}" class="profile-avatar" src="{{userProfile.avatar}}" mode="aspectFill" />
-        <view wx:else class="profile-avatar">{{avatarInitial}}</view>
+        <image wx:else class="profile-avatar" src="/assets/ui/brand/default-avatar.jpg" mode="aspectFill"/>
         <view class="profile-tier-badge">{{tierLabel}}</view>
       </button>
       <view wx:else class="profile-identity">
         <image wx:if="{{userProfile.avatar}}" class="profile-avatar" src="{{userProfile.avatar}}" mode="aspectFill" />
-        <view wx:else class="profile-avatar">{{avatarInitial}}</view>
+        <image wx:else class="profile-avatar" src="/assets/ui/brand/default-avatar.jpg" mode="aspectFill"/>
         <view class="profile-tier-badge">{{tierLabel}}</view>
       </view>
       <view class="profile-card-copy">
@@ -22,95 +23,97 @@
           class="profile-name-input"
           type="nickname"
           value="{{profileDraftName}}"
-          placeholder="同步微信昵称"
+          placeholder="{{i18n.t('同步微信昵称',uiLanguage)}}"
           bindinput="handleProfileNicknameInput"
           catchtap="stopTap"
         />
         <view wx:else class="profile-user-title">{{displayProfileName}}</view>
         <view class="profile-collection-summary">
-          <text class="profile-stat">唱片 {{summary.albumCount}}</text>
-          <text class="profile-stat">艺人 {{summary.artistCount}}</text>
+          <text class="profile-stat">{{i18n.t('唱片',uiLanguage)}} {{summary.albumCount}}</text>
+          <text class="profile-stat">{{i18n.t('艺人',uiLanguage)}} {{summary.artistCount}}</text>
         </view>
         <view class="profile-normal-limit">{{profileHintLabel}}</view>
       </view>
-      <button wx:if="{{showProfileSyncInline}}" class="profile-action-button" loading="{{authLoading}}" catchtap="saveWechatProfileDraft">{{profileActionLabel}}</button>
-      <view wx:else class="profile-action-text">{{profileActionLabel}}</view>
+      <button wx:if="{{showProfileSyncInline}}" class="profile-action-button" loading="{{authLoading}}" catchtap="saveWechatProfileDraft">{{i18n.t(profileActionLabel,uiLanguage)}}</button>
+      <button wx:elif="{{!loggedIn}}" class="profile-action-text profile-action-button" style="width:160rpx;min-width:0;max-width:160rpx;padding:0;font-size:22rpx;white-space:normal" loading="{{authLoading}}" disabled="{{authLoading}}" catchtap="handleLogin">{{authLoading ? i18n.t("登录中",uiLanguage) : profileActionLabel}}</button>
+      <view wx:else class="profile-action-text">{{i18n.t(profileActionLabel,uiLanguage)}}</view>
     </view>
 
+    <view wx:if="{{loginMessage}}" style="font-size:24rpx;color:var(--theme-text-muted)">{{loginMessage}}</view>
     <view class="account-section account-device-section">
       <view class="head-row account-section-head">
-        <view class="section-title">电视绑定</view>
+        <view class="section-title">{{i18n.t('电视绑定',uiLanguage)}}</view>
       </view>
       <view class="device-row">
         <view class="device-icon">
-          <image class="device-symbol" src="/assets/icons/tv-action.png" mode="aspectFit" />
+          <image class="device-symbol" src="/assets/ui/tv.svg" mode="aspectFit" />
         </view>
         <view class="device-copy">
-          <view class="device-name">{{tvDeviceName}}</view>
-          <view class="row-meta">{{tvMeta}}</view>
+          <view class="device-name">{{tvDeviceName==='未绑定电视'?i18n.t('未绑定电视',uiLanguage):tvDeviceName}}</view>
+          <view class="row-meta">{{i18n.status(tvMeta,uiLanguage)}}</view>
         </view>
-        <view class="state-pill">{{tvStatusLabel}}</view>
+        <view class="state-pill">{{i18n.t(tvStatusLabel,uiLanguage)}}</view>
       </view>
       <view class="device-actions {{tvCanUnbind ? 'device-actions-with-exit' : ''}}">
-        <view class="primary-button sync-button" bindtap="scanTvLogin" hover-class="button-hover">扫码绑定电视</view>
-        <view class="ghost-button sync-button" bindtap="manualSync" hover-class="button-hover">刷新同步状态</view>
-        <view wx:if="{{tvCanUnbind}}" class="ghost-button sync-button sync-exit-button" bindtap="unbindTvSync" hover-class="button-hover">退出同步</view>
+        <view class="primary-button sync-button" bindtap="scanTvLogin" hover-class="button-hover">{{i18n.t('扫码绑定电视',uiLanguage)}}</view>
+        <view class="ghost-button sync-button" bindtap="manualSync" hover-class="button-hover">{{i18n.t('刷新同步状态',uiLanguage)}}</view>
+        <view wx:if="{{tvCanUnbind}}" class="ghost-button sync-button sync-exit-button" bindtap="unbindTvSync" hover-class="button-hover">{{i18n.t('退出同步',uiLanguage)}}</view>
       </view>
     </view>
 
     <view class="account-section account-service-section">
       <view class="head-row account-section-head">
-        <view class="section-title">平台服务</view>
+        <view class="section-title">{{i18n.t('平台服务',uiLanguage)}}</view>
       </view>
       <view class="tool-row" bindtap="openBatchImport" hover-class="tool-row-hover">
         <view class="tool-icon">
-          <image class="tool-symbol" src="/assets/icons/import-action.png" mode="aspectFit" />
+          <image class="tool-symbol" src="/assets/ui/upload.svg" mode="aspectFit" />
         </view>
         <view class="tool-copy">
-          <view class="tool-title">导入收藏</view>
-          <view class="row-meta">从表格或文本批量导入</view>
+          <view class="tool-title">{{i18n.t('导入收藏',uiLanguage)}}</view>
+          <view class="row-meta">{{i18n.t('从表格或文本批量导入',uiLanguage)}}</view>
         </view>
-        <view class="tool-arrow">›</view>
+        <image class="tool-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
       </view>
       <view class="tool-row" bindtap="exportCollectionMarkdown" hover-class="tool-row-hover">
         <view class="tool-icon">
-          <image class="tool-symbol" src="/assets/icons/export-action.png" mode="aspectFit" />
+          <image class="tool-symbol" src="/assets/ui/download.svg" mode="aspectFit" />
         </view>
         <view class="tool-copy">
-          <view class="tool-title">导出收藏</view>
-          <view class="row-meta">生成 Markdown 文件分享给微信好友</view>
+          <view class="tool-title">{{i18n.t('导出收藏',uiLanguage)}}</view>
+          <view class="row-meta">{{i18n.t('生成 Markdown 文件分享给微信好友',uiLanguage)}}</view>
         </view>
-        <view class="tool-arrow">›</view>
+        <image class="tool-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
       </view>
       <view class="tool-row" bindtap="openTvDownload" hover-class="tool-row-hover" aria-role="button">
         <view class="tool-icon">
-          <image class="tool-symbol" src="/assets/icons/tv-action.png" mode="aspectFit" />
+          <image class="tool-symbol" src="/assets/ui/tv.svg" mode="aspectFit" />
         </view>
         <view class="tool-copy">
-          <view class="tool-title">电视版 APK</view>
-          <view class="row-meta">下载安装到电视并同步当前收藏</view>
+          <view class="tool-title">{{i18n.t('电视版 APK',uiLanguage)}}</view>
+          <view class="row-meta">{{i18n.t('下载安装到电视并同步当前收藏',uiLanguage)}}</view>
         </view>
-        <view class="tool-arrow">›</view>
+        <image class="tool-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
       </view>
       <view class="tool-row" bindtap="openThemeSettings" hover-class="tool-row-hover" aria-role="button">
         <view class="tool-icon theme-tool-icon">
-          <image class="tool-symbol theme-tool-symbol" src="/assets/icons/theme-palette.svg" mode="aspectFit" />
+          <image class="tool-symbol theme-tool-symbol" src="/assets/ui/language.svg" mode="aspectFit" />
         </view>
         <view class="tool-copy">
-          <view class="tool-title">主题设置</view>
-          <view class="row-meta">{{themeSummary}} · 背景与顶部栏</view>
+          <view class="tool-title">{{i18n.t('语言设置',uiLanguage)}}</view>
+          <view class="row-meta">简体中文 / 繁體中文 / English / 日本語</view>
         </view>
-        <view class="tool-arrow">›</view>
+        <image class="tool-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
       </view>
       <view class="tool-row" bindtap="openUserGuide" hover-class="tool-row-hover" aria-role="button">
         <view class="tool-icon">
-          <image class="tool-symbol" src="/assets/icons/share-action.png" mode="aspectFit" />
+          <image class="tool-symbol" src="/assets/ui/manual.svg" mode="aspectFit" />
         </view>
         <view class="tool-copy">
-          <view class="tool-title">小程序操作手册</view>
-          <view class="row-meta">不会使用看这里</view>
+          <view class="tool-title">{{i18n.t('小程序操作手册',uiLanguage)}}</view>
+          <view class="row-meta">{{i18n.t('不会使用看这里',uiLanguage)}}</view>
         </view>
-        <view class="tool-arrow">›</view>
+        <image class="tool-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
       </view>
     </view>
   </view>
@@ -119,21 +122,21 @@
 
   <view wx:if="{{showOnboardingGuide}}" class="onboarding-backdrop">
     <view class="onboarding-panel" aria-role="dialog">
-      <view class="onboarding-kicker">首次登录引导</view>
-      <view class="onboarding-title">用“刘德华”试一次完整收藏</view>
-      <view class="onboarding-copy">跟着这 6 步走一遍，就能知道怎么搜索、添加、编辑、上墙、查看和删除唱片。</view>
+      <view class="onboarding-kicker">{{i18n.t('首次登录引导',uiLanguage)}}</view>
+      <view class="onboarding-title">{{i18n.t('用“刘德华”试一次完整收藏',uiLanguage)}}</view>
+      <view class="onboarding-copy">{{i18n.t('跟着这 6 步走一遍，就能知道怎么搜索、添加、编辑、上墙、查看和删除唱片。',uiLanguage)}}</view>
       <view class="onboarding-step-list">
         <view class="onboarding-step" wx:for="{{onboardingSteps}}" wx:key="title">
           <view class="onboarding-step-index">{{index + 1}}</view>
           <view class="onboarding-step-copy">
-            <view class="onboarding-step-title">{{item.title}}</view>
-            <view class="onboarding-step-desc">{{item.description}}</view>
+            <view class="onboarding-step-title">{{i18n.guide(item.title,uiLanguage,item.ja.title)}}</view>
+            <view class="onboarding-step-desc">{{i18n.guide(item.description,uiLanguage,item.ja.description)}}</view>
           </view>
         </view>
       </view>
       <view class="onboarding-actions">
-        <view class="ghost-button onboarding-ghost" bindtap="dismissOnboardingGuide" hover-class="button-hover">稍后</view>
-        <view class="primary-button onboarding-primary" bindtap="startOnboardingGuide" hover-class="button-hover">开始引导</view>
+        <view class="ghost-button onboarding-ghost" bindtap="dismissOnboardingGuide" hover-class="button-hover">{{i18n.t('稍后',uiLanguage)}}</view>
+        <view class="primary-button onboarding-primary" bindtap="startOnboardingGuide" hover-class="button-hover">{{i18n.t('开始引导',uiLanguage)}}</view>
       </view>
     </view>
   </view>

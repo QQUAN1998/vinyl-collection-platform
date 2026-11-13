@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const {
   DEFAULT_PROFILE_NAME,
@@ -11,7 +12,7 @@ const {
   markOnboardingSeen,
   shouldShowNewUserOnboarding
 } = require("../../services/onboarding-service.js");
-const { bindTvLoginSession, triggerTvSync, unbindTvLoginSession } = require("../../services/tv-sync-service.js");
+const { bindTvLoginSession, unbindTvLoginSession } = require("../../services/tv-sync-service.js");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const {
   exportCollectionMarkdownFile,
@@ -34,7 +35,7 @@ function formatTvLoginFailureMessage(error) {
 function showTvLoginFailure(error) {
   const detail = formatTvLoginFailureMessage(error);
   if (typeof wx.showModal === "function") {
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "电视未确认",
       content: `请刷新电视二维码后再试。\n诊断：${detail}`,
       showCancel: false,
@@ -43,13 +44,13 @@ function showTvLoginFailure(error) {
     return;
   }
 
-  wx.showToast({
+  uiLocale.toast(wx,{
     title: "电视未确认，请重试",
     icon: "none"
   });
 }
 
-Page({
+Page(uiLocale.page({
   data: {
     userLabel: "SETTINGS",
     userProfile: {
@@ -174,7 +175,7 @@ Page({
       return;
     }
     if (this.data.showProfileSyncInline) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "先选头像或填昵称",
         icon: "none"
       });
@@ -217,7 +218,7 @@ Page({
     const nickName = cleanProfileNameValue(this.data.profileDraftName);
     const avatarUrl = this.data.profileDraftAvatar || "";
     if (!nickName && !avatarUrl) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "先选头像或填昵称",
         icon: "none"
       });
@@ -237,7 +238,7 @@ Page({
           profileDraftAvatar: ""
         });
         this.loadAccount();
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "已同步",
           icon: "success"
         });
@@ -247,19 +248,24 @@ Page({
       });
   },
   handleLogin() {
+    if (this.data.authLoading) return;
     const app = getApp();
-    this.setData({ authLoading: true });
+    this.setData({ authLoading: true, loginMessage: "正在登录，请稍候" });
 
     app.requireWechatAccount()
       .then((me) => {
         this.loadAccount();
         if (app.isCloudAccountReady()) {
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: this.data.hasSyncedWechatProfile ? "\u5df2\u767b\u5f55" : "\u5df2\u767b\u5f55\uff0c\u8bf7\u540c\u6b65\u8d44\u6599",
             icon: "success"
           });
         }
+        this.setData({ loginMessage: app.isCloudAccountReady() ? "" : "登录未完成，请点击重试" });
         this.showOnboardingGuideIfNeeded(me || app.globalData.auth.me);
+      })
+      .catch(() => {
+        this.setData({ loginMessage: "登录未完成，请检查网络后重试" });
       })
       .finally(() => {
         this.setData({ authLoading: false });
@@ -301,34 +307,21 @@ Page({
     });
   },
   manualSync() {
-    const app = getApp();
-    this.setData({
-      tvStatus: "syncing",
-      tvStatusLabel: tvStatusLabels.syncing,
-      tvMeta: tvStatusLabels.syncing
-    });
-
-    const result = triggerTvSync(app.globalData.tvBindings || [], app.globalData.userId);
-    app.globalData.tvBindings = result.bindings;
     this.loadAccount();
-
-    wx.showToast({
-      title: "已同步",
-      icon: "success"
-    });
+    uiLocale.toast(wx,{title:this.data.tvBinding?"已刷新本地绑定状态":"请先扫码绑定电视",icon:"none"});
   },
   unbindTvSync() {
     const app = getApp();
     const binding = this.data.tvBinding;
     if (!binding) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "暂无绑定电视",
         icon: "none"
       });
       return;
     }
 
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "退出电视同步",
       content: "退出后，小程序会忘记这台电视；电视端可在电视上重新扫码同步。",
       confirmText: "退出同步",
@@ -342,7 +335,7 @@ Page({
         );
         app.globalData.tvBindings = unbindResult.bindings;
         this.loadAccount();
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "已退出同步",
           icon: "success"
         });
@@ -360,7 +353,7 @@ Page({
       .then((scanResult) => {
         if (!scanResult || !scanResult.result) return null;
         const parsed = parseTvLoginQr(scanResult.result);
-        wx.showLoading({ title: "绑定电视中" });
+        uiLocale.loading(wx,{ title: "绑定电视中" });
         loadingShown = true;
         return confirmTvLoginWithQr(scanResult.result, app, albums, app.globalData.cloud)
           .then((result) => {
@@ -369,7 +362,7 @@ Page({
             this.loadAccount();
             wx.hideLoading();
             loadingShown = false;
-            wx.showToast({
+            uiLocale.toast(wx,{
               title: `已同步 ${result.syncedAlbumCount || 0} 张`,
               icon: "success"
             });
@@ -391,7 +384,7 @@ Page({
         if (error && error.errMsg && error.errMsg.indexOf("cancel") >= 0) {
           return;
         }
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: error && error.message ? error.message : "电视绑定失败",
           icon: "none"
         });
@@ -404,7 +397,7 @@ Page({
   },
   scanTvCode() {
     if (!wx.scanCode) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "当前微信版本不支持扫码",
         icon: "none"
       });
@@ -429,14 +422,14 @@ Page({
     const app = getApp();
     const collectionItems = app.globalData.collectionItems || [];
     if (!collectionItems.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "暂无收藏可导出",
         icon: "none"
       });
       return;
     }
 
-    wx.showLoading({ title: "生成文件中" });
+    uiLocale.loading(wx,{ title: "生成文件中" });
     exportCollectionMarkdownFile({
       ownerName: (app.globalData.userProfile && app.globalData.userProfile.name) || "唱片柜用户",
       albums,
@@ -445,13 +438,13 @@ Page({
     })
       .then((file) => shareMarkdownFile(file))
       .then(() => {
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "已生成 Markdown",
           icon: "success"
         });
       })
       .catch((error) => {
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: error && error.message ? error.message : "导出失败",
           icon: "none"
         });
@@ -462,7 +455,7 @@ Page({
   },
   showPlaceholder(event) {
     const { title } = event.currentTarget.dataset;
-    wx.showToast({
+    uiLocale.toast(wx,{
       title,
       icon: "none"
     });
@@ -488,4 +481,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"我的"));

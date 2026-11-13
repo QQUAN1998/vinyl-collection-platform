@@ -33,3 +33,11 @@
   background: var(--color-soft);
   color: var(--color-muted);
 }
+
+.form-field-label{font-size:23rpx;font-weight:500;line-height:1.5;margin-bottom:12rpx}.form-field-control{min-height:88rpx;border-radius:36rpx;padding:0 24rpx;font-size:25rpx;font-weight:400;background:var(--theme-input-surface,var(--theme-card-surface))}.form-field-control.is-textarea{padding:24rpx;line-height:1.6}
+.form-field-label{font-size:11px;line-height:1.5;margin-bottom:8px;color:var(--color-muted);font-weight:500}.form-field-control{font-size:13px;line-height:20px;min-height:44px;padding:12px 14px;box-sizing:border-box;background:var(--theme-card-surface);border:1px solid var(--color-line);border-radius:18px}.condition-control{min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:var(--theme-card-surface);border:1px solid var(--color-line);border-radius:18px;box-sizing:border-box;font-size:13px;color:var(--color-ink)}
+/* Unified screenshot refinement */
+:host,.form-field{background:transparent!important}.form-field-label{font-size:12px;margin-bottom:8px}.form-field-control{font-size:15px!important;min-height:44px!important;border-radius:17px!important;box-sizing:border-box}
+
+@import "../../ui/preference-theme.wxss";
+@import "../../ui/disclosure-icons.wxss";

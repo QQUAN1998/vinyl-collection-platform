@@ -1,0 +1,1 @@
+<button class="switch-button" bindtap="open" aria-label="切换唱片柜或演出集">切换 ⇄</button>

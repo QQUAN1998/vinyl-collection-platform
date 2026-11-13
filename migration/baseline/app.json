@@ -1,0 +1,47 @@
+{
+  "pages": [
+    "pages/cabinet/index",
+    "pages/add/index",
+    "pages/all-collection/index",
+    "pages/manual-add/index",
+    "pages/batch-input/index",
+    "pages/search-results/index",
+    "pages/batch-confirm/index",
+    "pages/album-detail/index",
+    "pages/collection-edit/index",
+    "pages/user-profile/index",
+    "pages/stats/index",
+    "pages/archive-profile/index",
+    "pages/account/index",
+    "pages/tv-download/index",
+    "pages/theme-settings/index",
+    "pages/user-guide/index",
+    "pages/easter-library/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "唱片柜",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#edf1f5"
+  },
+  "usingComponents": {
+    "album-row": "/components/album-row/index",
+    "album-card": "/components/album-card/index",
+    "bottom-nav": "/components/bottom-nav/index",
+    "form-field": "/components/form-field/index",
+    "media-format-selector": "/components/media-format-selector/index",
+    "state-view": "/components/state-view/index"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "subPackages": [
+    {
+      "root": "packages/live-archive",
+      "pages": [
+        "pages/index/index",
+        "pages/edit/edit",
+        "pages/detail/detail"
+      ]
+    }
+  ]
+}

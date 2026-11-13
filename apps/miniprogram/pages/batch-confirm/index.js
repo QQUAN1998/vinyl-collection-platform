@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const { confirmSelectedAlbums } = require("../../services/collection-service.js");
 const { requireCloudAccount, showCloudSaveFailed } = require("../../services/cloud-session.js");
@@ -45,7 +46,7 @@ function getSaveFailureSummary(app) {
   return `${diagnostic.albumTitle}${diagnostic.statusCode ? `(${diagnostic.statusCode})` : ""}`;
 }
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     selectedAlbums: [],
     selectedCount: 0,
@@ -139,7 +140,7 @@ Page({
     const syncResult = triggerTvSync(app.globalData.tvBindings || [], userId);
     if (!result.createdItems.length) {
       app.globalData.importDraft = null;
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "\u5df2\u5728\u6536\u85cf",
         icon: "success"
       });
@@ -149,7 +150,7 @@ Page({
       return;
     }
 
-    wx.showLoading({ title: "\u4fdd\u5b58\u4e2d" });
+    uiLocale.loading(wx,{ title: "\u4fdd\u5b58\u4e2d" });
     Promise.all(result.createdItems.map((item) => {
       const album = this.data.selectedAlbums.find((candidate) => candidate.id === item.albumId);
       return app.saveCollectionToCloud(item, album).then((payload) => ({
@@ -165,7 +166,7 @@ Page({
           const failureSummary = getSaveFailureSummary(app);
           showCloudSaveFailed();
           if (failureSummary && typeof wx.showModal === "function") {
-            wx.showModal({
+            uiLocale.modal(wx,{
               title: "\u4fdd\u5b58\u5931\u8d25",
               content: `\u5931\u8d25\u5531\u7247\uff1a${failureSummary}\u3002\u8bf7\u7a0d\u540e\u91cd\u8bd5\uff0c\u6216\u628a\u8fd9\u4e2a\u63d0\u793a\u53d1\u7ed9\u6211\u3002`,
               showCancel: false,
@@ -178,7 +179,7 @@ Page({
         app.globalData.tvBindings = syncResult.bindings;
         app.globalData.importDraft = null;
         return app.loadCloudCollection({ force: true }).then(() => {
-          wx.showToast({
+          uiLocale.toast(wx,{
             title: failedResults.length
               ? `\u5df2\u52a0 ${savedResults.length} \u5f20\uff0c${failedResults.length} \u5f20\u5931\u8d25`
               : `\u5df2\u52a0\u5165 ${savedResults.length} \u5f20`,
@@ -200,4 +201,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"确认加入"));

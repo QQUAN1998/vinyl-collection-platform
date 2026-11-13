@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { easterAlbums } = require("../../data/easter-library.js");
 const {
   buildEasterAlbumListViews,
@@ -17,7 +18,7 @@ function uniqueIds(ids = []) {
   return Array.from(new Set(ids.filter(Boolean)));
 }
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     unlocked: false,
     password: "",
@@ -45,7 +46,7 @@ Page({
   },
   unlockLibrary() {
     if (String(this.data.password || "").trim() !== EASTER_PASSWORD) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "密码不对",
         icon: "none"
       });
@@ -148,7 +149,7 @@ Page({
 
     const selectedAlbumIds = uniqueIds(albumIds);
     if (!selectedAlbumIds.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "请先选择唱片",
         icon: "none"
       });
@@ -158,14 +159,14 @@ Page({
     const app = getApp();
     const me = await requireCloudAccount(app);
     if (!me) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "微信登录失败，请重试",
         icon: "none"
       });
       return;
     }
 
-    wx.showModal({
+    uiLocale.modal(wx,{
       title: "加入收藏",
       content: `确认把${label}中的 ${selectedAlbumIds.length} 张加入你的唱片柜？`,
       confirmText: "加入",
@@ -182,7 +183,7 @@ Page({
     if (!options.skipLogin) {
       const me = await requireCloudAccount(app);
       if (!me) {
-        wx.showToast({
+        uiLocale.toast(wx,{
           title: "微信登录失败，请重试",
           icon: "none"
         });
@@ -199,7 +200,7 @@ Page({
     });
 
     if (!result.createdItems.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "都已经收藏过了",
         icon: "none"
       });
@@ -211,7 +212,7 @@ Page({
       saving: true,
       progressText: `准备加入 ${result.createdItems.length} 张`
     });
-    wx.showLoading({ title: "加入收藏中" });
+    uiLocale.loading(wx,{ title: "加入收藏中" });
 
     const albumsById = new Map(easterAlbums.map(toEasterAlbum).map((album) => [album.id, album]));
     const saveEntries = result.createdItems
@@ -248,7 +249,7 @@ Page({
       progressText: ""
     });
     this.refreshAlbums();
-    wx.showToast({
+    uiLocale.toast(wx,{
       title: `已加入 ${result.createdItems.length} 张`,
       icon: "success"
     });
@@ -299,4 +300,4 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"更多收藏"));

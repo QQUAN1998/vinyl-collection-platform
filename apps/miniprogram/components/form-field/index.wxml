@@ -1,10 +1,13 @@
-<view class="form-field">
-  <view class="form-field-label">{{label}}</view>
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view class="{{uiThemeClass}} form-field" style="{{uiThemeStyle}}">
+  <view class="form-field-label">{{i18n.t(label,uiLanguage)}}</view>
+  <date-field wx:if="{{isDate}}" value="{{value}}" label="{{label}}" disabled="{{disabled}}" bindchange="handleInput"/>
+  <ui-select wx:elif="{{isCondition}}" range="{{conditions}}" value="{{conditionIndex}}" disabled="{{disabled}}" bindchange="conditionChange" label="品相"><view class="condition-control">{{value||i18n.t('选择品相',uiLanguage)}}<image class="ui-disclosure ui-disclosure-down" src="/assets/ui/chevron-down.svg" mode="aspectFit" aria-hidden="true"/></view></ui-select>
   <textarea
-    wx:if="{{mode === 'textarea'}}"
+    wx:elif="{{mode === 'textarea'}}"
     class="form-field-control is-textarea {{disabled ? 'is-disabled' : ''}}"
     value="{{value}}"
-    placeholder="{{placeholder}}"
+    placeholder="{{i18n.t(placeholder,uiLanguage)}}"
     disabled="{{disabled}}"
     bindinput="handleInput"
     maxlength="-1"
@@ -14,7 +17,7 @@
     wx:else
     class="form-field-control {{disabled ? 'is-disabled' : ''}}"
     value="{{value}}"
-    placeholder="{{placeholder}}"
+    placeholder="{{i18n.t(placeholder,uiLanguage)}}"
     type="{{type}}"
     disabled="{{disabled}}"
     bindinput="handleInput"

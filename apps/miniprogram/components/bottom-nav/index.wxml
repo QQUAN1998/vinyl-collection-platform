@@ -1,14 +1,2 @@
-<view class="bottom-nav">
-  <view
-    wx:for="{{navItems}}"
-    wx:key="key"
-    class="bottom-nav-item {{item.active ? 'is-active' : ''}}"
-    data-item="{{item}}"
-    bindtap="handleTap"
-    hover-class="bottom-nav-item-hover"
-    aria-role="button"
-  >
-    <image class="bottom-nav-icon" src="{{item.iconSrc}}" mode="aspectFit" />
-    <view class="bottom-nav-label">{{item.label}}</view>
-  </view>
-</view>
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<home-dock active="{{active==='cabinet'?'home':active}}"/>

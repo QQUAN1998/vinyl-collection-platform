@@ -1,3 +1,12 @@
+const uiLocale=require("../../ui/locale-runtime");
+// Presentation adapter; batch parsing/matching and account share paths reuse existing services.
+const uiImport=require('../../services/import-service');
+const uiAddMethods={
+  uiMethod(e){this.cancelOnlineSearch();this.setData({uiMethod:e.currentTarget.dataset.method,uiError:''});},
+  uiBatchInput(e){this.setData({uiBatchText:e.detail.value,uiError:''});},
+  uiMatchBatch(){try{const app=getApp(),parsed=uiImport.parseBatchInput(this.data.uiBatchText||''),matches=uiImport.matchAlbumCandidates(parsed.entries,albums,app.globalData.collectionItems||[]);app.globalData.importDraft={source:'batch',batchText:this.data.uiBatchText,parsed,matches,selectedAlbumIds:uiImport.getDefaultSelectedAlbumIds(matches),candidates:matches.flatMap(match=>match.candidates)};wx.navigateTo({url:'/pages/search-results/index'});}catch(e){this.setData({uiError:e.message});}},
+};
+
 const { albums } = require("../../data/seed.js");
 const {
   coverToImageSrc,
@@ -69,8 +78,10 @@ function getCollectionTime(item = {}) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-Page({
+Page(uiLocale.page({
+  ...uiAddMethods,
   data: {
+    uiMethod:"search",uiBatchPlaceholder:"伍佰 & China Blue - 浪人情歌\n伍佰 & China Blue - 白鸽\nAdele - 21",uiBatchText:"",uiError:"",uiAvatar:"",
     query: "",
     hasSearch: false,
     searchLoading: false,
@@ -84,7 +95,6 @@ Page({
     if (typeof app.applyThemeToPage === "function") {
       app.applyThemeToPage(this);
     }
-    this.loadAddPage();
   },
   onShow() {
     const app = getApp();
@@ -101,6 +111,7 @@ Page({
     const query = this.data.query;
     const hasSearch = Boolean(normalize(query));
     this.setData({
+      uiAvatar:app.globalData.userProfile?.avatar||"",
       collectionCount: stats.albumCount,
       recentAlbums: recentAlbumsFrom(sourceAlbums, collectionItems),
       results: hasSearch ? this.data.results : [],
@@ -146,7 +157,7 @@ Page({
   goSearch() {
     const query = this.data.query.trim();
     if (!query) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "先输入唱片或艺人",
         icon: "none"
       });
@@ -281,7 +292,7 @@ Page({
       return;
     }
 
-    wx.showLoading({ title: "补全专辑信息" });
+    uiLocale.loading(wx,{ title: "补全专辑信息" });
     fetchCatalogAlbumDetail(album, { country: "CN" }, app.globalData.cloud)
       .then(saveDraftAndContinue)
       .catch(() => saveDraftAndContinue(album))
@@ -289,10 +300,11 @@ Page({
         wx.hideLoading();
       });
   },
-  onShareAppMessage() {
+  onShareAppMessage(event) {
+    if(event?.target?.dataset?.uiAll){const app=getApp(),ownerId=encodeURIComponent(app.globalData.userId||"");return createShareMessage({title:(app.globalData.userProfile?.name||"音乐收藏者")+"的全部唱片收藏",path:ownerId?"/pages/all-collection/index?ownerId="+ownerId:"/pages/all-collection/index"});}
     return createShareMessage();
   },
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"搜索添加"));

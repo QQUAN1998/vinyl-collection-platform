@@ -1,0 +1,100 @@
+<view class="page">
+  <view class="row page-head"><switch-cabinet id="cabinet-switch" current="live" /><text class="title">{{shared ? '演出集' : tab==='home'?'我的演出集':tab==='add'?'添加现场':tab==='stats'?'现场统计':'我的'}}</text></view>
+  <view class="loading" wx:if="{{busy}}">加载中…</view>
+  <view class="notice" wx:if="{{message}}">{{message}}<button class="link" wx:if="{{tab==='home'&&!sessions.length}}" bindtap="refresh">重试加载</button></view>
+  <block wx:if="{{tab==='home'}}">
+    <view class="collection-block"><view class="collection-label">COLLECTION</view><view class="collection-count-row"><text class="collection-count">{{count}}</text><text class="collection-unit">场收藏</text></view></view>
+    <view class="section" wx:if="{{recent.length}}">
+      <view class="section-title">最近现场</view>
+      <view class="poster-grid"><view wx:for="{{recent}}" wx:key="id" data-id="{{item.id}}" bindtap="open" aria-role="button" aria-label="{{item.name}}"><view class="poster theme-{{item.theme}}"><image wx:if="{{item.cover||item.posterUrl}}" src="{{item.cover||item.posterUrl}}" mode="aspectFill" lazy-load/><block wx:else><text class="poster-label">LIVE</text><text class="poster-name">{{item.name}}</text><text class="tiny">{{item.date}}</text></block></view><view class="card-name">{{item.artist||item.name}}</view></view></view>
+    </view>
+    <view class="catalog">
+      <view class="row status-tabs"><button wx:for="{{statuses}}" wx:key="*this" class="status-tab {{status===item?'selected':''}}" data-value="{{item}}" bindtap="status" aria-label="{{item}}">{{item}}</button><button class="view-toggle" bindtap="view">{{view==='grid'?'票单':'海报'}}</button></view>
+      <input placeholder="搜索演出、艺人、城市" value="{{query}}" bindinput="search" class="search" aria-label="搜索收藏"/>
+      <view class="filter-row">
+        <picker range="{{cities}}" data-key="filterCity" data-options="cities" bindchange="picker"><text>{{filterCity}} ▾</text></picker>
+        <picker range="{{types}}" data-key="filterType" data-options="types" bindchange="picker"><text>{{filterType}} ▾</text></picker>
+        <picker range="{{yearOptions}}" data-key="filterYear" data-options="yearOptions" bindchange="picker"><text>{{filterYear}} ▾</text></picker>
+        <picker class="sort-filter" range="{{sorts}}" data-key="sort" data-options="sorts" bindchange="picker"><text>{{sort}} ▾</text></picker>
+      </view>
+      <view class="{{view==='grid'?'poster-grid':'ticket-list'}}">
+        <view wx:for="{{filtered}}" wx:key="id" data-id="{{item.id}}" bindtap="open" class="record-card" aria-role="button" aria-label="{{item.name}}">
+          <view class="poster theme-{{item.theme}}"><image wx:if="{{item.cover||item.posterUrl}}" src="{{item.cover||item.posterUrl}}" mode="aspectFill" lazy-load/><block wx:else><text class="poster-label">LIVE</text><text class="poster-name">{{item.name}}</text><text class="tiny">{{item.date||'待定'}}</text></block></view>
+          <view class="record-copy"><view class="card-name">{{item.name}}</view><view class="card-meta">{{item.artist||item.type}}</view><view class="card-meta">{{item.date||'待定'}} · {{item.city||'城市待补'}}</view></view>
+        </view>
+      </view>
+      <view wx:if="{{!filtered.length&&!busy}}" class="empty">{{count?'没有符合条件的现场':'收藏第一场现场'}}<button wx:if="{{!shared}}" bindtap="manual" class="primary">添加现场</button></view>
+    </view>
+  </block>
+  <block wx:if="{{tab==='add'}}">
+    <view class="entry-tabs section"><button class="{{addEntry==='search'?'active':''}}" data-value="search" bindtap="entry" disabled="{{busy}}">秀动搜索</button><button class="{{addEntry==='link'?'active':''}}" data-value="link" bindtap="entry" disabled="{{busy}}">大麦链接</button></view>
+    <view wx:if="{{addEntry==='search'}}" class="section">
+      <view class="search-line"><input class="search" placeholder="艺人名称" value="{{artistQuery}}" bindinput="artistQuery" bindconfirm="searchArtists" confirm-type="search" maxlength="80" disabled="{{busy}}" aria-label="搜索艺人"/><button class="primary" bindtap="searchArtists" disabled="{{busy}}" loading="{{busy}}">搜索</button></view>
+      <view class="candidate" wx:for="{{artists}}" wx:key="id" data-id="{{item.id}}" bindtap="selectArtist" aria-role="button" aria-label="选择{{item.name}}"><view>{{item.name}}</view><view class="muted" wx:if="{{item.style}}">{{item.style}}</view><text class="candidate-arrow">{{selectedArtist.id===item.id?'✓':'›'}}</text></view>
+      <view class="empty" wx:if="{{searched&&!artists.length&&!busy}}">没有匹配艺人</view>
+      <view class="section-title section" wx:if="{{selectedArtist}}">{{selectedArtist.name}} · 场次</view>
+      <view class="candidate event" wx:for="{{artistEvents}}" wx:key="id" data-id="{{item.id}}" bindtap="selectEvent" aria-role="button" aria-label="选择{{item.name}}"><image wx:if="{{item.posterUrl}}" class="event-poster" src="{{item.posterUrl}}" mode="aspectFill" lazy-load/><view class="event-copy"><view>{{item.name}}</view><view class="muted">{{item.date||'日期待补'}} {{item.time}} · {{item.city}}</view><view class="muted" wx:if="{{item.venue}}">{{item.venue}}</view></view><text class="candidate-arrow">›</text></view>
+    </view>
+    <view wx:elif="{{addEntry==='link'}}" class="section surface link-import"><textarea placeholder="粘贴大麦链接或分享文案" value="{{source}}" bindinput="source" aria-label="大麦分享链接" disabled="{{busy}}"/><button class="primary" bindtap="importLink" disabled="{{busy}}" loading="{{busy}}">识别链接</button><picker wx:if="{{sessions.length}}" range="{{sessions}}" range-key="label" bindchange="session"><view class="select section">选择场次 ▾</view></picker></view>
+    <button class="link manual-action" bindtap="manual" disabled="{{busy}}">手动添加</button>
+    <view class="all-collection-card section">
+      <button class="all-collection-open" bindtap="allCollection" aria-label="查看全部收藏">
+        <view class="all-collection-copy"><text class="all-collection-title">全部收藏</text><text class="all-collection-desc">查看当前收藏清单</text></view>
+        <text class="all-collection-count">{{count}} 场</text>
+      </button>
+      <button wx:if="{{allShareReady}}" class="all-collection-share" open-type="share" data-scope="all" disabled="{{!count||busy}}" aria-label="分享全部演出收藏">分享 ↗</button>
+      <button wx:else class="all-collection-share" bindtap="prepareAllShare" disabled="{{!count||busy||preparingAllShare}}" loading="{{preparingAllShare}}" aria-label="准备分享全部演出收藏">{{preparingAllShare?'准备中':'分享 ↗'}}</button>
+    </view>
+  </block>
+  <block wx:if="{{tab==='stats'}}">
+    <view class="row section"><picker class="year-select" range="{{years}}" bindchange="year"><text>{{year==='全部年份' ? year : year+' 年'}} ▾</text></picker><button class="link" bindtap="annual" disabled="{{busy}}">年度回顾 ↗</button></view>
+    <view class="section expense-panel">
+      <view class="stats-heading"><text class="section-title">费用</text><text class="stats-caption">已记录 {{stats.expenseCoverage}} / {{stats.shows}} 场</text></view>
+      <view class="stats-empty" wx:if="{{!expenses.length}}">暂无费用记录</view>
+      <view wx:for="{{expenses}}" wx:key="currency" class="expense-row"><text class="expense-currency">{{item.currency}}</text><text class="expense-amount">{{item.amount}}</text></view>
+      <view class="expense-track" wx:if="{{stats.shows}}"><view class="expense-fill" style="width:{{expensePercent}}%"/></view>
+    </view>
+    <view class="numbers stats-numbers section"><view class="stat-card"><text class="stat-value">{{stats.shows}}</text><text class="stat-label">已看现场</text></view><view class="stat-card"><text class="stat-value">{{stats.artists}}</text><text class="stat-label">位艺人</text></view><view class="stat-card"><text class="stat-value">{{stats.cities}}</text><text class="stat-label">座城市</text></view></view>
+    <view class="section" wx:if="{{year!=='全部年份'}}">
+      <view class="section-title">月度现场</view>
+      <view class="months"><view class="month-card month-{{item.tone}}" wx:for="{{months}}" wx:key="month"><text class="month-label">{{item.month}}月</text><text class="month-count">{{item.count}}<text class="month-unit"> 场</text></text></view></view>
+      <view class="stats-empty" wx:if="{{stats.unknownMonth}}">月份待补 {{stats.unknownMonth}} 场</view>
+    </view>
+    <view class="section">
+      <view class="stats-heading"><text class="section-title">时间线</text><text class="stats-caption">{{timeline.length}} 场</text></view>
+      <view class="stats-empty" wx:if="{{!timeline.length}}">{{year==='全部年份' ? '暂无已看现场' : '这一年还没有现场'}}</view>
+      <scroll-view wx:if="{{timeline.length}}" class="timeline-scroll {{timeline.length>5?'is-scrollable':''}}" style="height:{{(timeline.length>5?5:timeline.length)*200+2}}rpx" scroll-y="{{timeline.length>5}}" enhanced show-scrollbar="{{false}}" bounces="{{false}}" aria-label="现场时间线{{timeline.length>5?'，可上下滑动':''}}">
+      <view class="timeline-list"><view class="timeline-ticket" wx:for="{{timeline}}" wx:key="id" data-id="{{item.id}}" bindtap="open" aria-role="button" aria-label="查看{{item.name}}">
+        <view class="timeline-node"/>
+        <view class="timeline-cover theme-{{item.theme}}"><image wx:if="{{item.cover||item.posterUrl}}" src="{{item.cover||item.posterUrl}}" mode="aspectFill" lazy-load/><text wx:else>现场</text></view>
+        <view class="timeline-copy"><text class="timeline-date">{{item.date||'日期待补'}}</text><view class="timeline-name">{{item.name}}</view><view class="timeline-place">{{item.city||'城市待补'}} · {{item.venue||'场馆待补'}}</view></view>
+        <text class="stats-chevron">›</text>
+      </view></view>
+      </scroll-view>
+    </view>
+    <view class="section">
+      <view class="stats-heading"><text class="section-title">艺人排行</text><view wx:if="{{!shared}}" class="rank-tabs"><button class="rank-tab {{artistRankMode==='count'?'active':''}}" data-mode="count" bindtap="artistRanking" aria-label="按场次排行">场次</button><button class="rank-tab {{artistRankMode==='expense'?'active':''}}" data-mode="expense" bindtap="artistRanking" aria-label="按花费排行">花费</button></view><text wx:else class="stats-caption">{{stats.artists}} 位</text></view>
+      <view wx:if="{{artistRankMode==='expense'&&!shared}}" class="rank-expense-meta"><text class="stats-caption">多人场次均分</text><picker wx:if="{{artistExpenseCurrencies.length>1}}" range="{{artistExpenseCurrencies}}" bindchange="artistCurrency" aria-label="选择排行币种"><text class="rank-currency">{{artistExpenseCurrency}} ▾</text></picker><text wx:elif="{{artistExpenseCurrencies.length}}" class="stats-caption">{{artistExpenseCurrency}}</text></view>
+      <view class="stats-empty" wx:if="{{!rankedArtists.length}}">{{artistRankMode==='expense'?'暂无艺人费用记录':'暂无记录'}}</view>
+      <view class="artist-rank-list" wx:else><view wx:for="{{rankedArtists}}" wx:key="name" class="artist-rank medal-{{item.rank}}" data-kind="artist" data-value="{{item.name}}" bindtap="rank" aria-role="button" aria-label="查看{{item.name}}的{{item.count}}场现场">
+        <text class="rank-medal">{{item.rank}}</text><view class="artist-initial">{{item.initial}}</view><text class="artist-name">{{item.name}}</text><view class="artist-rank-value"><text class="artist-count">{{artistRankMode==='expense'?item.amount:item.count+' 场'}}</text><text wx:if="{{artistRankMode==='expense'}}" class="artist-rank-shows">{{item.count}} 场</text></view><text class="stats-chevron">›</text>
+      </view></view>
+    </view>
+    <view class="section">
+      <view class="stats-heading"><text class="section-title">城市</text><text class="stats-caption">{{stats.cities}} 座城市</text></view>
+      <view class="stats-empty" wx:if="{{!cityCards.length}}">暂无记录</view>
+      <view class="city-list"><view wx:for="{{cityCards}}" wx:key="name" class="city-card" data-kind="city" data-value="{{item.name}}" bindtap="rank" aria-role="button" aria-label="查看{{item.name}}的{{item.count}}场现场">
+        <view class="city-header"><view class="city-mark">城</view><view class="city-copy"><view class="city-name">{{item.name}}</view></view><text class="city-count">{{item.count}} 场</text><text class="stats-chevron">›</text></view>
+      </view></view>
+    </view>
+
+  </block>
+  <block wx:if="{{tab==='mine'}}">
+    <button class="account-card section" bindtap="openAccount"><image wx:if="{{account.avatar}}" class="account-avatar" src="{{account.avatar}}" mode="aspectFill"/><view wx:else class="account-avatar account-initial">{{account.loggedIn ? account.initial : "○"}}</view><view class="account-copy"><text class="account-name">{{account.name}}</text><text class="muted account-caption">唱片柜 · 演出集</text></view><text class="menu-arrow">›</text></button>
+    <view class="archive-summary section"><text class="muted">LIVE ARCHIVE</text><view class="title">我的现场档案</view><view class="numbers"><view><text>{{count}}</text><view>场收藏</view></view><view><text>{{archiveYears}}</text><view>个年份</view></view><view><text>{{cities.length-1}}</text><view>座城市</view></view></view></view>
+    <view class="mine-menu section"><button wx:if="{{shareReady}}" class="menu row" open-type="share"><text>分享演出集</text><text class="menu-arrow">↗</text></button><button wx:else class="menu row" bindtap="prepareShare"><text>准备分享</text><text class="menu-arrow">↗</text></button><button class="menu row" bindtap="annual"><text>年度回顾</text><text class="menu-arrow">↗</text></button><button class="menu row" bindtap="exportData" disabled="{{busy}}"><text>导出完整备份</text><text class="menu-arrow">↓</text></button></view>
+  </block>
+  <button wx:if="{{shared}}" class="outline section" bindtap="exitShare">打开我的演出集</button>
+</view>
+<view wx:if="{{!shared}}" class="bottom-nav"><button wx:for="{{tabs}}" wx:key="id" class="nav-item {{tab===item.id?'active':''}}" data-id="{{item.id}}" bindtap="tab" aria-label="{{item.label}}"><image class="nav-icon" src="/packages/live-archive/assets/icons/{{item.id}}{{tab===item.id?'-active':''}}.svg" mode="aspectFit"/><text>{{item.label}}</text></button></view>
+<canvas type="2d" id="annualCanvas" class="annual-canvas"/>

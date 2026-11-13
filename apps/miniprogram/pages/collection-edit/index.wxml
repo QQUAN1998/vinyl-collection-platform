@@ -1,16 +1,19 @@
-<view class="screen edit-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/><view class="{{uiThemeClass}} ui-editor-nav" style="{{uiThemeStyle}};height:{{uiChromeHeight}}px;padding-top:{{uiStatusHeight}}px"><button class="ui-form-back" bindtap="cancelEdit"><image src="/assets/ui/back.svg"/>{{i18n.t('返回',uiLanguage)}}</button><text class="ui-editor-title">{{i18n.t('编辑收藏',uiLanguage)}}</text></view>
+<view class="{{uiThemeClass}} screen edit-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
+  
   <view class="screen-header">
-    <view class="screen-title">编辑收藏</view>
+    <view class="screen-title"><image class="ui-action-icon" src="/assets/ui/edit.svg"/>{{i18n.t('编辑收藏',uiLanguage)}}</view>
     <view class="screen-kicker">PRIVATE</view>
   </view>
+<view class="ui-form-card">
 
   <view class="edit-cover-block" wx:if="{{album}}">
-    <image class="edit-cover" src="{{album.cover}}" mode="aspectFill" />
+    <image class="edit-cover" src="{{album.cover}}" mode="aspectFit"  catchtap="uiImageActions" aria-role="button" aria-label="查看或保存图片"/>
     <view class="edit-cover-copy">
       <view class="edit-album-title">{{album.title}}</view>
       <view class="edit-album-meta">{{album.artist}} · {{album.yearLabel}}</view>
-      <view class="ghost-button cover-button" bindtap="chooseAlbumCover" hover-class="button-hover">替换封面</view>
-    </view>
+      
+    </view><view class="ghost-button cover-button" bindtap="chooseAlbumCover" hover-class="button-hover">{{i18n.t('替换封面',uiLanguage)}}</view>
   </view>
 
   <state-view
@@ -21,8 +24,9 @@
   />
 
   <view class="section">
-    <view class="section-title">收藏字段</view>
+    
     <view class="edit-form">
+      <form-field label="发行日期" placeholder="YYYY-MM-DD" value="{{releaseDate}}" bind:change="handleReleaseDateChange" />
       <form-field label="收藏日期" value="{{collectionForm.collectionDate}}" data-key="collectionDate" bind:change="handleFieldChange" />
       <form-field label="购买来源" value="{{collectionForm.source}}" data-key="source" bind:change="handleFieldChange" />
       <form-field label="数量" type="number" value="{{collectionForm.quantity}}" data-key="quantity" bind:change="handleFieldChange" />
@@ -33,23 +37,23 @@
         bind:change="handleMediumChange"
       />
       <form-field label="价格" type="number" value="{{collectionForm.price}}" data-key="price" bind:change="handleFieldChange" />
-      <form-field label="备注" mode="textarea" value="{{collectionForm.notes}}" data-key="notes" bind:change="handleFieldChange" />
+      <form-field class="ui-form-full" label="备注" mode="textarea" value="{{collectionForm.notes}}" data-key="notes" bind:change="handleFieldChange" />
     </view>
   </view>
 
   <view class="section track-edit-section" wx:if="{{album}}">
     <view class="track-edit-header">
       <view>
-        <view class="section-title track-edit-title">曲目</view>
-        <view class="track-edit-hint">资料不完整时可在这里补充</view>
+        <view class="section-title track-edit-title">{{i18n.t('曲目',uiLanguage)}}</view>
+        <view class="track-edit-hint">{{i18n.t('资料不完整时可在这里补充',uiLanguage)}}</view>
       </view>
       <view class="track-add-button" bindtap="addTrack" hover-class="button-hover">
         <image src="/assets/icons/add-muted.svg" mode="aspectFit" />
-        <text>添加曲目</text>
+        <text>{{i18n.t('添加曲目',uiLanguage)}}</text>
       </view>
     </view>
 
-    <view wx:if="{{!album.tracks.length}}" class="track-empty">暂时没有曲目，点击“添加曲目”开始补充。</view>
+    <view wx:if="{{!album.tracks.length}}" class="track-empty">{{i18n.t('暂时没有曲目，点击“添加曲目”开始补充。',uiLanguage)}}</view>
     <view class="track-edit-list" wx:else>
       <view class="track-edit-row" wx:for="{{album.tracks}}" wx:key="position">
         <view class="track-position">{{index + 1}}</view>
@@ -57,7 +61,7 @@
           class="track-title-input"
           value="{{item.title}}"
           maxlength="200"
-          placeholder="输入曲目名称"
+          placeholder="{{i18n.t('输入曲目名称',uiLanguage)}}"
           data-index="{{index}}"
           bindinput="handleTrackTitleInput"
         />
@@ -69,8 +73,9 @@
   </view>
 
   <view class="edit-actions">
-    <view class="danger-button" bindtap="confirmDeleteCollection" hover-class="danger-button-hover">删除</view>
-    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">取消</view>
-    <view class="primary-button" bindtap="saveCollection" hover-class="button-hover">保存</view>
+    <view class="danger-button" bindtap="confirmDeleteCollection" hover-class="danger-button-hover">{{i18n.t('删除',uiLanguage)}}</view>
+    <view class="ghost-button" bindtap="cancelEdit" hover-class="button-hover">{{i18n.t('取消',uiLanguage)}}</view>
+    <view class="primary-button" bindtap="saveCollection" hover-class="button-hover">{{i18n.t('保存',uiLanguage)}}</view>
   </view>
+</view>
 </view>

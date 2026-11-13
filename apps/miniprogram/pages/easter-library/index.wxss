@@ -8,7 +8,7 @@
   border-radius: var(--radius-card);
   padding: 44rpx;
   background: var(--palette-black);
-  color: #fff;
+  color: var(--theme-card-surface);
 }
 
 .password-kicker,
@@ -133,7 +133,7 @@
 .action-button.primary {
   grid-column: 1 / -1;
   background: var(--palette-black);
-  color: #fff;
+  color: var(--theme-card-surface);
 }
 
 .library-head {
@@ -159,7 +159,7 @@
   padding: 22rpx;
   border-radius: 30rpx;
   background: rgba(26, 26, 26, 0.96);
-  color: #fff;
+  color: var(--theme-card-surface);
   box-shadow: 0 20rpx 50rpx rgba(0, 0, 0, 0.18);
 }
 
@@ -184,3 +184,7 @@
 .sticky-button.is-disabled {
   opacity: 0.42;
 }
+
+@import "../../ui/pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

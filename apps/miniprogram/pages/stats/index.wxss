@@ -33,7 +33,7 @@
 .stat-card:nth-child(3) .stat-label,
 .stat-card:nth-child(4) .stat-value,
 .stat-card:nth-child(4) .stat-label {
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .stat-value {
@@ -165,12 +165,12 @@
 
 .month-card-high {
   background: var(--palette-red);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .month-card-medium {
   background: var(--palette-red);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .month-card-low {
@@ -313,7 +313,7 @@
 
 .rank-tab.is-active {
   background: var(--color-action);
-  color: #ffffff;
+  color: var(--theme-card-surface);
   box-shadow: none;
 }
 
@@ -366,7 +366,7 @@
 
 .rank-row.medal-1 .rank-index {
   background: var(--palette-red);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .rank-row.medal-1 .rank-value {
@@ -392,7 +392,7 @@
 
 .rank-row.medal-3 .rank-index {
   background: var(--color-action);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .artist-avatar {
@@ -523,3 +523,5 @@
   font-size: 23rpx;
   font-weight: 900;
 }
+
+@import "../../ui/pages.wxss";

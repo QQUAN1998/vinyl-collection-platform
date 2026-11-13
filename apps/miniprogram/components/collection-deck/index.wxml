@@ -1,0 +1,32 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
+<view hidden="{{!visible}}" class="{{uiThemeClass}} n-view deck {{guideHintVisible&&!readOnly?'has-guide-hint':''}} {{kind==='live'?'live-deck':''}}" style="{{uiThemeStyle}}">
+  <view class="n-view deck-top"><view class="deck-heading"><text class="n-text deck-greeting">{{i18n.owner(owner||i18n.t('我',uiLanguage),kind,uiLanguage)}}</text><scroll-view class="deck-summary" scroll-x enhanced show-scrollbar="{{false}}"><view class="deck-summary-row">
+    <view class="n-view deck-count">{{i18n.t('总收藏：',uiLanguage)}}{{totalQuantity}}{{uiLanguage==='en'?' ':''}}{{kind==='live'?i18n.t('场',uiLanguage):i18n.t('张',uiLanguage)}}</view>
+    <text class="deck-summary-separator" aria-hidden="true"> | </text>
+    <view class="n-view deck-unique">{{i18n.t('去重后：',uiLanguage)}}{{uniqueCount}}{{uiLanguage==='en'?' ':''}}{{kind==='live'?i18n.t('场',uiLanguage):i18n.t('张',uiLanguage)}}</view>
+    <text wx:if="{{amountLabel}}" class="deck-summary-separator" aria-hidden="true"> | </text>
+    <text wx:if="{{amountLabel}}" class="n-text deck-total">{{i18n.t('总花费：',uiLanguage)}}{{amountLabel}}</text>
+  </view></scroll-view><view wx:if="{{guideHintVisible&&!readOnly}}" class="n-view home-guide-notice"><view class="n-view home-guide-link" bindtap="openGuide" aria-role="link" aria-label="{{i18n.t('第一次使用？查看新手教程',uiLanguage)}}"><image class="n-image" src="/assets/ui/detail.svg"/><text class="n-text">{{i18n.t('第一次使用？查看新手教程',uiLanguage)}}</text><text class="n-text home-guide-arrow">→</text></view><button class="n-button home-guide-dismiss" bindtap="dismissGuide" aria-label="{{i18n.t('关闭',uiLanguage)}}">×</button></view></view><button wx:if="{{!readOnly}}" class="n-button deck-profile" bindtap="profile" aria-label="{{i18n.t('我的',uiLanguage)}}"><image class="n-image " wx:if="{{avatar}}" src="{{avatar}}" mode="aspectFill"/><image wx:else class="n-image default-avatar" src="/assets/ui/brand/default-avatar.jpg" mode="aspectFill"/></button></view>
+
+  <block wx:if="{{cards.length}}">
+    <view class="n-view deck-stage">
+      <scroll-view class="n-scroll-view deck-scroll" scroll-x enhanced enable-flex enable-passive bounces="{{false}}" show-scrollbar="{{false}}" scroll-with-animation="{{animated}}" scroll-left="{{scrollLeft}}" bindscroll="scroll" bindtouchstart="touchStart" bindtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchEnd">
+        <view class="n-view gallery-track" style="width:{{slides.length*pitch-22+inset*2}}px;">
+          <view wx:for="{{visibleSlides}}" wx:key="slideKey" class="n-view gallery-slot" style="width:{{cardSize}}px;left:{{inset+item.slideKey*pitch}}px;">
+            <view class="n-view deck-slide {{openingId===item.id?'is-opening':''}}" style="{{slideStyles[item.slideKey]||''}}" data-id="{{item.id}}" bindtap="select" aria-role="button" aria-label="查看{{item.title}}">
+              <view class="n-view deck-art {{kind==='live'?'ticket-art':''}}" style="{{kind==='live'?'':'height:'+cardSize+'px;'}}">
+                <view class="n-view art-picture"><image class="n-image " wx:if="{{item.cover}}" src="{{item.cover}}" data-src="{{item.cover}}" binderror="imageError" mode="aspectFit" lazy-load/><view wx:else class="n-view deck-placeholder"><text class="n-text ">{{kind==='live'?'LIVE':'MUSIC'}}</text><text class="n-text deck-placeholder-title">{{item.title}}</text><text class="n-text ">{{item.date||item.year}}</text></view></view>
+                
+                <view wx:if="{{kind!=='live'}}" class="n-view sleeve-gloss"/>
+              </view>
+            </view>
+          </view>
+          
+        </view>
+      </scroll-view>
+    </view>
+    <view class="n-view deck-caption"><text class="n-text deck-title">{{current.title}}</text><text class="n-text deck-artist">{{current.artist}}</text><text class="n-text deck-sequence" wx:if="{{current.sequence}}">{{i18n.t('人生第 ',uiLanguage)}}<text class="deck-sequence-number">{{current.sequence}}</text>{{kind==='live'?i18n.t(' 场现场',uiLanguage):i18n.t(' 张唱片',uiLanguage)}}</text></view>
+    <view class="n-view deck-pagination" aria-label="第{{active+1}}项，共{{cards.length}}项"><view class="n-view deck-ruler"><view class="n-view ruler-track" style="background-position-x:{{rulerOffset}}px;"/><view class="n-view ruler-needle"/></view><text class="n-text deck-position">{{position}} / {{cards.length}}</text></view>
+  </block>
+  <view wx:else class="n-view deck-empty"><view wx:if="{{loading}}" class="n-view deck-loading">{{i18n.t('正在同步收藏…',uiLanguage)}}</view><block wx:else><image class="n-image " src="/assets/ui/{{kind==='live'?'ticket':'disc'}}.svg"/><text class="n-text ">{{kind==='live'?i18n.t('收藏第一场现场',uiLanguage):i18n.t('收藏第一张唱片',uiLanguage)}}</text><button class="n-button " wx:if="{{!readOnly}}" bindtap="empty">{{i18n.t('添加收藏',uiLanguage)}}</button></block></view>
+</view>

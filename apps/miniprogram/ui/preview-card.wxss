@@ -1,0 +1,35 @@
+/* Shared preview: the body scrolls while its footer stays inside the shell. */
+.ui-album-dialog{padding:20px!important;box-sizing:border-box;z-index:950!important}
+.ui-album-dialog .ui-album-sheet{display:flex!important;flex-direction:column!important;height:80vh!important;max-height:680px!important;width:100%!important;max-width:420px!important;padding:0!important;overflow:hidden!important;background:var(--color-screen,var(--color-screen))!important;border-radius:24px!important;box-sizing:border-box!important}
+.ui-album-sheet .ui-dialog-head{display:flex!important;align-items:center;justify-content:space-between;padding:14px 18px!important;min-height:52px!important;flex:none;box-sizing:border-box;margin:0!important}
+.ui-album-sheet .ui-preview-body{flex:1;height:0;min-height:0;width:100%}
+.ui-preview-content{padding:0 20px 16px;box-sizing:border-box}
+.ui-album-sheet .ui-dialog-cover{width:100%!important;height:210px!important;margin:0 auto 18px!important;max-width:250px}
+.ui-album-sheet .ui-dialog-meta{padding:0!important;margin:0!important}
+.ui-album-sheet .ui-dialog-title{font-size:22px!important;line-height:1.35!important;margin:8px 0 4px!important;word-break:break-word}
+.ui-album-sheet .ui-dialog-artist{font-size:13px!important;line-height:1.5!important;margin:0!important;color:var(--color-muted)}
+.ui-album-sheet .ui-dialog-kicker{font-size:10px!important;display:flex;justify-content:space-between}
+.ui-album-sheet .ui-preview-chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.ui-album-sheet .ui-preview-chips text{padding:5px 8px;border-radius:12px;background:var(--color-soft);font-size:10px}
+.ui-album-sheet .ui-preview-tracks{height:auto!important;max-height:none!important;margin:0;border-top:1px solid var(--color-line)}
+.ui-preview-track{display:flex;gap:10px;padding:10px 0;font-size:12px;line-height:1.5;border-bottom:1px solid var(--color-line)}
+.ui-preview-track text:first-child{width:18px;flex:none;color:var(--color-muted)}
+.ui-preview-track text:last-child{flex:1;min-width:0;word-break:break-word}
+.ui-preview-footer{flex:none;padding:12px 18px 10px;border-top:1px solid var(--color-line);box-sizing:border-box;background:var(--color-screen,var(--color-screen))}
+.ui-album-sheet .ui-dialog-actions{display:flex;gap:8px;margin:0!important}
+.ui-album-sheet .ui-dialog-actions button{flex:1;min-width:0!important;min-height:44px!important;height:44px!important;margin:0!important;padding:0 10px!important;line-height:44px!important;box-sizing:border-box!important;border-radius:22px!important;font-size:13px!important;display:flex!important;align-items:center;justify-content:center;gap:6px}
+.ui-dialog-actions button:first-child{background:var(--color-ink)!important;color:var(--theme-card-surface)!important}.ui-dialog-actions button:last-child{background:var(--color-soft)!important;color:var(--color-ink)!important}
+.ui-album-sheet .ui-dialog-pager{display:flex;align-items:center;justify-content:space-between;margin:8px 0 0!important;padding:0!important;font-size:11px;min-height:32px}
+.ui-album-sheet .ui-dialog-pager button{width:32px!important;height:32px!important;min-height:32px!important;line-height:30px!important;padding:0!important;margin:0!important;box-sizing:border-box!important;background:transparent!important}
+.ui-album-sheet .ui-dialog-delete{width:auto!important;margin:0!important;padding:0!important;min-height:30px!important;height:30px!important;line-height:30px!important;font-size:10px!important;background:transparent!important;color:#a65e4b!important}
+.ui-album-sheet .ui-dialog-close{margin:0!important;padding:0!important;width:30px!important;min-height:30px!important;height:30px!important;line-height:30px!important;box-sizing:border-box!important}
+/* Preserve the cover ratio when the viewport is short, instead of squeezing its height. */
+.ui-album-sheet .ui-dialog-cover{width:230px!important;height:230px!important;max-width:100%!important;background:transparent!important}
+.ui-live-preview .ui-dialog-cover{width:180px!important;height:240px!important}
+.ui-album-sheet .ui-dialog-head>text{flex:1;min-width:0}
+.ui-album-sheet .ui-dialog-delete{flex:none;margin-left:12px!important;margin-right:14px!important}
+.ui-album-sheet button::after{border:0!important}
+.ui-album-sheet .ui-dialog-pager{border:0!important}
+.ui-album-sheet .ui-dialog-pager button{border:0!important;box-shadow:none!important}
+@media(max-height:700px){.ui-album-dialog .ui-album-sheet{height:82vh!important}.ui-album-sheet .ui-dialog-cover{width:170px!important;height:170px!important}.ui-live-preview .ui-dialog-cover{width:135px!important;height:180px!important}}
+.ui-live-preview .ui-album-sheet .ui-dialog-title{font-size:18px!important;font-weight:700!important;line-height:1.4!important;color:var(--color-ink,var(--color-ink))!important}

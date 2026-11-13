@@ -1,5 +1,7 @@
 {
   "usingComponents": {
-    "media-format-selector": "/components/media-format-selector/index"
-  }
+    "media-format-selector": "/components/media-format-selector/index",
+    "space-header": "/components/space-header/index"
+  },
+  "navigationStyle": "custom"
 }

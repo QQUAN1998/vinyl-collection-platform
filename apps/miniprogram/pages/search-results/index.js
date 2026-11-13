@@ -1,3 +1,4 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { albums } = require("../../data/seed.js");
 const {
   coverToImageSrc,
@@ -66,7 +67,7 @@ function buildProviderNotice(result = {}) {
     : "";
 }
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     query: "",
     candidates: [],
@@ -393,7 +394,7 @@ Page({
   },
   goConfirm() {
     if (!this.data.selectedIds.length) {
-      wx.showToast({
+      uiLocale.toast(wx,{
         title: "请先选择唱片",
         icon: "none"
       });
@@ -416,7 +417,7 @@ Page({
     }
 
     this.setData({ hydrating: true });
-    wx.showLoading({ title: "补全专辑信息" });
+    uiLocale.loading(wx,{ title: "补全专辑信息" });
 
     return Promise.all(selectedCandidates.map((album) =>
       fetchCatalogAlbumDetail(album, { country: "CN" }, app.globalData.cloud).catch(() => album)
@@ -447,7 +448,7 @@ Page({
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+},"搜索结果"));
 
 function buildBatchFallbackMatch(entry, index, localMatch = {}) {
   const nonManualCandidates = (localMatch.candidates || []).filter((album) => !album.manualDraft);

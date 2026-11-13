@@ -1,9 +1,10 @@
+<wxs module="i18n" src="../../ui/locale.wxs"/>
 <view
-  class="album-row {{selected ? 'is-selected' : ''}} {{disabled ? 'is-disabled' : ''}} {{compact ? 'is-compact' : ''}}"
+  class="{{uiThemeClass}} album-row {{selected ? 'is-selected' : ''}} {{disabled ? 'is-disabled' : ''}} {{compact ? 'is-compact' : ''}}"
   bindtap="handleTap"
   hover-class="album-row-hover"
   aria-role="button"
->
+ style="{{uiThemeStyle}}">
   <image class="album-row-cover" src="{{album.cover}}" mode="aspectFill" lazy-load="{{true}}" />
   <view class="album-row-copy">
     <view class="album-row-title">{{album.title}}</view>
@@ -15,5 +16,5 @@
   <view wx:if="{{showCheck}}" class="album-row-check {{selected ? 'is-on' : ''}}">
     <view class="album-row-check-mark"></view>
   </view>
-  <view wx:elif="{{showArrow}}" class="album-row-arrow">›</view>
+  <image wx:elif="{{showArrow}}" class="album-row-arrow ui-disclosure ui-disclosure-right" src="/assets/ui/chevron-right.svg" mode="aspectFit" aria-hidden="true"/>
 </view>

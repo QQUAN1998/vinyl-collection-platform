@@ -93,7 +93,7 @@
   padding: 0 32rpx;
   border-radius: var(--radius-card);
   background: var(--color-ink);
-  color: #ffffff;
+  color: var(--theme-card-surface);
   box-shadow: 0 18rpx 44rpx rgba(17, 20, 24, 0.24);
 }
 
@@ -117,3 +117,8 @@
 .next-action.is-loading {
   opacity: 0.64;
 }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/exact-pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

@@ -1,0 +1,33 @@
+@import "../../app.wxss";
+.page { padding-bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.hero { display: flex; gap: 24rpx; align-items: flex-start; }
+.hero .poster { width: 200rpx; height: 267rpx; flex: none; }
+.facts { min-width: 0; flex: 1; }
+.facts .title { font-size: 30rpx; line-height: 1.4; margin-bottom: 16rpx; letter-spacing: 0; overflow-wrap: anywhere; word-break: break-all; }
+.facts > view { margin-bottom: 8rpx; }
+.detail-artist { font-size: 26rpx; overflow-wrap: anywhere; word-break: break-all; }
+.detail-place { overflow-wrap: anywhere; word-break: break-all; }
+.detail-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; margin-top: 24rpx; }
+.status-picker { min-width: 0; }
+.status-picker .pill, button.detail-edit { display: flex; align-items: center; justify-content: center; width: 100%; height: 88rpx; min-height: 44px; padding: 0 20rpx; border-radius: 20rpx; font-size: 26rpx; font-weight: 600; }
+.status-picker .pill { color: var(--action); }
+.detail-section { padding: 20rpx 24rpx 24rpx; margin-top: 24rpx; border: 1rpx solid var(--line); border-radius: 24rpx; background: #fff; }
+.section-title.row { min-height: 44px; margin-bottom: 8rpx; gap: 16rpx; }
+.section-title.row > text { flex: 1; min-width: 0; }
+.section-title button.link { flex: none; min-height: 44px; padding: 0; min-width: 80rpx; justify-content: flex-end; font-size: 24rpx; font-weight: 500; }
+.detail-section > .muted { display: block; font-size: 24rpx; line-height: 1.6; overflow-wrap: anywhere; }
+.media-grid:empty { display: none; }
+.media-grid image { height: calc((100vw - 148rpx) / 3); }
+.song { padding: 16rpx 0; display: flex; gap: 24rpx; border-bottom: 1rpx solid var(--line); }
+.song:last-child { border-bottom: 0; padding-bottom: 0; }
+.song .muted { min-width: 32rpx; }
+.expense { padding: 16rpx 0; border-bottom: 1rpx solid var(--line); align-items: baseline; }
+.expense:last-child { border-bottom: 0; padding-bottom: 0; }
+.expense > text:last-child { flex: none; font-variant-numeric: tabular-nums; }
+.source-action { margin-top: 24rpx; }
+button.source-link { width: 100%; min-height: 44px; font-size: 25rpx; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.32); display: flex; align-items: flex-end; z-index: 20; }
+.sheet { width: 100%; background: var(--paper); padding: 24rpx 32rpx calc(32rpx + env(safe-area-inset-bottom)); border-radius: 32rpx 32rpx 0 0; max-height: 85vh; overflow: auto; }
+.sheet .primary { width: 100%; }
+.large-input { height: 300rpx; }
+button.danger.section { width: 100%; border-top: 1rpx solid var(--line); border-radius: 0; margin-top: 24rpx; min-height: 44px; font-size: 25rpx; font-weight: 500; }

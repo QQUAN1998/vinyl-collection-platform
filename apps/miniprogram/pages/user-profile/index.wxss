@@ -28,7 +28,7 @@
   overflow: hidden;
   border-radius: 999rpx;
   background: linear-gradient(135deg, var(--color-action), var(--color-ink));
-  color: #ffffff;
+  color: var(--theme-card-surface);
   font-size: 58rpx;
   font-weight: 900;
   box-shadow: 0 20rpx 48rpx rgba(101, 118, 77, 0.24);
@@ -60,3 +60,7 @@
   grid-template-columns: 180rpx 1fr;
   gap: 18rpx;
 }
+
+@import "../../ui/pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

@@ -1,0 +1,3 @@
+:host{display:inline-block;max-width:100%}.rolling{display:inline-block;font-variant-numeric:tabular-nums;background:transparent!important;color:inherit!important}.running{animation:number-enter .45s ease-out}@keyframes number-enter{from{transform:translateY(8px);opacity:.3}to{transform:translateY(0);opacity:1}}
+
+@import "../../ui/preference-theme.wxss";

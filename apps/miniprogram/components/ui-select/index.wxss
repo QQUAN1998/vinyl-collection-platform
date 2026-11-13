@@ -1,0 +1,2 @@
+:host{display:block;min-width:0;background:transparent}picker,.select-anchor{display:block;box-sizing:border-box;background:transparent!important;min-width:0}
+@import "../../ui/preference-theme.wxss";

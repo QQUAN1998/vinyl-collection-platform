@@ -1,0 +1,12 @@
+<view class="album-card {{size === 'large' ? 'is-large' : ''}}" bindtap="handleTap" hover-class="album-card-hover" aria-role="button">
+  <image class="album-card-cover" src="{{album.cover}}" mode="aspectFill" />
+  <view class="album-card-copy">
+    <view class="album-card-eyebrow" wx:if="{{eyebrow}}">{{eyebrow}}</view>
+    <view class="album-card-title">{{album.title}}</view>
+    <view class="album-card-artist">{{album.artist}}</view>
+    <view class="album-card-facts">
+      <text wx:if="{{album.year}}">{{album.year}}</text>
+      <text wx:if="{{album.styles}}"> · {{album.styles}}</text>
+    </view>
+  </view>
+</view>

@@ -67,3 +67,8 @@
   grid-template-columns: 180rpx 1fr;
   gap: 18rpx;
 }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/exact-pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";

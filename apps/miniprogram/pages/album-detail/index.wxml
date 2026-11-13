@@ -1,33 +1,34 @@
-<view class="screen detail-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen detail-screen ui-detail-page {{uiClosing?'ui-closing':''}} {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};transform:translateY({{uiDragY}}px);opacity:{{uiDetailOpacity}};;{{uiThemeStyle}}">
   <block wx:if="{{album}}">
-    <image class="detail-cover" src="{{album.cover}}" mode="aspectFit" />
+    <view class="ui-detail-cover" bindtouchstart="uiCoverStart" catchtouchmove="uiCoverMove" bindtouchend="uiCoverEnd" bindtouchcancel="uiCoverCancel"><image class="detail-cover" src="{{album.cover}}" mode="aspectFit" catchtap="uiImageActions" aria-role="button" aria-label="查看或保存图片"/><view class="ui-cover-gloss"/></view>
     <view class="detail-title">{{album.title}}</view>
     <view class="detail-artist">{{album.artist}}</view>
 
     <view class="fact-grid">
       <view class="fact" wx:for="{{detailFacts}}" wx:key="label">
-        <view class="fact-label">{{item.label}}</view>
+        <view class="fact-label">{{i18n.t(item.label,uiLanguage)}}</view>
         <view class="fact-value">{{item.value}}</view>
       </view>
     </view>
 
-    <view wx:if="{{collectionItem}}" class="detail-actions">
-      <view class="ghost-button edit-button" bindtap="openEdit" hover-class="button-hover">编辑收藏</view>
+    <view wx:if="{{collectionItem&&!uiSharedOwnerId}}" class="detail-actions">
+      <view class="ghost-button edit-button" bindtap="openEdit" hover-class="button-hover"><image class="ui-action-icon" src="/assets/ui/edit.svg"/>{{i18n.t('编辑收藏',uiLanguage)}}</view>
     </view>
-    <view wx:else class="notice detail-collection-notice">
-      <view class="notice-title">还没有加入收藏</view>
-      <view class="notice-desc">加入后可以继续维护品相、价格和备注。</view>
+    <view wx:elif="{{!collectionItem&&!uiSharedOwnerId}}" class="notice detail-collection-notice">
+      <view class="notice-title">{{i18n.t('还没有加入收藏',uiLanguage)}}</view>
+      <view class="notice-desc">{{i18n.t('加入后可以继续维护品相、价格和备注。',uiLanguage)}}</view>
       <media-format-selector
         label="选择收藏形式"
         options="{{mediaFormats}}"
         selected-key="{{pendingMediumKey}}"
         bind:change="handleMediumChange"
       />
-      <view class="secondary-action" bindtap="addToCollection" hover-class="secondary-action-hover">加入收藏</view>
+      <view class="secondary-action" bindtap="addToCollection" hover-class="secondary-action-hover">{{i18n.t('加入收藏',uiLanguage)}}</view>
     </view>
 
     <view class="section">
-      <view class="section-title">曲目</view>
+      <view class="section-title">{{i18n.t('曲目',uiLanguage)}}</view>
       <view class="track-list">
         <view class="track-row" wx:for="{{tracks}}" wx:key="position">
           <text class="track-index">{{item.position || index + 1}}</text>
@@ -57,3 +58,4 @@
     description="可能是本地资料还没有同步。"
   />
 </view>
+<button style="{{uiThemeStyle}}" class="{{uiThemeClass}} ui-form-back" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

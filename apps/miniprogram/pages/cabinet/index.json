@@ -1,3 +1,13 @@
 {
-  "navigationBarTitleText": "我的唱片柜"
+  "navigationBarTitleText": "唱片柜",
+  "usingComponents": {
+    "switch-cabinet": "/components/switch-cabinet/index",
+    "collection-deck": "/components/collection-deck/index",
+    "space-header": "/components/space-header/index",
+    "home-dock": "/components/home-dock/index",
+    "detail-sheet": "/pages/album-detail/sheet",
+    "add-pane": "/pages/add/pane",
+    "stats-pane": "/pages/stats/pane",
+    "ticket-share": "/components/ticket-share/index"
+  }
 }

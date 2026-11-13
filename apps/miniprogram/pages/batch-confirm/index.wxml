@@ -1,11 +1,12 @@
-<view class="screen confirm-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen confirm-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">确认加入</view>
-    <view class="screen-kicker">{{selectedCount}} 张</view>
+    <view class="screen-title">{{i18n.t('确认加入',uiLanguage)}}</view>
+    <view class="screen-kicker">{{selectedCount}} {{i18n.t('张',uiLanguage)}}</view>
   </view>
 
   <view class="section confirm-section">
-    <view class="section-title">批量设置</view>
+    <view class="section-title">{{i18n.t('批量设置',uiLanguage)}}</view>
     <view class="field-grid">
       <form-field label="收藏日期" value="{{defaults.collectionDate}}" data-key="collectionDate" bind:change="handleDefaultChange" />
       <form-field label="购买来源" value="{{defaults.source}}" data-key="source" bind:change="handleDefaultChange" />
@@ -25,8 +26,8 @@
 
   <view class="section confirm-section">
     <view class="section-head">
-      <view class="section-title">逐张补充价格</view>
-      <view class="caption">可稍后填写</view>
+      <view class="section-title">{{i18n.t('逐张补充价格',uiLanguage)}}</view>
+      <view class="caption">{{i18n.t('可稍后填写',uiLanguage)}}</view>
     </view>
     <view class="price-list">
       <view class="price-row" wx:for="{{selectedAlbums}}" wx:key="id">
@@ -37,11 +38,12 @@
         </view>
         <view class="price-input-shell">
           <text class="price-symbol">¥</text>
-          <input class="price-input" type="number" placeholder="填写" data-album-id="{{item.id}}" bindinput="handlePriceChange" />
+          <input class="price-input" type="number" placeholder="{{i18n.t('填写',uiLanguage)}}" data-album-id="{{item.id}}" bindinput="handlePriceChange" />
         </view>
       </view>
     </view>
   </view>
 
-  <view class="confirm-button" bindtap="confirmAdd" hover-class="confirm-button-hover">确认加入 {{selectedCount}} 张</view>
+  <view class="confirm-button" bindtap="confirmAdd" hover-class="confirm-button-hover">{{i18n.t('确认加入',uiLanguage)}} {{selectedCount}} {{i18n.t('张',uiLanguage)}}</view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

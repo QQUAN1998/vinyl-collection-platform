@@ -1,107 +1,249 @@
+const uiLocale=require("../../ui/locale-runtime");
 const { createShareMessage, createShareTimeline } = require("../../services/share.js");
 const {
   ONBOARDING_EXAMPLE_QUERY,
   ONBOARDING_STEPS
 } = require("../../services/onboarding-service.js");
 
-Page({
+Page(uiLocale.page({uiPageBack(){wx.navigateBack({fail:()=>wx.reLaunch({url:"/pages/cabinet/index"})});},
   data: {
     mode: "guide",
     exampleQuery: ONBOARDING_EXAMPLE_QUERY,
     onboardingSteps: ONBOARDING_STEPS,
     guideSections: [
-      {
-        index: "01",
-        title: "首次收藏流程",
-        badge: "START",
-        description: "以刘德华为例，从搜索到添加收藏走完整一次。",
-        steps: ["在添加页搜索“刘德华”，进入全部在线结果。", "选择想加入的专辑，点下一步确认收藏信息。", "填写介质、数量、品相和价格后保存到自己的账号。"]
-      },
-      {
-        index: "02",
-        title: "今日推荐",
-        badge: "DAILY",
-        description: "首页会根据你收藏过的艺人每天推荐一张网易云可用专辑。",
-        steps: ["没有正在试听时，照片墙下方会显示“今日推荐”。", "点 `GO!` 会进入专辑详情页，可查看曲目和试听。", "只看推荐不会加入收藏，只有在详情页主动加入才会保存。"]
-      },
-      {
-        index: "03",
-        title: "试听播放",
-        badge: "PLAY",
-        description: "详情页可试听曲目，首页会保留当前正在试听的卡片。",
-        steps: ["进入专辑详情页，在曲目右侧点播放按钮试听。", "返回首页后，今日推荐位置会切换为“正在试听”。", "可在首页暂停或继续播放，也可点卡片回到对应详情页。"]
-      },
-      {
-        index: "04",
-        title: "查看唱片",
-        badge: "DETAIL",
-        description: "唱片卡片和详情页都可以查看收藏与专辑资料。",
-        steps: ["首页点击封面打开唱片卡片。", "卡片里可快速看曲目、稀有度、收藏日期和介质。", "点击“详情”可看发行年份、地区、风格和完整曲目。"]
-      },
-      {
-        index: "05",
-        title: "编辑收藏",
-        badge: "EDIT",
-        description: "每张已收藏唱片都可以继续补充私人收藏信息。",
-        steps: ["从首页打开唱片卡片，点击“编辑”。", "可修改收藏日期、购买来源、介质、价格、数量、品相和备注。", "保存后会同步到自己的账号收藏。"]
-      },
-      {
-        index: "06",
-        title: "照片墙",
-        badge: "WALL",
-        description: "照片墙只展示你已经收藏过的唱片。",
-        steps: ["打开已收藏唱片卡片，点击“上墙”。", "照片墙满 9 张后，需要先把其他唱片下墙。", "下墙不会删除收藏，只是不再显示在照片墙。"]
-      },
-      {
-        index: "07",
-        title: "删除唱片",
-        badge: "DELETE",
-        description: "删除就是取消这张专辑在你账号里的收藏。",
-        steps: ["打开唱片卡片，点左上角删除图标。", "确认后会从全部唱片、照片墙和统计里移除。", "编辑收藏页底部也有删除按钮，适合整理时使用。"]
-      },
-      {
-        index: "08",
-        title: "统计与排行",
-        badge: "STATS",
-        description: "统计页会按你的真实收藏数量和金额汇总。",
-        steps: ["可查看唱片、艺人、曲目和投入总额。", "金额按单价 × 数量统计，排行里的总金额也使用同一口径。", "月份分布、收藏排行和介质占比都可用来回看收藏结构。"]
-      },
-      {
-        index: "09",
-        title: "主题设置",
-        badge: "THEME",
-        description: "我的页面可以进入主题设置，切换小程序整体底色。",
-        steps: ["支持标准模式、白色模式、暗夜模式和自定义底色。", "顶部导航栏、页面背景、底部导航会跟随主题同步。", "暗夜模式下卡片和文字会使用适合深色背景的配色。"]
-      },
-      {
-        index: "10",
-        title: "账号与同步",
-        badge: "ACCOUNT",
-        description: "登录后收藏会按微信账号独立保存。",
-        steps: ["首次使用添加、编辑或删除时会调起微信授权登录。", "我的页面可同步微信头像昵称。", "登录后重新打开小程序，会先恢复本地缓存再后台刷新云端收藏。"]
-      },
-      {
-        index: "11",
-        title: "导入导出",
-        badge: "TOOLS",
-        description: "我的页面提供收藏批量处理工具。",
-        steps: ["导入收藏可从表格或文本批量加入。", "导出收藏会生成 Markdown 文件，适合分享给微信好友。", "全部唱片页支持搜索、筛选和批量删除自己的收藏。"]
-      },
-      {
-        index: "12",
-        title: "更多收藏",
-        badge: "MORE",
-        description: "手册底部“更多”可进入隐藏唱片库。",
-        steps: ["输入密码 `0816` 后可查看隐藏唱片库。", "可选择部分唱片收藏，也可以一键收藏全部。", "隐藏库的价格统计同样按单价 × 数量计算。"]
-      },
-      {
-        index: "13",
-        title: "微信分享",
-        badge: "SHARE",
-        description: "使用微信右上角官方分享按钮即可分享小程序链接。",
-        steps: ["全部唱片页可分享纯展示收藏清单。", "专辑详情页可分享单张唱片。", "统计页保留数据浏览。"]
-      }
-    ]
+    {
+        "index": "01",
+        "title": "浏览收藏",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "底部切换唱片柜或演出集，左右滑动浏览。",
+            "点封面查看卡片；点头像进入“我的”。"
+        ],
+        "ja": {
+            "title": "所蔵を見る",
+            "description": "",
+            "steps": [
+                "下部でレコード・公演を切り替え、左右にスワイプ。",
+                "表紙でカード、アイコンでマイページを開きます。"
+            ]
+        }
+    },
+    {
+        "index": "02",
+        "title": "添加唱片",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "点“添加”→搜索艺人或专辑→确认收藏信息→保存。",
+            "批量输入：每行“艺人 — 专辑”；找不到可手动新建。"
+        ],
+        "flow": [
+            {
+                "screen": "search",
+                "title": "搜索唱片",
+                "caption": "输入艺人或专辑名",
+                "action": "搜索"
+            },
+            {
+                "screen": "edit",
+                "title": "确认收藏信息",
+                "caption": "填写自己的收藏资料",
+                "action": "保存收藏",
+                "fields": [
+                    "收藏形式",
+                    "数量",
+                    "收藏日期"
+                ]
+            },
+            {
+                "screen": "saved",
+                "title": "保存完成",
+                "caption": "返回首页浏览收藏",
+                "action": "返回首页"
+            },
+            {
+                "screen": "card",
+                "title": "查看唱片",
+                "caption": "点击封面管理收藏",
+                "action": "查看详情"
+            }
+        ],
+        "ja": {
+            "title": "レコードを追加",
+            "description": "",
+            "steps": [
+                "追加 → アーティスト・作品を検索 → 所蔵情報を確認 → 保存。",
+                "一括入力は一行ずつ「アーティスト — 作品名」。見つからなければ手動作成。"
+            ]
+        }
+    },
+    {
+        "index": "03",
+        "title": "记录演出",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "切换“演出集”→添加→粘贴链接或手动新建。",
+            "核对观看日期、城市、场馆和票价→保存，默认已看过。"
+        ],
+        "flow": [
+            {
+                "screen": "link",
+                "title": "添加演出",
+                "caption": "粘贴链接或手动新建",
+                "action": "识别演出"
+            },
+            {
+                "screen": "edit",
+                "title": "确认演出信息",
+                "caption": "核对观看日期和场馆",
+                "action": "保存演出",
+                "fields": [
+                    "观看日期",
+                    "城市",
+                    "演出场馆"
+                ]
+            },
+            {
+                "screen": "saved",
+                "title": "保存完成",
+                "caption": "添加后默认已看过",
+                "action": "返回首页"
+            },
+            {
+                "screen": "poster",
+                "title": "演出集",
+                "caption": "滑动海报回看现场",
+                "action": "查看详情"
+            }
+        ],
+        "ja": {
+            "title": "公演を記録",
+            "description": "",
+            "steps": [
+                "公演 → 追加 → リンクを貼り付け、または手動作成。",
+                "鑑賞日・都市・会場・料金を確認 → 保存。鑑賞済みとして記録。"
+            ]
+        }
+    },
+    {
+        "index": "04",
+        "title": "编辑与删除",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "点封面→“编辑唱片”或“编辑演出”→修改→保存。",
+            "发行日期填年月日；删除时核对名称后确认。"
+        ],
+        "ja": {
+            "title": "編集・削除",
+            "description": "",
+            "steps": [
+                "表紙 → 編集 → 内容を修正 → 保存。",
+                "発売日は年月日で入力。削除前に対象名を確認。"
+            ]
+        }
+    },
+    {
+        "index": "05",
+        "title": "分享票根",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "点卡片“分享唱片”或“分享演出”→预览→保存海报。",
+            "首次保存允许相册权限；失败可点“重新生成”。"
+        ],
+        "flow": [
+            {
+                "screen": "card",
+                "title": "收藏卡片",
+                "caption": "打开已收藏的记录",
+                "action": "分享唱片"
+            },
+            {
+                "screen": "poster",
+                "title": "生成票根",
+                "caption": "等待图片生成",
+                "action": "正在生成"
+            },
+            {
+                "screen": "poster",
+                "title": "预览海报",
+                "caption": "核对图片与收藏信息",
+                "action": "保存海报"
+            },
+            {
+                "screen": "saved",
+                "title": "保存完成",
+                "caption": "在相册查看和分享",
+                "action": "完成"
+            }
+        ],
+        "ja": {
+            "title": "チケットを共有",
+            "description": "",
+            "steps": [
+                "カードの共有 → プレビュー → 画像保存。",
+                "初回は写真へのアクセスを許可。失敗時は再作成。"
+            ]
+        }
+    },
+    {
+        "index": "06",
+        "title": "统计与清单",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "点“统计”看时间线、排行或城市；“调整模块”更改顺序。",
+            "唱片花费＝单价 × 数量；全部收藏可搜索、筛选和微信分享。"
+        ],
+        "ja": {
+            "title": "統計・一覧",
+            "description": "",
+            "steps": [
+                "統計で履歴・順位・都市を確認。表示設定で並べ替え。",
+                "レコード支出＝単価 × 枚数。所蔵一覧で検索・絞り込み・WeChat共有。"
+            ]
+        }
+    },
+    {
+        "index": "07",
+        "title": "导入导出",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "“我的”→导入收藏→选择表格或文本→检查结果→确认。",
+            "“导出收藏”生成 Markdown 备份，可保存或发送。"
+        ],
+        "ja": {
+            "title": "読み込み・書き出し",
+            "description": "",
+            "steps": [
+                "マイページ → 読み込み → 表・テキストを選択 → 結果を確認。",
+                "書き出しでMarkdownのバックアップを保存・送信。"
+            ]
+        }
+    },
+    {
+        "index": "08",
+        "title": "账号与设置",
+        "badge": "",
+        "description": "",
+        "steps": [
+            "首次添加按提示微信登录；在“我的”修改头像和昵称。",
+            "语言设置可选简体、繁體、English、日本語；电视扫码绑定同步。"
+        ],
+        "ja": {
+            "title": "アカウント・設定",
+            "description": "",
+            "steps": [
+                "初回追加時にWeChatでログイン。マイページでアイコン・名前を編集。",
+                "言語設定で简体・繁體・English・日本語を選択。スキャンでテレビと連携。"
+            ]
+        }
+    }
+]
   },
   onLoad(options = {}) {
     const app = getApp();
@@ -132,11 +274,11 @@ Page({
   },
   onShareAppMessage() {
     return createShareMessage({
-      title: "唱片柜小程序操作手册",
+      title: "大收藏家 - 唱片演出记录 · 操作手册",
       path: "/pages/user-guide/index"
     });
   },
   onShareTimeline() {
     return createShareTimeline(this.onShareAppMessage());
   }
-});
+}));

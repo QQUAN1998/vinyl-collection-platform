@@ -474,3 +474,12 @@
 .onboarding-primary {
   min-height: 88rpx;
 }
+
+@import "../../ui/pages.wxss";
+@import "../../ui/exact-pages.wxss";
+/* Unified screenshot refinement */
+.screen-title,.ui-catalog-title{font-size:18px!important;line-height:1.4}.ui-catalog-head{align-items:center}.screen-kicker{display:none}.ui-native-screen,.screen{padding-left:20px!important;padding-right:20px!important;box-sizing:border-box}.tv-actions{display:flex!important;gap:10px!important}.tv-actions button{flex:1!important;min-width:0!important;margin:0!important;text-align:center}.tv-device{display:flex;align-items:center;gap:14px}.tv-device-copy{flex:1;min-width:0}
+/* Unified screenshot refinement */
+.device-row{display:flex!important;align-items:center!important;gap:14px!important;padding:20px!important;border:1px solid var(--color-line);border-radius:22px}.device-icon{display:flex!important;width:54px!important;height:54px!important;flex:0 0 54px;align-items:center;justify-content:center;background:var(--theme-card-surface);border-radius:17px}.device-copy{flex:1!important;min-width:0!important}.device-name{font-size:16px!important;line-height:1.4!important}.device-actions{display:flex!important;gap:10px!important;margin-top:16px}.device-actions .sync-button{flex:1!important;min-width:0!important;text-align:center;justify-content:center;padding:12px 6px!important;font-size:12px!important}.state-pill{flex:none;font-size:11px!important}
+@import "../../ui/disclosure-icons.wxss";
+.tool-symbol,.theme-tool-symbol{width:44rpx;height:44rpx;opacity:1;filter:none}.tool-icon{border-radius:50%;}

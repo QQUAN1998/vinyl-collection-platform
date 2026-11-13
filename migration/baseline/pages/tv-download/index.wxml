@@ -1,0 +1,83 @@
+<view class="screen tv-download-screen {{themeClass}}" style="{{themeStyle}}">
+  <view class="screen-header">
+    <view class="screen-title">电视版 APK</view>
+    <view class="screen-kicker">TV APP</view>
+  </view>
+
+  <view class="apk-status-row">
+    <view class="apk-status-icon">
+      <image class="apk-status-symbol" src="/assets/icons/tv-action.png" mode="aspectFit" />
+    </view>
+    <view class="apk-status-copy">
+      <view class="apk-status-title">唱片柜电视版</view>
+      <view class="apk-status-meta">{{fileName}} · {{fileSize}}</view>
+    </view>
+    <view class="apk-status-badge">ZIP</view>
+  </view>
+
+  <view class="guide-section">
+    <view class="section-title">安装指引</view>
+    <view class="guide-list">
+      <view class="guide-step">
+        <view class="guide-step-index">1</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">下载并分享</view>
+          <view class="guide-step-desc">点击下方按钮，下载完成后把 ZIP 压缩包分享给微信好友或文件传输助手。</view>
+        </view>
+      </view>
+      <view class="guide-step">
+        <view class="guide-step-index">2</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">保存到电脑桌面</view>
+          <view class="guide-step-desc">在电脑微信中下载文件，确认收到的是唱片柜-TV.zip，并保存到桌面。</view>
+        </view>
+      </view>
+      <view class="guide-step">
+        <view class="guide-step-index">3</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">解压安装文件夹</view>
+          <view class="guide-step-desc">解压 ZIP 后会得到“唱片柜-TV”文件夹。打开文件夹，确认里面的文件以 .apk 结尾，不能是 .apk(1)。</view>
+        </view>
+      </view>
+      <view class="guide-step">
+        <view class="guide-step-index">4</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">复制到 U 盘</view>
+          <view class="guide-step-desc">把解压得到的整个“唱片柜-TV”文件夹复制到 U 盘，不要只复制压缩包。</view>
+        </view>
+      </view>
+      <view class="guide-step">
+        <view class="guide-step-index">5</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">通过 U 盘安装</view>
+          <view class="guide-step-desc">把 U 盘插入电视，打开文件管理器进入“唱片柜-TV”文件夹，按提示允许安装未知来源应用并完成安装。</view>
+        </view>
+      </view>
+      <view class="guide-step">
+        <view class="guide-step-index">6</view>
+        <view class="guide-step-copy">
+          <view class="guide-step-title">扫码同步收藏</view>
+          <view class="guide-step-desc">打开电视端“唱片柜”，显示登录二维码后，用小程序“我的”页面扫码绑定电视，即可同步当前收藏。</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="download-section">
+    <view class="section-title">下载安装包</view>
+    <view class="download-panel">
+      <view class="download-panel-kicker">LATEST</view>
+      <view class="download-panel-title">唱片柜电视版安装包</view>
+      <view class="download-panel-meta">ZIP 内已整理好“唱片柜-TV”文件夹，下载后会直接打开微信文件分享。</view>
+      <button
+        class="primary-button download-button"
+        loading="{{downloading}}"
+        disabled="{{downloading}}"
+        bindtap="handleDownloadShare"
+        hover-class="button-hover"
+      >{{downloading ? (downloadProgress ? '下载 ' + downloadProgress + '%' : '准备下载') : '下载并分享 ZIP'}}</button>
+      <view wx:if="{{downloadError}}" class="download-error">{{downloadError}}</view>
+    </view>
+    <view class="download-note">请先在电脑解压 ZIP，再把整个文件夹复制到 U 盘。安装完成后可继续保存在 U 盘中备用。</view>
+  </view>
+</view>

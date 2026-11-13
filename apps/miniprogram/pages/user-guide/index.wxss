@@ -30,7 +30,7 @@
 }
 
 .guide-lead-onboarding .guide-lead-title {
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .guide-lead-copy {
@@ -150,12 +150,12 @@
 
 .guide-card:nth-child(3) .guide-index {
   background: var(--palette-red);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .guide-card:nth-child(4) .guide-index {
   background: var(--palette-black);
-  color: #ffffff;
+  color: var(--theme-card-surface);
 }
 
 .guide-card-head {
@@ -233,7 +233,7 @@
   border: 2rpx solid var(--color-line);
   border-radius: var(--radius-card);
   background: var(--palette-black);
-  color: #fff;
+  color: var(--theme-card-surface);
 }
 
 .guide-more-title {
@@ -262,3 +262,23 @@
   font-size: 34rpx;
   font-weight: 950;
 }
+
+@import "../../ui/pages.wxss";
+/* Unified screenshot refinement */
+@import "../../ui/deep-pages.wxss";
+.guide-card-head{grid-template-columns:68rpx minmax(0,1fr);align-items:start}.guide-card-head .screen-kicker{display:none}
+.guide-index{flex:none;flex-shrink:0;border-radius:50%;background:#d1ff66!important;color:#171a17!important;font-weight:700}
+.guide-title{font-weight:650;overflow-wrap:anywhere}.guide-desc{font-weight:400;line-height:1.65}.guide-step{font-weight:400;line-height:1.75;overflow-wrap:anywhere}.guide-heading{min-width:0}
+.guide-phones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32rpx 36rpx;margin:30rpx 0;padding:0 4rpx}
+.guide-phone-step{position:relative;min-width:0;text-align:center}.guide-phone-number{width:38rpx;height:38rpx;margin:0 auto 12rpx;border-radius:50%;background:#d1ff66;color:#171a17;font-size:22rpx;line-height:38rpx;font-weight:650}
+.guide-phone{position:relative;height:316rpx;max-width:230rpx;box-sizing:border-box;margin:auto;padding:12rpx 14rpx 42rpx;border:3rpx solid #2e342d;border-radius:26rpx;background:#fff;box-shadow:0 8rpx 16rpx #252b2510;text-align:left;overflow:hidden}
+.guide-phone-bar{display:flex;align-items:center;justify-content:space-between;height:15rpx;margin-bottom:14rpx}.guide-phone-bar view{width:44rpx;height:7rpx;border-radius:9rpx;background:#2e342d}.guide-phone-bar text{font-size:15rpx;color:#70786c}
+.guide-phone-screen-title{font-size:19rpx;font-weight:650;line-height:1.35;text-align:center;margin-bottom:16rpx;overflow-wrap:anywhere}
+.guide-phone-search{display:flex;align-items:center;gap:6rpx;padding:9rpx 6rpx;border-radius:7rpx;background:#f0f3eb;font-size:13rpx;line-height:1.35;color:#66715c}.guide-phone-results{display:flex;gap:10rpx;margin-top:22rpx;align-items:center}.guide-phone-results>view:last-child{flex:1;min-width:0}.guide-phone-results text{display:block;font-size:13rpx;line-height:1.5;color:#66715c;margin-top:8rpx}
+.guide-mini-cover{width:62rpx;height:62rpx;flex:none;background:linear-gradient(145deg,#c9dd9c 0%,#65855c 58%,#e6e9df 59%);border-radius:4rpx}.guide-mini-line{height:5rpx;margin:10rpx 0;background:#d8ded0;border-radius:3rpx;width:100%}.guide-mini-line.short{width:65%}
+.guide-phone-fields>view{margin-bottom:15rpx}.guide-phone-fields text{font-size:15rpx;color:#687261;line-height:1.35}.guide-phone-fields .guide-mini-line{margin:8rpx 0 0}
+.guide-phone-button{position:absolute;bottom:15rpx;left:14rpx;right:14rpx;min-height:29rpx;display:flex;align-items:center;justify-content:center;padding:3rpx 5rpx;background:#d1ff66;border-radius:9rpx;font-size:15rpx;line-height:1.2;color:#171a17;text-align:center;box-sizing:border-box}
+.guide-phone-saved{text-align:center;margin-top:28rpx}.guide-phone-saved>view:first-child{width:62rpx;height:62rpx;margin:0 auto 12rpx;background:#d1ff66;border-radius:50%;font-size:42rpx;line-height:62rpx}.guide-phone-saved text{font-size:17rpx}.guide-phone-saved .guide-mini-line{margin:14rpx auto;width:70%}.guide-phone-saved .guide-mini-line.short{width:40%}
+.guide-phone-art .guide-mini-cover{width:98rpx;height:98rpx;margin:0 auto 12rpx}.guide-phone-art .guide-mini-line{width:80%;margin:8rpx auto}.guide-phone-art .guide-mini-line.short{width:52%}.guide-phone-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6rpx;margin-top:12rpx}.guide-phone-actions text{padding:5rpx 2rpx;text-align:center;background:#f0f3eb;border-radius:6rpx;font-size:12rpx;line-height:1.3;overflow-wrap:anywhere}
+.guide-phone-art.is-poster{background:#23291f;padding:10rpx 8rpx 0}.is-poster .guide-mini-cover{width:74rpx;height:74rpx}.is-poster .guide-mini-line{background:#70785e}.guide-mini-code{background:#c3ed60;text-align:center;font-size:30rpx;line-height:35rpx;color:#344623;margin-top:8rpx}.guide-phone-link{padding:16rpx 6rpx;background:#f0f3eb;border-radius:10rpx}.guide-phone-link>text{display:block;font-size:17rpx;line-height:1.6}.guide-phone-link>text:first-child{font-size:34rpx;color:#657a45}
+.guide-phone-caption{font-size:21rpx;line-height:1.5;margin-top:12rpx;color:#4d5945;overflow-wrap:anywhere}.guide-phone-next{position:absolute;right:-28rpx;top:174rpx;color:#70894d;font-size:28rpx}

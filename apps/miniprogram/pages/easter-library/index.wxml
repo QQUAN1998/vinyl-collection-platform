@@ -1,38 +1,39 @@
-<view class="screen easter-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen easter-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">更多收藏</view>
+    <view class="screen-title">{{i18n.t('更多收藏',uiLanguage)}}</view>
     <view class="screen-kicker">MORE</view>
   </view>
 
   <view wx:if="{{!unlocked}}" class="password-panel">
     <view class="password-kicker">PRIVATE</view>
-    <view class="password-title">输入密码</view>
-    <view class="password-copy">验证通过后可以查看固定唱片库，并选择加入自己的唱片柜。</view>
+    <view class="password-title">{{i18n.t('输入密码',uiLanguage)}}</view>
+    <view class="password-copy">{{i18n.t('验证通过后可以查看固定唱片库，并选择加入自己的唱片柜。',uiLanguage)}}</view>
     <input
       class="password-input"
       password="{{true}}"
       maxlength="8"
-      placeholder="请输入密码"
+      placeholder="{{i18n.t('请输入密码',uiLanguage)}}"
       value="{{password}}"
       bindinput="handlePasswordInput"
       bindconfirm="unlockLibrary"
     />
-    <view class="password-button" bindtap="unlockLibrary" hover-class="button-hover">进入</view>
+    <view class="password-button" bindtap="unlockLibrary" hover-class="button-hover">{{i18n.t('进入',uiLanguage)}}</view>
   </view>
 
   <block wx:else>
     <view class="library-summary">
       <view>
-        <view class="library-title">隐藏唱片库</view>
-        <view class="library-copy">共 {{totalCount}} 张 · 未收藏 {{uncollectedCount}} 张</view>
+        <view class="library-title">{{i18n.t('隐藏唱片库',uiLanguage)}}</view>
+        <view class="library-copy">{{i18n.t('共',uiLanguage)}} {{totalCount}} {{i18n.t(i18n.t('张',uiLanguage),uiLanguage)}} · {{i18n.t(i18n.t('未收藏',uiLanguage),uiLanguage)}} {{uncollectedCount}} {{i18n.t('张',uiLanguage)}}</view>
       </view>
-      <view class="library-pill">已解锁</view>
+      <view class="library-pill">{{i18n.t('已解锁',uiLanguage)}}</view>
     </view>
 
     <view class="library-search">
       <input
         class="library-search-input"
-        placeholder="搜唱片 / 艺人 / 年份"
+        placeholder="{{i18n.t('搜唱片 / 艺人 / 年份',uiLanguage)}}"
         value="{{query}}"
         bindinput="handleQueryInput"
       />
@@ -40,14 +41,14 @@
     </view>
 
     <view class="action-grid">
-      <view class="action-button secondary" bindtap="selectVisibleAlbums" hover-class="button-hover">选中当前结果</view>
-      <view class="action-button secondary" bindtap="clearSelection" hover-class="button-hover">清空选择</view>
-      <view class="action-button primary" bindtap="collectAll" hover-class="button-hover">一键收藏全部</view>
+      <view class="action-button secondary" bindtap="selectVisibleAlbums" hover-class="button-hover">{{i18n.t('选中当前结果',uiLanguage)}}</view>
+      <view class="action-button secondary" bindtap="clearSelection" hover-class="button-hover">{{i18n.t('清空选择',uiLanguage)}}</view>
+      <view class="action-button primary" bindtap="collectAll" hover-class="button-hover">{{i18n.t('一键收藏全部',uiLanguage)}}</view>
     </view>
 
     <view class="section-head library-head">
-      <view class="section-title">选择要加入的唱片</view>
-      <view class="caption">{{visibleCount}} 条</view>
+      <view class="section-title">{{i18n.t('选择要加入的唱片',uiLanguage)}}</view>
+      <view class="caption">{{visibleCount}} {{i18n.t('条',uiLanguage)}}</view>
     </view>
 
     <view class="album-list">
@@ -65,12 +66,13 @@
 
     <view class="sticky-actions">
       <view class="sticky-copy">
-        <view class="sticky-title">已选择 {{selectedCount}} 张</view>
-        <view class="sticky-subtitle">{{progressText || '可选择部分收藏，也可以一键收藏全部'}}</view>
+        <view class="sticky-title">{{i18n.t('已选择',uiLanguage)}} {{selectedCount}} {{i18n.t('张',uiLanguage)}}</view>
+        <view class="sticky-subtitle">{{progressText || i18n.t('可选择部分收藏，也可以一键收藏全部',uiLanguage)}}</view>
       </view>
       <view class="sticky-button {{selectedCount ? '' : 'is-disabled'}}" bindtap="collectSelected" hover-class="button-hover">
-        加入收藏
+        {{i18n.t('加入收藏',uiLanguage)}}
       </view>
     </view>
   </block>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>

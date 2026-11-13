@@ -1,1 +1,8 @@
-{}
+{
+  "usingComponents": {
+    "space-header": "/components/space-header/index",
+    "detail-sheet": "/pages/album-detail/sheet",
+    "home-dock": "/components/home-dock/index"
+  },
+  "navigationStyle": "custom"
+}

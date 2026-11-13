@@ -20,9 +20,9 @@
   ],
   "window": {
     "navigationBarTitleText": "唱片柜",
-    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#f5f6f2",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#edf1f5"
+    "backgroundColor": "#f5f6f2"
   },
   "usingComponents": {
     "album-row": "/components/album-row/index",
@@ -33,5 +33,24 @@
     "state-view": "/components/state-view/index"
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "subPackages": [
+    {
+      "root": "packages/live-archive",
+      "pages": [
+        "pages/index/index",
+        "pages/edit/edit",
+        "pages/detail/detail"
+      ]
+    }
+  ],
+  "lazyCodeLoading": "requiredComponents",
+  "preloadRule": {
+    "pages/cabinet/index": {
+      "network": "all",
+      "packages": [
+        "packages/live-archive"
+      ]
+    }
+  }
 }

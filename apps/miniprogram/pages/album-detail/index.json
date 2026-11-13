@@ -2,5 +2,6 @@
   "navigationBarTitleText": "专辑详情",
   "usingComponents": {
     "media-format-selector": "/components/media-format-selector/index"
-  }
+  },
+  "navigationStyle": "custom"
 }

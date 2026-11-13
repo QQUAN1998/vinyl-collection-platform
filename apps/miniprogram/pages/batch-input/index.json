@@ -1,3 +1,4 @@
 {
-  "navigationBarTitleText": "批量输入"
+  "navigationBarTitleText": "批量输入",
+  "navigationStyle": "custom"
 }

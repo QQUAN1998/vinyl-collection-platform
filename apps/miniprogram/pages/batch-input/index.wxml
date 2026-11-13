@@ -1,7 +1,8 @@
-<view class="screen batch-input-screen {{themeClass}}" style="{{themeStyle}}">
+<wxs module="i18n" src="../../ui/locale.wxs"/><page-meta root-background-color="#f5f6f2" background-color="#f5f6f2" background-color-top="#f5f6f2" background-color-bottom="#f5f6f2" page-style="background:#f5f6f2;min-height:100vh;"/>
+<view class="{{uiThemeClass}} screen batch-input-screen {{themeClass}}" style="padding-top:{{uiChromeHeight}}px!important;{{themeStyle}};{{uiThemeStyle}}">
   <view class="screen-header">
-    <view class="screen-title">批量输入</view>
-    <view class="screen-kicker">BATCH</view>
+    <view class="screen-title">{{i18n.t('批量输入',uiLanguage)}}</view>
+    
   </view>
 
   <form-field
@@ -12,7 +13,7 @@
     bind:change="handleBatchText"
   />
 
-  <view class="caption batch-helper">一行一张唱片，支持「艺人 - 专辑名」。</view>
+  <view class="caption batch-helper">{{i18n.t('一行一张唱片，支持「艺人 - 专辑名」。',uiLanguage)}}</view>
 
   <state-view
     wx:if="{{duplicateLines.length}}"
@@ -28,5 +29,6 @@
     description="{{errorMessage}}"
   />
 
-  <view class="primary-button bottom-action" bindtap="goResults" hover-class="button-hover">匹配唱片</view>
+  <view class="primary-button bottom-action" bindtap="goResults" hover-class="button-hover">{{i18n.t('匹配唱片',uiLanguage)}}</view>
 </view>
+<button class="{{uiThemeClass}} ui-form-back" style="{{uiThemeStyle}}" bindtap="uiPageBack" aria-label="{{i18n.t('返回',uiLanguage)}}"><image src="/assets/ui/back.svg"/></button>
